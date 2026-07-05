@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0a0a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>GAURANGA - Agent Alpha</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Biometric Lock Screen -->
+    <div id="lockScreen" class="lock-screen">
+        <div class="lock-content">
+            <div class="gaurangga-logo">
+                <div class="logo-ring">
+                    <div class="logo-inner">
+                        <span>GA</span>
+                    </div>
+                </div>
+            </div>
+            <h1>GAURANGA</h1>
+            <p>Agent Alpha v1.0</p>
+            <div class="biometric-buttons">
+                <button class="bio-btn" onclick="authenticate('voice')">
+                    <i class="fas fa-microphone"></i>
+                    <span>Voice ID</span>
+                </button>
+                <button class="bio-btn" onclick="authenticate('fingerprint')">
+                    <i class="fas fa-fingerprint"></i>
+                    <span>Fingerprint</span>
+                </button>
+                <button class="bio-btn" onclick="authenticate('face')">
+                    <i class="fas fa-face-smile"></i>
+                    <span>Face ID</span>
+                </button>
+            </div>
+            <p class="lock-status" id="lockStatus">Tap untuk autentikasi</p>
+            <div class="demo-section" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border);">
+                <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 10px;">DEMO MODE</p>
+                <button class="bio-btn" onclick="demoLogin()" style="background: var(--primary); border-color: var(--primary);">
+                    <i class="fas fa-rocket"></i>
+                    <span>🔓 Demo Login (Skip Auth)</span>
+                </button>
+            </div>
+        </div>
+        <div class="security-badge">
+            <i class="fas fa-shield-halved"></i>
+            <span>Secure Enclave Protected</span>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="mainApp" class="main-app hidden">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-left">
+                <div class="user-profile" onclick="showProfile()">
+                    <div class="avatar">
+                        <span>👑</span>
+                    </div>
+                    <div class="user-info">
+                        <span class="greeting" id="greeting">Selamat Pagi</span>
+                        <span class="user-name">Pak Pur</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="header-btn" onclick="toggleMode()">
+                    <i class="fas fa-briefcase" id="modeIcon"></i>
+                </button>
+                <button class="header-btn" onclick="showSettings()">
+                    <i class="fas fa-gear"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Progress HUD (Full Screen) -->
+        <div id="progressHUD" class="progress-hud hidden">
+            <div class="hud-content">
+                <div class="hud-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h2 id="hudTitle">Memproses...</h2>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <span class="progress-percent" id="progressPercent">0%</span>
+                </div>
+                <p class="hud-status" id="hudStatus">Menganalisis...</p>
+            </div>
+        </div>
+
+        <!-- Chat Container -->
+        <main class="chat-container" id="chatContainer">
+            <div class="chat-messages" id="chatMessages">
+                <!-- Welcome Message -->
+                <div class="message bot-message">
+                    <div class="message-avatar">
+                        <span>🤖</span>
+                    </div>
+                    <div class="message-content">
+                        <div class="message-text">
+                            <p>🛡️ <strong>GAURANGA - Agent Alpha</strong> aktif dan siap melayani, Pak Pur!</p>
+                            <p>Saya adalah asisten AI dengan kapabilitas Self-Learning yang didedikasikan untuk Anda.</p>
+                            <p>Silakan berikan perintah atau bertanya apa saja. 🔥</p>
+                        </div>
+                        <div class="message-time" id="welcomeTime"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions" id="quickActions">
+            <button class="quick-btn" onclick="quickAction('laporan')">
+                <i class="fas fa-file-lines"></i>
+                <span>Laporan</span>
+            </button>
+            <button class="quick-btn" onclick="quickAction('jadwal')">
+                <i class="fas fa-calendar"></i>
+                <span>Jadwal</span>
+            </button>
+            <button class="quick-btn" onclick="quickAction('skill')">
+                <i class="fas fa-brain"></i>
+                <span>Skill</span>
+            </button>
+            <button class="quick-btn" onclick="quickAction('notifikasi')">
+                <i class="fas fa-bell"></i>
+                <span>Notif</span>
+            </button>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-area">
+            <div class="input-container">
+                <input type="text" id="chatInput" placeholder="Ketik perintah untuk GAURANGA..." onkeypress="handleKeyPress(event)">
+                <button class="voice-btn" onclick="startVoiceInput()">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button class="send-btn" onclick="sendMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mode Indicator -->
+        <div class="mode-indicator" id="modeIndicator">
+            <i class="fas fa-briefcase"></i>
+            <span>Mode Eksekutif</span>
+        </div>
+    </div>
+
+    <!-- Settings Panel -->
+    <div id="settingsPanel" class="settings-panel hidden">
+        <div class="panel-header">
+            <button class="back-btn" onclick="hideSettings()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h2>Pengaturan</h2>
+        </div>
+        <div class="settings-content">
+            <div class="setting-item">
+                <label>
+                    <i class="fas fa-language"></i>
+                    Bahasa
+                </label>
+                <select id="languageSelect">
+                    <option value="id">Indonesia</option>
+                    <option value="en">English</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <label>
+                    <i class="fas fa-volume-high"></i>
+                    Suara
+                </label>
+                <input type="range" min="0" max="100" value="80" id="volumeSlider">
+            </div>
+            <div class="setting-item">
+                <label>
+                    <i class="fas fa-shield-halved"></i>
+                    Biometric Auth
+                </label>
+                <label class="switch">
+                    <input type="checkbox" checked id="bioAuthToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="setting-item">
+                <label>
+                    <i class="fas fa-bell"></i>
+                    Notifikasi
+                </label>
+                <label class="switch">
+                    <input type="checkbox" checked id="notifToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="setting-item">
+                <label>
+                    <i class="fas fa-database"></i>
+                    Data Lokal
+                </label>
+                <span class="setting-value" id="storageInfo">Encrypting...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Panel -->
+    <div id="profilePanel" class="profile-panel hidden">
+        <div class="panel-header">
+            <button class="back-btn" onclick="hideProfile()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h2>Profil</h2>
+        </div>
+        <div class="profile-content">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <span>👑</span>
+                </div>
+                <h3>I Made Purna Ananda</h3>
+                <p>CEO - MAHA LAKSHMI CORP</p>
+            </div>
+            <div class="profile-stats">
+                <div class="stat-item">
+                    <span class="stat-value">1.0</span>
+                    <span class="stat-label">Agent Version</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">40+</span>
+                    <span class="stat-label">Skills Learned</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">∞</span>
+                    <span class="stat-label">Loyalty</span>
+                </div>
+            </div>
+            <div class="family-section">
+                <h4><i class="fas fa-users"></i> Keluarga</h4>
+                <div class="family-list">
+                    <div class="family-item">
+                        <span class="family-icon">👩</span>
+                        <span>Bunda Lila (Ibu Ni Wayan Lestiani)</span>
+                    </div>
+                    <div class="family-item">
+                        <span class="family-icon">👦</span>
+                        <span>Putu Gaurangga Vishnu Bhakta</span>
+                    </div>
+                    <div class="family-item">
+                        <span class="family-icon">👦</span>
+                        <span>Kadek Srutakirti</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skills Panel -->
+    <div id="skillsPanel" class="skills-panel hidden">
+        <div class="panel-header">
+            <button class="back-btn" onclick="hideSkills()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h2>Skills Library</h2>
+        </div>
+        <div class="skills-content" id="skillsList">
+            <!-- Skills will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="notificationToast" class="notification-toast hidden">
+        <div class="toast-content">
+            <i class="fas fa-info-circle"></i>
+            <span id="toastMessage">Notifikasi</span>
+        </div>
+    </div>
+
+    <script src="js/gauranga-agent.js"></script>
+</body>
+</html>
