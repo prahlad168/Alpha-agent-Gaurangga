@@ -128,8 +128,16 @@ function initApp() {
     
     // Check for biometric support
     if (!window.PublicKeyCredential) {
-        document.querySelector('.lock-status').textContent = 'Biometric tidak tersedia di browser ini';
+        document.querySelector('.lock-status').textContent = 'Biometric tidak tersedia - gunakan Demo Login';
     }
+}
+
+// Demo Login - Skip biometric for demo purposes
+function demoLogin() {
+    GaurangaState.isAuthenticated = true;
+    GaurangaState.biometricType = 'demo';
+    showMainApp();
+    speak("Demo login berhasil. Selamat datang, Pak Pur!");
 }
 
 // Set Welcome Time
