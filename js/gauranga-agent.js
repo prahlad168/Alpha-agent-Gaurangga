@@ -908,20 +908,6 @@ function startVoiceInput() {
 }
 
 // ============================================
-// TEXT-TO-SPEECH
-// ============================================
-
-function speak(text) {
-    if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'id-ID';
-        utterance.rate = 1;
-        utterance.pitch = 1;
-        speechSynthesis.speak(utterance);
-    }
-}
-
-// ============================================
 // TYPING INDICATOR
 // ============================================
 
