@@ -1,8 +1,125 @@
 /**
- * GAURANGA - Agent Alpha
+ * GAURANGA - Agent Alpha v2.0
  * Super Agent with Self-Learning Capabilities
  * Dedicated to: I Made Purna Ananda (Pak Pur)
+ * 
+ * FITUR: Voice Response + Animated Avatar
  */
+
+// ============================================
+// GAURANGA AVATAR SVG (Animated Character)
+// ============================================
+const GAURANGA_AVATAR_SVG = `
+<div class="gauranga-avatar-container">
+    <svg class="gauranga-avatar" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <!-- Halo/Aura -->
+        <circle cx="50" cy="50" r="45" fill="none" stroke="url(#haloGradient)" stroke-width="3" opacity="0.6">
+            <animate attributeName="r" values="42;48;42" dur="2s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite"/>
+        </circle>
+        <defs>
+            <linearGradient id="haloGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#6366f1"/>
+                <stop offset="50%" style="stop-color:#8b5cf6"/>
+                <stop offset="100%" style="stop-color:#f472b6"/>
+            </linearGradient>
+        </defs>
+        
+        <!-- Face Circle -->
+        <circle cx="50" cy="50" r="35" fill="url(#faceGradient)"/>
+        <defs>
+            <linearGradient id="faceGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#4f46e5"/>
+                <stop offset="100%" style="stop-color:#7c3aed"/>
+            </linearGradient>
+        </defs>
+        
+        <!-- Eyes -->
+        <ellipse cx="38" cy="45" rx="6" ry="7" fill="white"/>
+        <ellipse cx="62" cy="45" rx="6" ry="7" fill="white"/>
+        <circle cx="38" cy="46" r="3" fill="#0a0a0a" id="leftPupil">
+            <animate attributeName="cx" values="38;40;38;36;38" dur="4s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="62" cy="46" r="3" fill="#0a0a0a" id="rightPupil">
+            <animate attributeName="cx" values="62;64;62;60;62" dur="4s" repeatCount="indefinite"/>
+        </circle>
+        
+        <!-- Smile -->
+        <path d="M 35 58 Q 50 70 65 58" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
+        
+        <!-- Crown/Logo -->
+        <text x="50" y="25" text-anchor="middle" font-size="16" fill="#fbbf24" font-weight="bold">GA</text>
+    </svg>
+</div>
+`;
+
+// ============================================
+// ENHANCED SPEAK FUNCTION WITH VOICE
+// ============================================
+let voiceEnabled = true;
+let lastSpokenText = "";
+
+function speak(text, forceSpeak = false) {
+    if (!voiceEnabled && !forceSpeak) return;
+    
+    // Cancel any ongoing speech
+    if ('speechSynthesis' in window) {
+        speechSynthesis.cancel();
+    }
+    
+    lastSpokenText = text;
+    
+    // Show speaking animation
+    showSpeakingAnimation();
+    
+    // Use Web Speech API
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'id-ID';
+        utterance.rate = 0.95;
+        utterance.pitch = 1.1;
+        utterance.volume = 1;
+        
+        // Try to find Indonesian voice
+        const voices = speechSynthesis.getVoices();
+        const indonesianVoice = voices.find(v => v.lang.includes('id'));
+        if (indonesianVoice) {
+            utterance.voice = indonesianVoice;
+        }
+        
+        utterance.onstart = () => {
+            document.querySelector('.gauranga-avatar')?.classList.add('speaking');
+        };
+        
+        utterance.onend = () => {
+            document.querySelector('.gauranga-avatar')?.classList.remove('speaking');
+            hideSpeakingAnimation();
+        };
+        
+        utterance.onerror = () => {
+            hideSpeakingAnimation();
+        };
+        
+        // Small delay for mobile browsers (require user interaction first)
+        setTimeout(() => {
+            speechSynthesis.speak(utterance);
+        }, 100);
+    }
+}
+
+function showSpeakingAnimation() {
+    const avatar = document.querySelector('.gauranga-avatar');
+    if (avatar) {
+        avatar.classList.add('speaking');
+    }
+}
+
+function hideSpeakingAnimation() {
+    const avatar = document.querySelector('.gauranga-avatar');
+    if (avatar) {
+        avatar.classList.remove('speaking');
+    }
+}
 
 // ============================================
 // MASTER SYSTEM PROMPT - GAURANGA
@@ -214,10 +331,30 @@ function showMainApp() {
     document.getElementById('lockScreen').classList.add('hidden');
     document.getElementById('mainApp').classList.remove('hidden');
     
-    // Add welcome notification
+    // Welcome with voice
     setTimeout(() => {
+        speak("Selamat datang, Pak Pur! Saya GAURANGA, Agent Alpha. Ada yang bisa saya bantu?");
         showNotification('🛡️ GAURANGA Agent Alpha aktif!');
     }, 500);
+}
+
+// ============================================
+// VOICE TOGGLE
+// ============================================
+function toggleVoice() {
+    voiceEnabled = !voiceEnabled;
+    const voiceToggle = document.getElementById('voiceToggle');
+    const voiceIcon = voiceToggle.querySelector('i');
+    
+    if (voiceEnabled) {
+        voiceIcon.className = 'fas fa-volume-high';
+        voiceToggle.style.color = 'var(--text-primary)';
+        speak("Suara diaktifkan!");
+    } else {
+        voiceIcon.className = 'fas fa-volume-xmark';
+        voiceToggle.style.color = 'var(--text-muted)';
+        showNotification('🔇 Suara dimatikan');
+    }
 }
 
 // ============================================
