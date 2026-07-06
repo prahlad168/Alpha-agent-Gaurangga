@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0a0a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>GAURANGA - Shortcut</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+            max-width: 400px;
+        }
+        .logo {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            color: #888;
+            margin-bottom: 40px;
+            font-size: 14px;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 18px 24px;
+            margin: 15px 0;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: #fff;
+        }
+        .btn-primary:active {
+            transform: scale(0.98);
+            background: linear-gradient(135deg, #0099cc, #007799);
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .btn-secondary:active {
+            background: rgba(255,255,255,0.2);
+        }
+        .status {
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(0,212,255,0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(0,212,255,0.3);
+        }
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        .status-label {
+            color: #888;
+        }
+        .status-value {
+            color: #00d4ff;
+            font-weight: 600;
+        }
+        .online {
+            color: #00ff00 !important;
+        }
+        .version {
+            margin-top: 30px;
+            color: #555;
+            font-size: 12px;
+        }
+        .install-hint {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255,193,7,0.1);
+            border-radius: 8px;
+            font-size: 12px;
+            color: #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🤖</div>
+        <h1>ALPHA GAURANGA</h1>
+        <p class="subtitle">Agent Alpha - System Agent</p>
+        
+        <button class="btn btn-primary" onclick="launchApp()">
+            🚀 START GAURANGA
+        </button>
+        
+        <button class="btn btn-secondary" onclick="openSettings()">
+            ⚙️ SETTINGS
+        </button>
+        
+        <div class="status">
+            <div class="status-item">
+                <span class="status-label">Status</span>
+                <span class="status-value online">● ONLINE</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Owner</span>
+                <span class="status-value">Pak Pur</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Company</span>
+                <span class="status-value">Maha Lakshmi</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">SBU Active</span>
+                <span class="status-value">10</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Security</span>
+                <span class="status-value">🔐 Multi-Layer</span>
+            </div>
+        </div>
+        
+        <div class="install-hint">
+            💡 Untuk Add to Home Screen: Klik menu browser → Add to Home Screen
+        </div>
+        
+        <p class="version">Version 1.0.0 | © 2026 GAURANGA Team</p>
+    </div>
+
+    <script>
+        // Configuration
+        const APP_URL = 'index.html';
+        const APP_NAME = 'Alpha Gauranga';
+        
+        // Launch main app
+        function launchApp() {
+            window.location.href = APP_URL;
+        }
+        
+        // Open settings
+        function openSettings() {
+            window.location.href = APP_URL + '#settings';
+        }
+        
+        // Check if running as standalone/PWA
+        if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) {
+            // Running as PWA
+            console.log('Running as PWA');
+        }
+        
+        // Register service worker for offline support
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(e => {
+                console.log('SW registration failed:', e);
+            });
+        }
+        
+        // Prevent back navigation
+        history.pushState(null, '', location.href);
+        window.addEventListener('popstate', () => {
+            history.pushState(null, '', location.href);
+        });
+        
+        // Auto-launch if this is the first visit
+        const visited = localStorage.getItem('gauranga_visited');
+        if (!visited && window.location.hash === '') {
+            // First visit - show this page
+            localStorage.setItem('gauranga_visited', 'true');
+        }
+    </script>
+</body>
+</html>

@@ -1204,6 +1204,63 @@ sendMessage = function() {
     originalSendMessage();
 };
 
+// ==========================================
+// PWA / SHORTCUT INSTALLATION
+// ==========================================
+
+let deferredPrompt;
+let isAppInstalled = false;
+
+// Detect if running as PWA
+if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+    isAppInstalled = true;
+}
+
+// Capture install prompt
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    console.log('Install prompt captured');
+    
+    // Show install button
+    const installBtn = document.getElementById('installShortcutBtn');
+    if (installBtn) {
+        installBtn.style.display = 'block';
+    }
+});
+
+// App installed
+window.addEventListener('appinstalled', () => {
+    isAppInstalled = true;
+    deferredPrompt = null;
+    showNotification('✅ Alpha Gauranga berhasil diinstall!');
+});
+
+function installShortcut() {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                showNotification('✅ Alpha Gauranga berhasil diinstall!');
+            } else {
+                showNotification('ℹ️ Install dibatalkan');
+            }
+            deferredPrompt = null;
+        });
+    } else if (isAppInstalled) {
+        showNotification('ℹ️ Alpha Gauranga sudah terinstall');
+    } else {
+        showNotification('📱 Buka menu browser → Add to Home Screen');
+        alert('Cara Install Alpha Gaurangga:\n\n1. Buka menu browser (titik tiga)\n2. Pilih "Add to Home Screen"\n3. Klik "Add"\n\nSetelah terinstall, Alpha Gauranga bisa dibuka langsung dari layar utama HP!');
+    }
+}
+
+function checkInstallStatus() {
+    if (isAppInstalled) return 'installed';
+    if (deferredPrompt) return 'available';
+    return 'not-available';
+}
+
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', initApp);
 
@@ -1220,5 +1277,6 @@ window.GaurangaSystem = {
     hideMemoryPanel,
     exportMemory,
     importMemory,
-    updateMemoryStats
+    updateMemoryStats,
+    installShortcut
 };
