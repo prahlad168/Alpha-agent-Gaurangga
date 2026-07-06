@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0a0a0a">
+    <title>🤖 Alpha Gaurangga - 1-Click Install</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            padding: 20px;
+        }
+        .container {
+            max-width: 500px;
+            text-align: center;
+        }
+        .logo { font-size: 100px; margin-bottom: 20px; animation: float 3s ease-in-out infinite; }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle { color: #888; margin-bottom: 30px; }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 20px;
+            margin: 15px 0;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        .btn-install {
+            background: linear-gradient(135deg, #00ff88, #00cc66);
+            color: #000;
+            animation: glow 2s infinite;
+        }
+        .btn-install:active { transform: scale(0.98); }
+        .btn-web {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(0,255,136,0.5); }
+            50% { box-shadow: 0 0 40px rgba(0,255,136,0.8), 0 0 60px rgba(0,255,136,0.4); }
+        }
+        .info {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(0,212,255,0.1);
+            border-radius: 15px;
+            text-align: left;
+            font-size: 14px;
+            color: #aaa;
+        }
+        .info h3 { color: #00d4ff; margin-bottom: 10px; }
+        .status { margin-top: 20px; padding: 15px; border-radius: 10px; display: none; }
+        .status.loading { background: rgba(255,193,7,0.2); color: #ffc107; display: block; }
+        .status.success { background: rgba(0,255,136,0.2); color: #00ff88; display: block; }
+        .status.error { background: rgba(255,68,68,0.2); color: #ff4444; display: block; }
+        .version { color: #555; margin-top: 20px; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🤖</div>
+        <h1>ALPHA GAURANGA</h1>
+        <p class="subtitle">System Agent Alpha - 1-Click Install</p>
+        
+        <!-- 1-CLICK INSTALL BUTTON -->
+        <a href="termux://command/?command=pkg+update+%26%26+pkg+upgrade+-y+%26%26+pkg+install+python+git+nodejs+-y+%26%26+cd+~%2Fstorage%2Fshared+%26%26+git+clone+https%3A%2F%2Fgithub.com%2Fprahlad168%2FAlpha-agent-Gaurangga.git+%26%26+cd+Alpha-agent-Gaurangga%2Fsystem-agent+%26%26+pip+install+-r+requirements.txt+%26%26+python3+gauranga_agent.py+--always-on"
+           class="btn btn-install"
+           onclick="startInstall()">
+            🚀 INSTALL SEKARANG (1 KLIK)
+        </a>
+        
+        <!-- FALLBACK: Manual Copy -->
+        <button class="btn btn-web" onclick="copyCommand()">
+            📋 Copy Command + Buka Termux
+        </button>
+        
+        <!-- Web Version Button -->
+        <a href="android-app/index.html" class="btn btn-web" style="background: rgba(0,212,255,0.1); border-color: #00d4ff;">
+            🌐 Buka Versi Web (Tanpa Install)
+        </a>
+        
+        <!-- Status Display -->
+        <div id="status" class="status"></div>
+        
+        <!-- Info -->
+        <div class="info">
+            <h3>📱 Cara Install Otomatis:</h3>
+            <p>1. Pastikan <strong>Termux</strong> sudah terinstall</p>
+            <p>2. Klik tombol <strong>🚀 INSTALL SEKARANG</strong></p>
+            <p>3. Tunggu proses selesai (~5 menit)</p>
+            <p>4. Ketik <code>tes suara</code> untuk test</p>
+            <br>
+            <h3>📥 Download Termux:</h3>
+            <p>Kunjungi: <strong>f-droid.org</strong> (BUKAN Play Store)</p>
+        </div>
+        
+        <p class="version">Version 1.0.0 | © 2026 GAURANGA Team | Pak Pur</p>
+    </div>
+
+    <script>
+        // Install command
+        const installCommand = 'pkg update && pkg upgrade -y && pkg install python git nodejs -y && cd ~/storage/shared && git clone https://github.com/prahlad168/Alpha-agent-Gaurangga.git && cd Alpha-agent-Gaurangga/system-agent && pip install -r requirements.txt && python3 gauranga_agent.py --always-on';
+        
+        // Copy command function
+        function copyCommand() {
+            navigator.clipboard.writeText(installCommand).then(() => {
+                showStatus('success', '✅ Command dicopy! Buka Termux & paste');
+                // Try to open Termux
+                window.location.href = 'termux://command/';
+            }).catch(() => {
+                showStatus('error', '❌ Gagal copy. Buka Termux & ketik manual');
+            });
+        }
+        
+        // Start install
+        function startInstall() {
+            showStatus('loading', '⏳ Mengarahkan ke Termux...');
+            
+            // The href will handle the actual navigation
+            setTimeout(() => {
+                showStatus('success', '✅ Install dimulai di Termux!');
+            }, 1000);
+        }
+        
+        // Show status message
+        function showStatus(type, message) {
+            const status = document.getElementById('status');
+            status.className = 'status ' + type;
+            status.textContent = message;
+        }
+        
+        // Check if Android
+        function checkDevice() {
+            const isAndroid = /Android/i.test(navigator.userAgent);
+            if (!isAndroid) {
+                showStatus('error', '⚠️ Buka di HP Android untuk install otomatis');
+            }
+        }
+        
+        // Initialize
+        checkDevice();
+    </script>
+</body>
+</html>
