@@ -5,7 +5,7 @@ Main agent logic with autonomous capabilities
 
 import time
 from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass, field
 
 @dataclass
@@ -34,9 +34,10 @@ class GaurangaAgent:
     Main GAURANGA Agent with System-level capabilities
     """
     
-    def __init__(self, config, memory, intent_classifier, skill_manager, llm, stt, tts):
+    def __init__(self, config, memory, intent_classifier, skill_manager, llm, stt, tts, local_memory=None):
         self.config = config
         self.memory = memory
+        self.local_memory = local_memory  # Local Memory Manager for on-device storage
         self.intent_classifier = intent_classifier
         self.skill_manager = skill_manager
         self.llm = llm
@@ -336,3 +337,176 @@ Context Summary:
     def execute_task(self, task: str) -> str:
         """Execute a specific task"""
         return self.process(task)["response"]
+    
+    # ==========================================
+    # LOCAL MEMORY OPERATIONS
+    # ==========================================
+    
+    def store_local_memory(
+        self,
+        content: str,
+        memory_type: str = "general",
+        metadata: Dict = None,
+        tags: List[str] = None,
+        priority: int = 2,
+        encrypt: bool = False
+    ) -> str:
+        """
+        Store data in local memory (on-device SQLite)
+        
+        Args:
+            content: Isi memori
+            memory_type: Jenis memori (general, conversation, preference, skill, dll)
+            metadata: Metadata tambahan
+            tags: Tags untuk kategorisasi
+            priority: Prioritas (1-4)
+            encrypt: Apakah perlu dienkripsi
+            
+        Returns:
+            ID memori yang disimpan
+        """
+        if self.local_memory:
+            return self.local_memory.store_memory(
+                content=content,
+                memory_type=memory_type,
+                metadata=metadata,
+                tags=tags,
+                priority=priority,
+                encrypt=encrypt,
+                source="user"
+            )
+        return None
+    
+    def get_local_memory(self, memory_id: str) -> Optional[Dict]:
+        """Get specific memory from local storage"""
+        if self.local_memory:
+            return self.local_memory.get_memory(memory_id)
+        return None
+    
+    def search_local_memory(
+        self,
+        query: str = None,
+        memory_type: str = None,
+        tags: List[str] = None,
+        limit: int = 50
+    ) -> List[Dict]:
+        """Search local memory"""
+        if self.local_memory:
+            return self.local_memory.search_memories(
+                query=query,
+                memory_type=memory_type,
+                tags=tags,
+                limit=limit
+            )
+        return []
+    
+    def store_conversation(
+        self,
+        role: str,
+        content: str,
+        intent: str = "",
+        entities: Dict = None,
+        sentiment: str = "neutral"
+    ) -> str:
+        """Store conversation in local memory"""
+        if self.local_memory:
+            return self.local_memory.store_conversation(
+                role=role,
+                content=content,
+                intent=intent,
+                entities=entities,
+                sentiment=sentiment
+            )
+        return None
+    
+    def get_conversation_history(self, limit: int = 100) -> List[Dict]:
+        """Get conversation history from local memory"""
+        if self.local_memory:
+            return self.local_memory.get_conversation_history(limit=limit)
+        return []
+    
+    def set_local_preference(self, key: str, value: Any, category: str = "general") -> None:
+        """Set user preference in local storage"""
+        if self.local_memory:
+            self.local_memory.set_preference(key, value, category)
+    
+    def get_local_preference(self, key: str, default: Any = None) -> Any:
+        """Get user preference from local storage"""
+        if self.local_memory:
+            return self.local_memory.get_preference(key, default)
+        return default
+    
+    def export_local_memory(
+        self,
+        output_path: str = None,
+        password: str = None,
+        include_sensitive: bool = True
+    ) -> Dict[str, Any]:
+        """
+        EKSPOR DATA MEMORI - ON COMMAND ONLY
+        Fungsi ini hanya aktif ketika pengguna memberikan perintah spesifik
+        
+        Usage:
+        - "gaurangga, ekspor memori"
+        - "gaurangga, backup data"
+        - "gaurangga, pindahkan memori ke file"
+        """
+        if self.local_memory:
+            try:
+                export_path = self.local_memory.export_all_data(
+                    output_path=output_path,
+                    password=password,
+                    include_sensitive=include_sensitive
+                )
+                return {
+                    "status": "success",
+                    "message": f"✅ Memori berhasil diekspor ke: {export_path}",
+                    "path": export_path
+                }
+            except Exception as e:
+                return {
+                    "status": "error",
+                    "message": f"❌ Gagal mengekspor memori: {str(e)}"
+                }
+        return {
+            "status": "error",
+            "message": "❌ Local memory manager not initialized"
+        }
+    
+    def import_local_memory(
+        self,
+        import_path: str,
+        password: str = None,
+        merge: bool = True
+    ) -> Dict[str, Any]:
+        """
+        IMPORT DATA MEMORI - ON COMMAND ONLY
+        Impor data dari file backup terenkripsi
+        """
+        if self.local_memory:
+            try:
+                stats = self.local_memory.import_data(
+                    import_path=import_path,
+                    password=password,
+                    merge=merge
+                )
+                return {
+                    "status": "success",
+                    "message": f"✅ Memori berhasil diimpor!",
+                    "stats": stats
+                }
+            except Exception as e:
+                return {
+                    "status": "error",
+                    "message": f"❌ Gagal mengimpor memori: {str(e)}"
+                }
+        return {
+            "status": "error",
+            "message": "❌ Local memory manager not initialized"
+        }
+    
+    def get_local_storage_info(self) -> Dict[str, Any]:
+        """Get local storage statistics"""
+        if self.local_memory:
+            return self.local_memory.get_storage_info()
+        return {}

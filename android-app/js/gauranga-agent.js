@@ -847,6 +847,167 @@ function loadSkills() {
     }
 }
 
+// ==========================================
+// MEMORY MANAGEMENT PANEL
+// ==========================================
+
+function showMemoryPanel() {
+    document.getElementById('memoryPanel').classList.remove('hidden');
+    updateMemoryStats();
+}
+
+function hideMemoryPanel() {
+    document.getElementById('memoryPanel').classList.add('hidden');
+}
+
+async function updateMemoryStats() {
+    if (window.gaurangaMemory) {
+        const info = await window.gaurangaMemory.getStorageInfo();
+        document.getElementById('memoryCount').textContent = info.totalMemories + ' items';
+        document.getElementById('conversationCount').textContent = info.totalConversations + ' items';
+        document.getElementById('encryptionStatus').textContent = info.encryptionEnabled ? 'Aktif' : 'Nonaktif';
+        document.getElementById('dbSize').textContent = 
+            info.totalMemories + info.totalConversations > 0 ? '~' + Math.ceil((info.totalMemories + info.totalConversations) * 0.5) + ' KB' : '0 KB';
+    }
+}
+
+async function exportMemory() {
+    if (!window.gaurangaMemory) {
+        showNotification('⚠️ Memory Manager belum tersedia');
+        return;
+    }
+    
+    const password = document.getElementById('memoryPassword').value;
+    
+    showNotification('🔐 Memulai ekspor memori...');
+    
+    try {
+        const result = await window.gaurangaMemory.exportData({
+            password: password || null,
+            includeSensitive: true
+        });
+        
+        // Show progress HUD
+        showProgressHUD('Ekspor Memori', 'Mengenkripsi data...');
+        
+        setTimeout(() => {
+            hideProgressHUD();
+            result.download();
+            showNotification('✅ Memori berhasil diekspor!');
+        }, 1500);
+        
+    } catch (error) {
+        hideProgressHUD();
+        showNotification('❌ Gagal mengekspor: ' + error.message);
+    }
+}
+
+async function importMemory(file) {
+    if (!window.gaurangaMemory || !file) {
+        showNotification('⚠️ Memory Manager belum tersedia atau file tidak dipilih');
+        return;
+    }
+    
+    const password = document.getElementById('memoryPassword').value;
+    
+    if (!confirm('Impor data dari file ini? Data akan digabungkan dengan memori yang ada.')) {
+        return;
+    }
+    
+    showProgressHUD('Impor Memori', 'Mendekripsi data...');
+    
+    try {
+        const stats = await window.gaurangaMemory.importData(file, {
+            password: password || null,
+            merge: true
+        });
+        
+        hideProgressHUD();
+        showNotification(`✅ Berhasil impor! ${stats.memoriesImported} memori, ${stats.conversationsImported} percakapan.`);
+        updateMemoryStats();
+        
+    } catch (error) {
+        hideProgressHUD();
+        showNotification('❌ Gagal mengimpor: ' + error.message);
+    }
+    
+    // Reset file input
+    document.getElementById('importFileInput').value = '';
+}
+
+async function cleanupOldData() {
+    if (!window.gaurangaMemory) {
+        showNotification('⚠️ Memory Manager belum tersedia');
+        return;
+    }
+    
+    if (!confirm('Hapus percakapan older dari 30 hari? Tindakan ini tidak dapat dibatalkan.')) {
+        return;
+    }
+    
+    try {
+        const deleted = await window.gaurangaMemory.cleanupOldConversations(30);
+        showNotification(`🗑️ Berhasil menghapus ${deleted} percakapan lama.`);
+        updateMemoryStats();
+    } catch (error) {
+        showNotification('❌ Gagal membersihkan: ' + error.message);
+    }
+}
+
+// ==========================================
+// MEMORY COMMAND HANDLER
+// ==========================================
+
+function handleMemoryCommand(input) {
+    const text = input.toLowerCase();
+    
+    // Check for export command
+    if (MemoryCommands.isExportCommand(text)) {
+        exportMemory();
+        return true;
+    }
+    
+    // Check for import command
+    if (MemoryCommands.isImportCommand(text)) {
+        // Prompt user to select file
+        document.getElementById('importFileInput').click();
+        return true;
+    }
+    
+    // Check for storage info command
+    if (text.includes('info memori') || text.includes('storage') || text.includes('kapasitas')) {
+        updateMemoryStats();
+        showMemoryPanel();
+        return true;
+    }
+    
+    // Check for cleanup command
+    if (text.includes('bersihkan') && (text.includes('memori') || text.includes('data'))) {
+        cleanupOldData();
+        return true;
+    }
+    
+    return false;
+}
+
+// ==========================================
+// ENHANCED SEND MESSAGE
+// ==========================================
+
+const originalSendMessage = sendMessage;
+sendMessage = function() {
+    const input = document.getElementById('chatInput').value.trim();
+    
+    // Check if it's a memory command
+    if (handleMemoryCommand(input)) {
+        document.getElementById('chatInput').value = '';
+        return;
+    }
+    
+    // Otherwise, proceed with normal message handling
+    originalSendMessage();
+};
+
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', initApp);
 
@@ -858,5 +1019,10 @@ window.GaurangaSystem = {
     sendMessage,
     quickAction,
     showProgressHUD,
-    speak
+    speak,
+    showMemoryPanel,
+    hideMemoryPanel,
+    exportMemory,
+    importMemory,
+    updateMemoryStats
 };

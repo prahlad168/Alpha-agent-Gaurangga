@@ -282,6 +282,84 @@
         </div>
     </div>
 
+    <!-- Memory Management Panel -->
+    <div id="memoryPanel" class="settings-panel hidden">
+        <div class="panel-header">
+            <button class="back-btn" onclick="hideMemoryPanel()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h2>💾 Manajemen Memori</h2>
+        </div>
+        <div class="settings-content">
+            <div class="setting-item">
+                <label>
+                    <i class="fas fa-database"></i>
+                    Total Memori
+                </label>
+                <span class="setting-value" id="memoryCount">0 items</span>
+            </div>
+            <div class="setting-item">
+                <label>
+                    <i class="fas fa-comments"></i>
+                    Percakapan
+                </label>
+                <span class="setting-value" id="conversationCount">0 items</span>
+            </div>
+            <div class="setting-item">
+                <label>
+                    <i class="fas fa-shield-halved"></i>
+                    Enkripsi
+                </label>
+                <span class="setting-value" id="encryptionStatus">Aktif</span>
+            </div>
+            <div class="setting-item">
+                <label>
+                    <i class="fas fa-hard-drive"></i>
+                    Ukuran Database
+                </label>
+                <span class="setting-value" id="dbSize">0 MB</span>
+            </div>
+            
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border);">
+                <h3 style="color: var(--text); margin-bottom: 15px;">🔐 Transfer Data</h3>
+                <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 15px;">
+                    Ekspor atau impor data memori secara lokal. Data dienkripsi dengan AES-256.
+                </p>
+            </div>
+            
+            <div class="setting-item">
+                <button class="quick-btn" onclick="exportMemory()" style="width: 100%; background: var(--primary); border-color: var(--primary);">
+                    <i class="fas fa-download"></i>
+                    <span>Ekspor Memori</span>
+                </button>
+            </div>
+            
+            <div class="setting-item">
+                <button class="quick-btn" onclick="document.getElementById('importFileInput').click()" style="width: 100%;">
+                    <i class="fas fa-upload"></i>
+                    <span>Impor Memori</span>
+                </button>
+                <input type="file" id="importFileInput" accept=".gmem" style="display: none;" onchange="importMemory(this.files[0])">
+            </div>
+            
+            <div class="setting-item">
+                <label>
+                    <i class="fas fa-key"></i>
+                    Password (Opsional)
+                </label>
+                <input type="password" id="memoryPassword" placeholder="Password untuk enkripsi" style="width: 100%; padding: 10px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text);">
+            </div>
+            
+            <div class="setting-item" style="margin-top: 20px;">
+                <button class="quick-btn" onclick="cleanupOldData()" style="width: 100%; background: var(--danger); border-color: var(--danger);">
+                    <i class="fas fa-trash"></i>
+                    <span> bersihkan Data Lama</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/local-memory-manager.js"></script>
     <script src="js/gauranga-agent.js"></script>
 </body>
 </html>

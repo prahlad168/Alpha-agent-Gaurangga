@@ -19,6 +19,7 @@ from core.agent import GaurangaAgent
 from core.memory import VectorMemory
 from core.intent import IntentClassifier
 from core.skills import SkillManager
+from core.local_memory_manager import LocalMemoryManager
 
 # AI Engines
 from engine.llm import LLMEngine
@@ -44,6 +45,12 @@ class GaurangaSystemAgent:
         self.stt = STTEngine(self.config)
         self.tts = TTSEngine(self.config)
         
+        # Local Memory Manager - On-Device Storage
+        self.local_memory = LocalMemoryManager(
+            config=self.config.config,
+            storage_path=self.config.get("memory.local_path", "./data/local_memory")
+        )
+        
         # Main agent
         self.agent = GaurangaAgent(
             config=self.config,
@@ -52,7 +59,8 @@ class GaurangaSystemAgent:
             skill_manager=self.skill_manager,
             llm=self.llm,
             stt=self.stt,
-            tts=self.tts
+            tts=self.tts,
+            local_memory=self.local_memory
         )
         
         # State
@@ -83,6 +91,10 @@ class GaurangaSystemAgent:
         self.logger.info("💾 Loading memory...")
         self.memory.load()
         
+        # Initialize Local Memory Manager
+        self.logger.info("💾 Initializing Local Memory Manager...")
+        storage_info = self.local_memory.get_storage_info()
+        
         # Load skills
         self.logger.info("🛠️ Loading skills...")
         self.skill_manager.load_skills()
@@ -91,6 +103,7 @@ class GaurangaSystemAgent:
         
         # Determine status
         brain_status = "🧠 ONLINE" if llm_ok else "🧠 OFFLINE (Fallback Mode)"
+        local_memory_size = f"{storage_info.get('database_size_mb', 0)} MB" if storage_info else "0 MB"
         
         boot_msg = f"""
 ╔══════════════════════════════════════════════╗
@@ -105,6 +118,7 @@ class GaurangaSystemAgent:
 ║  Brain   : {brain_status:<32}║
 ║  Voice   : 🎤 READY                          ║
 ║  Memory  : 💾 CONNECTED                      ║
+║  Local DB: 💾 {local_memory_size:<25}║
 ╚══════════════════════════════════════════════╝
 
 Saya GAURANGA, Agent Alpha, siap melayani, {self.owner}!
@@ -226,6 +240,98 @@ Saya GAURANGA, Agent Alpha, siap melayani, {self.owner}!
         if results:
             return f"📝 Found {len(results)} memories:\n" + "\n".join(results)
         return "Tidak ada yang ditemukan"
+    
+    # ==========================================
+    # LOCAL MEMORY EXPORT/IMPORT (ON COMMAND)
+    # ==========================================
+    
+    def export_memory(
+        self, 
+        output_path: str = None, 
+        password: str = None,
+        include_sensitive: bool = True
+    ) -> Dict[str, Any]:
+        """
+        EKSPOR DATA MEMORI - ON COMMAND ONLY
+        Fungsi ini hanya aktif ketika pengguna memberikan perintah spesifik
+        
+        Usage:
+        - "gaurangga, ekspor memori"
+        - "gaurangga, backup data"
+        - "gaurangga, pindahkan memori ke file"
+        """
+        try:
+            self.logger.info("🔐 Starting memory export...")
+            
+            export_path = self.local_memory.export_all_data(
+                output_path=output_path,
+                password=password,
+                include_sensitive=include_sensitive
+            )
+            
+            return {
+                "status": "success",
+                "message": f"✅ Memori berhasil diekspor ke: {export_path}",
+                "path": export_path,
+                "action": "export"
+            }
+        except Exception as e:
+            self.logger.error(f"Export failed: {e}")
+            return {
+                "status": "error",
+                "message": f"❌ Gagal mengekspor memori: {str(e)}",
+                "action": "export"
+            }
+    
+    def import_memory(
+        self, 
+        import_path: str, 
+        password: str = None,
+        merge: bool = True
+    ) -> Dict[str, Any]:
+        """
+        IMPORT DATA MEMORI - ON COMMAND ONLY
+        Impor data dari file backup terenkripsi
+        
+        Usage:
+        - "gaurangga, impor memori dari [path]"
+        - "gaurangga, pulihkan data dari backup"
+        - "gaurangga, masukkan file backup"
+        """
+        try:
+            self.logger.info(f"📥 Starting memory import from: {import_path}")
+            
+            stats = self.local_memory.import_data(
+                import_path=import_path,
+                password=password,
+                merge=merge
+            )
+            
+            return {
+                "status": "success",
+                "message": f"✅ Memori berhasil diimpor!\n"
+                          f"   - Memori: {stats.get('memories_imported', 0)}\n"
+                          f"   - Percakapan: {stats.get('conversations_imported', 0)}\n"
+                          f"   - Preferensi: {stats.get('preferences_imported', 0)}",
+                "stats": stats,
+                "action": "import"
+            }
+        except Exception as e:
+            self.logger.error(f"Import failed: {e}")
+            return {
+                "status": "error",
+                "message": f"❌ Gagal mengimpor memori: {str(e)}",
+                "action": "import"
+            }
+    
+    def get_storage_info(self) -> Dict[str, Any]:
+        """Get local storage information"""
+        return self.local_memory.get_storage_info()
+    
+    def cleanup_memory(self, days: int = 30) -> str:
+        """Cleanup old conversations"""
+        deleted = self.local_memory.cleanup_old_conversations(days)
+        return f"🗑️ Berhasil menghapus {deleted} percakapan lama"
     
     def set_mode(self, mode: str) -> str:
         """Change agent mode"""
