@@ -80,6 +80,7 @@ const GaurangaState = {
     
     // System
     isProcessing: false,
+    isSpeaking: false,
     version: "1.0.0"
 };
 
@@ -771,17 +772,212 @@ function startVoiceInput() {
 }
 
 // ============================================
-// TEXT-TO-SPEECH
+// TEXT-TO-SPEECH (HUMANLIKE)
 // ============================================
 
-function speak(text) {
-    if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'id-ID';
-        utterance.rate = 1;
-        utterance.pitch = 1;
-        speechSynthesis.speak(utterance);
+// TTS Configuration for humanlike Indonesian speech
+const TTSConfig = {
+    // Language settings
+    languages: {
+        'id-ID': { name: 'Indonesian', rate: 0.95, pitch: 1.05, volume: 1.0 },
+        'en-US': { name: 'English', rate: 1.0, pitch: 1.0, volume: 1.0 },
+        'ban-ID': { name: 'Balinese', rate: 0.9, pitch: 1.1, volume: 0.95 },
+        'jv-ID': { name: 'Javanese', rate: 0.9, pitch: 1.0, volume: 0.95 }
+    },
+    
+    // Speaking styles
+    styles: {
+        executive: { rate: 0.9, pitch: 0.95, pause: 0 },
+        warm: { rate: 1.0, pitch: 1.05, pause: 150 },
+        friendly: { rate: 1.05, pitch: 1.1, pause: 200 },
+        professional: { rate: 0.85, pitch: 0.9, pause: 100 },
+        excited: { rate: 1.15, pitch: 1.2, pause: 250 },
+        calm: { rate: 0.8, pitch: 0.85, pause: 300 }
+    },
+    
+    // Emotion modifiers
+    emotions: {
+        happy: { pitch: 1.15, rate: 1.1, prefix: 'Senangnya... ' },
+        excited: { pitch: 1.2, rate: 1.15, prefix: 'Wah hebat! ' },
+        calm: { pitch: 0.9, rate: 0.85, prefix: 'Santai ya... ' },
+        sad: { pitch: 0.85, rate: 0.8, prefix: '' },
+        serious: { pitch: 0.9, rate: 0.9, prefix: '' },
+        neutral: { pitch: 1.0, rate: 1.0, prefix: '' }
     }
+};
+
+function speak(text, options = {}) {
+    if (!('speechSynthesis' in window)) {
+        console.warn('Speech synthesis not supported');
+        return;
+    }
+    
+    // Stop any current speech
+    window.speechSynthesis.cancel();
+    
+    // Get options
+    const {
+        language = 'id-ID',
+        emotion = 'neutral',
+        style = 'friendly',
+        immediate = false
+    } = options;
+    
+    // Get language config
+    const langConfig = TTSConfig.languages[language] || TTSConfig.languages['id-ID'];
+    
+    // Get emotion config
+    const emotionConfig = TTSConfig.emotions[emotion] || TTSConfig.emotions.neutral;
+    
+    // Get style config
+    const styleConfig = TTSConfig.styles[style] || TTSConfig.styles.friendly;
+    
+    // Process text for humanlike delivery
+    let processedText = text;
+    
+    // Add emotional prefix
+    if (emotionConfig.prefix && !text.startsWith(emotionConfig.prefix)) {
+        processedText = emotionConfig.prefix + text;
+    }
+    
+    // Expand abbreviations for better TTS
+    processedText = expandAbbreviations(processedText);
+    
+    // Add natural pauses
+    processedText = addNaturalPauses(processedText);
+    
+    // Create utterance
+    const utterance = new SpeechSynthesisUtterance(processedText);
+    
+    // Set voice properties
+    utterance.lang = language;
+    
+    // Apply emotion modifiers to base settings
+    utterance.pitch = langConfig.pitch * emotionConfig.pitch;
+    utterance.rate = langConfig.rate * emotionConfig.rate * styleConfig.rate;
+    utterance.volume = langConfig.volume;
+    
+    // Set pause between sentences (using word boundaries)
+    utterance.wordBoundaryEvent = true;
+    
+    // Choose best available voice
+    const voices = window.speechSynthesis.getVoices();
+    const preferredVoice = voices.find(v => 
+        v.lang.startsWith('id') && v.localService
+    ) || voices.find(v => 
+        v.lang.startsWith('id')
+    ) || voices[0];
+    
+    if (preferredVoice) {
+        utterance.voice = preferredVoice;
+    }
+    
+    // Event handlers for more natural speech
+    utterance.onstart = () => {
+        GaurangaState.isSpeaking = true;
+    };
+    
+    utterance.onend = () => {
+        GaurangaState.isSpeaking = false;
+    };
+    
+    utterance.onerror = (event) => {
+        console.error('TTS Error:', event.error);
+        GaurangaState.isSpeaking = false;
+    };
+    
+    // Speak with slight delay for natural feel
+    if (immediate) {
+        window.speechSynthesis.speak(utterance);
+    } else {
+        setTimeout(() => {
+            window.speechSynthesis.speak(utterance);
+        }, 100);
+    }
+}
+
+function expandAbbreviations(text) {
+    // Indonesian abbreviations
+    const abbreviations = {
+        'rp': 'Rupiah',
+        'rp.': 'Rupiah',
+        'yg': 'yang',
+        'dlm': 'dalam',
+        'dgn': 'dengan',
+        'utk': 'untuk',
+        'krn': 'karena',
+        'smg': 'semoga',
+        'bs': 'bisa',
+        'sdh': 'sudah',
+        'blm': 'belum',
+        'tdk': 'tidak',
+        'jg': 'juga',
+        'msh': 'masih',
+        'dll': 'dan lain-lain',
+        'dst': 'dan seterusnya',
+        'tsb': 'tersebut',
+        'bgmn': 'bagaimana',
+        'gmn': 'gimana',
+        'td': 'tadi',
+        'jd': 'jadi',
+        'tp': 'tapi',
+        'org': 'orang',
+        'brp': 'berapa',
+        'mntu': 'mantap',
+        'gks': 'gak sih',
+        'btw': 'by the way'
+    };
+    
+    let result = text;
+    for (const [abbr, expanded] of Object.entries(abbreviations)) {
+        const regex = new RegExp(`\\b${abbr}\\b`, 'gi');
+        result = result.replace(regex, expanded);
+    }
+    
+    return result;
+}
+
+function addNaturalPauses(text) {
+    // Add micro-pauses for natural breathing feel
+    // Replace commas with slight pause
+    text = text.replace(/,/g, '... ');
+    
+    return text;
+}
+
+function speakWithEmotion(text, emotion) {
+    speak(text, { emotion, style: 'friendly' });
+}
+
+function speakExecutive(text) {
+    speak(text, { style: 'executive', language: 'id-ID' });
+}
+
+function speakExcited(text) {
+    speak(text, { emotion: 'excited', style: 'excited' });
+}
+
+function speakCalm(text) {
+    speak(text, { emotion: 'calm', style: 'calm' });
+}
+
+function stopSpeaking() {
+    window.speechSynthesis.cancel();
+    GaurangaState.isSpeaking = false;
+}
+
+// Initialize voices when available
+if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = () => {
+        const voices = window.speechSynthesis.getVoices();
+        console.log('Available TTS voices:', voices.length);
+        
+        // Prefer Indonesian voices
+        const idVoices = voices.filter(v => v.lang.startsWith('id'));
+        if (idVoices.length > 0) {
+            console.log('Indonesian voices available:', idVoices.map(v => v.name));
+        }
+    };
 }
 
 // ============================================

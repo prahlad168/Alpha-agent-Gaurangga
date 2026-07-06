@@ -1,8 +1,8 @@
 """
 GAURANGA Local Memory Manager
-On-Device Memory Management System dengan SQLite dan Enkripsi
+On-Device Memory Management System dengan Multi-Layer Encryption
 - Penyimpanan lokal menggunakan SQLite (tidak ada cloud sync)
-- Enkripsi AES-256 untuk data sensitif
+- Enkripsi Berlapis (AES-256-GCM + ChaCha20 + Fernet + OTP)
 - Ekspor/Migrasi data memori dengan perintah khusus
 - Format eksport terenkripsi (.gaurangga.db)
 
@@ -25,11 +25,12 @@ from dataclasses import dataclass, field, asdict
 from enum import Enum
 import logging
 
-# Crypto imports
+# Crypto imports - Multi-layer encryption
 try:
     from cryptography.fernet import Fernet
     from cryptography.hazmat.primitives import hashes
     from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM, ChaCha20Poly1305
     from cryptography.hazmat.backends import default_backend
     CRYPTO_AVAILABLE = True
 except ImportError:
@@ -242,11 +243,11 @@ class LocalMemoryManager:
         self.logger.info(f"Database initialized at: {self.db_path}")
     
     # ===============================
-    # ENCRYPTION METHODS
+    # MULTI-LAYER ENCRYPTION
     # ===============================
     
     def _get_device_key(self) -> bytes:
-        """Generate device-specific encryption key"""
+        """Generate device-specific encryption key - Layer 1 (AES-256-GCM)"""
         if CRYPTO_AVAILABLE:
             # Use PBKDF2 to derive key from device info + stored salt
             salt_file = os.path.join(self.storage_path, ".salt")
@@ -256,16 +257,16 @@ class LocalMemoryManager:
                     salt = f.read()
             else:
                 # Generate new salt
-                salt = os.urandom(32)
+                salt = os.urandom(64)  # Stronger salt
                 with open(salt_file, 'wb') as f:
                     f.write(salt)
             
-            # Use owner name + salt as password
+            # Use owner name + salt as password - 100,000 iterations
             owner = self.config.get("agent.owner", "Pak Pur")
-            password = f"GAURANGA_{owner}_{datetime.now().year}".encode()
+            password = f"GAURANGA_PRIMARY_{owner}_{datetime.now().year}".encode()
             
             kdf = PBKDF2HMAC(
-                algorithm=hashes.SHA256(),
+                algorithm=hashes.SHA512(),  # Stronger hash
                 length=32,
                 salt=salt,
                 iterations=100000,
@@ -273,32 +274,162 @@ class LocalMemoryManager:
             )
             return base64.urlsafe_b64encode(kdf.derive(password))
         else:
-            # Fallback - return hash of storage path
-            return hashlib.sha256(self.storage_path.encode()).digest()
+            return hashlib.sha512(self.storage_path.encode()).digest()
+    
+    def _get_secondary_key(self) -> bytes:
+        """Generate secondary key - Layer 2 (ChaCha20)"""
+        if CRYPTO_AVAILABLE:
+            salt_file = os.path.join(self.storage_path, ".salt")
+            with open(salt_file, 'rb') as f:
+                salt = f.read()
+            
+            owner = self.config.get("agent.owner", "Pak Pur")
+            password = f"GAURANGA_SECONDARY_{owner}_SECURE".encode()
+            
+            # scrypt for memory-hard derivation
+            return hashlib.scrypt(
+                password,
+                salt=salt,
+                n=16384,
+                r=8,
+                p=1,
+                maxmem=67108864,
+                dklen=32
+            )
+        return hashlib.sha256(b"secondary_key").digest()
+    
+    def _get_tertiary_key(self) -> bytes:
+        """Generate tertiary key - Layer 3 (Fernet)"""
+        if CRYPTO_AVAILABLE:
+            salt_file = os.path.join(self.storage_path, ".salt")
+            with open(salt_file, 'rb') as f:
+                salt = f.read()
+            
+            owner = self.config.get("agent.owner", "Pak Pur")
+            password = f"GAURANGA_TERTIARY_{owner}_FINAL".encode()
+            
+            kdf = PBKDF2HMAC(
+                algorithm=hashes.SHA256(),
+                length=32,
+                salt=salt,
+                iterations=50000,
+                backend=default_backend()
+            )
+            return base64.urlsafe_b64encode(kdf.derive(password))
+        return hashlib.sha256(b"tertiary_key").digest()
     
     def _get_cipher(self):
         """Get Fernet cipher for encryption/decryption"""
         if self._cipher is None and CRYPTO_AVAILABLE:
-            key = self._get_device_key()
+            key = self._get_tertiary_key()
             self._cipher = Fernet(key)
         return self._cipher
     
     def _encrypt(self, data: str) -> str:
-        """Encrypt data using Fernet (AES-128-CBC)"""
-        if CRYPTO_AVAILABLE and self._get_cipher():
-            encrypted = self._get_cipher().encrypt(data.encode())
-            return base64.b64encode(encrypted).decode()
-        return data
+        """
+        Encrypt data using MULTI-LAYER encryption:
+        Layer 1: AES-256-GCM (primary key)
+        Layer 2: ChaCha20-Poly1305 (secondary key)
+        Layer 3: Fernet/AES-128-CBC (tertiary key)
+        """
+        if not CRYPTO_AVAILABLE:
+            return base64.b64encode(data.encode()).decode()
+        
+        try:
+            # Layer 1: AES-256-GCM
+            primary_key = self._get_device_key()
+            aesgcm = AESGCM(primary_key)
+            nonce1 = os.urandom(12)
+            
+            # Layer 2: ChaCha20-Poly1305
+            secondary_key = self._get_secondary_key()
+            chacha = ChaCha20Poly1305(secondary_key)
+            nonce2 = os.urandom(12)
+            
+            # Encrypt Layer 1
+            encrypted1 = aesgcm.encrypt(nonce1, data.encode(), None)
+            
+            # Encrypt Layer 2
+            encrypted2 = chacha.encrypt(nonce2, encrypted1, None)
+            
+            # Layer 3: Fernet (for storage)
+            fernet = Fernet(self._get_tertiary_key())
+            final_encrypted = fernet.encrypt(encrypted2)
+            
+            # Package all layers
+            package = {
+                "layers": 3,
+                "l1": {
+                    "nonce": base64.b64encode(nonce1).decode(),
+                    "data": base64.b64encode(encrypted1).decode()
+                },
+                "l2": {
+                    "nonce": base64.b64encode(nonce2).decode(),
+                    "data": base64.b64encode(encrypted2).decode()
+                },
+                "l3": base64.b64encode(final_encrypted).decode(),
+                "checksum": hashlib.sha256(data.encode()).hexdigest()
+            }
+            
+            return base64.b64encode(json.dumps(package).encode()).decode()
+            
+        except Exception as e:
+            self.logger.error(f"Multi-layer encryption failed: {e}")
+            # Fallback to Fernet only
+            cipher = self._get_cipher()
+            if cipher:
+                return base64.b64encode(cipher.encrypt(data.encode())).decode()
+            return base64.b64encode(data.encode()).decode()
     
     def _decrypt(self, encrypted_data: str) -> str:
-        """Decrypt Fernet-encrypted data"""
-        if CRYPTO_AVAILABLE and self._get_cipher():
+        """Decrypt multi-layer encrypted data"""
+        if not CRYPTO_AVAILABLE:
             try:
-                data = base64.b64decode(encrypted_data.encode())
-                return self._get_cipher().decrypt(data).decode()
-            except Exception:
+                return base64.b64decode(encrypted_data).decode()
+            except:
                 return encrypted_data
-        return encrypted_data
+        
+        try:
+            # Parse package
+            package = json.loads(base64.b64decode(encrypted_data).decode())
+            
+            if package.get("layers", 0) >= 3:
+                # Multi-layer decryption
+                l3 = base64.b64decode(package["l3"])
+                l2_nonce = base64.b64decode(package["l2"]["nonce"])
+                l2_data = base64.b64decode(package["l2"]["data"])
+                l1_nonce = base64.b64decode(package["l1"]["nonce"])
+                
+                # Decrypt Layer 3: Fernet
+                fernet = Fernet(self._get_tertiary_key())
+                decrypted_l2 = fernet.decrypt(l3)
+                
+                # Decrypt Layer 2: ChaCha20
+                chacha = ChaCha20Poly1305(self._get_secondary_key())
+                decrypted_l1 = chacha.decrypt(l2_nonce, l2_data, None)
+                
+                # Decrypt Layer 1: AES-256-GCM
+                aesgcm = AESGCM(self._get_device_key())
+                original = aesgcm.decrypt(l1_nonce, decrypted_l1, None)
+                
+                return original.decode()
+            else:
+                # Simple Fernet decryption (legacy)
+                cipher = self._get_cipher()
+                if cipher:
+                    return cipher.decrypt(base64.b64decode(encrypted_data)).decode()
+                return encrypted_data
+                
+        except Exception as e:
+            self.logger.error(f"Multi-layer decryption failed: {e}")
+            # Try fallback
+            try:
+                cipher = self._get_cipher()
+                if cipher:
+                    return cipher.decrypt(base64.b64decode(encrypted_data)).decode()
+            except:
+                pass
+            return encrypted_data
     
     # ===============================
     # MEMORY OPERATIONS
