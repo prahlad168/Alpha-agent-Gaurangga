@@ -73,13 +73,9 @@ class GaurangaSystemAgent:
         # Check dependencies
         checks = self._preflight_checks()
         
-        if not all(checks.values()):
-            failed = [k for k, v in checks.items() if not v]
-            return f"⚠️ Pre-flight check failed: {', '.join(failed)}"
-        
         # Initialize AI models
         self.logger.info("🧠 Initializing AI brain...")
-        self.llm.initialize()
+        llm_ok = self.llm.initialize()
         self.stt.initialize()
         self.tts.initialize()
         
@@ -93,6 +89,9 @@ class GaurangaSystemAgent:
         
         self.is_running = True
         
+        # Determine status
+        brain_status = "🧠 ONLINE" if llm_ok else "🧠 OFFLINE (Fallback Mode)"
+        
         boot_msg = f"""
 ╔══════════════════════════════════════════════╗
 ║     🤖 GAURANGA SYSTEM AGENT ONLINE          ║
@@ -103,7 +102,7 @@ class GaurangaSystemAgent:
 ║  Time    : {datetime.now().strftime('%Y-%m-%d %H:%M:%S'):<32}║
 ╠══════════════════════════════════════════════╣
 ║  Status  : ✅ OPERATIONAL                    ║
-║  Brain   : 🧠 ONLINE                        ║
+║  Brain   : {brain_status:<32}║
 ║  Voice   : 🎤 READY                          ║
 ║  Memory  : 💾 CONNECTED                      ║
 ╚══════════════════════════════════════════════╝

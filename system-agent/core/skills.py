@@ -294,6 +294,14 @@ Status Sistem:
     
     # === PERSISTENCE ===
     
+    def load(self) -> None:
+        """Load all skills"""
+        self._load_learned_skills()
+    
+    def save(self) -> None:
+        """Save all skills"""
+        self._save_learned_skills()
+    
     def _load_learned_skills(self) -> None:
         """Load learned skills from disk"""
         path = "./data/learned_skills.json"
@@ -305,6 +313,10 @@ Status Sistem:
                         self.learned_skills[skill_id] = Skill(**skill_data)
             except:
                 pass
+    
+    def load_skills(self) -> None:
+        """Alias for load"""
+        self.load()
     
     def _save_learned_skills(self) -> None:
         """Save learned skills to disk"""

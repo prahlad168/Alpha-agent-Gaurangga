@@ -31,6 +31,10 @@ class VectorMemory:
     def initialize(self) -> None:
         """Initialize memory system"""
         self._load()
+    
+    def load(self) -> None:
+        """Alias for initialize"""
+        self._load()
         
     def store(self, data: Any, type: str = "general", metadata: Dict = None) -> str:
         """Store data in memory"""
