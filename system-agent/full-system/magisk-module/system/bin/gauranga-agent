@@ -1,0 +1,31 @@
+#!/system/bin/sh
+# GAURANGA Agent Control Script
+# Root-level system agent controller
+
+case "$1" in
+    start)
+        echo "🤖 Starting GAURANGA System Agent..."
+        am start-foreground-service -n com.gauranga.agent/.services.GaurangaForegroundService
+        echo "✅ GAURANGA Agent started"
+        ;;
+    stop)
+        echo "⏹ Stopping GAURANGA System Agent..."
+        am stopservice com.gauranga.agent/.services.GaurangaForegroundService
+        echo "✅ GAURANGA Agent stopped"
+        ;;
+    restart)
+        $0 stop
+        sleep 1
+        $0 start
+        ;;
+    status)
+        if ps -A | grep -q com.gauranga.agent; then
+            echo "✅ GAURANGA Agent is RUNNING"
+        else
+            echo "⏸ GAURANGA Agent is STOPPED"
+        fi
+        ;;
+    *)
+        echo "Usage: gauranga-agent {start|stop|restart|status}"
+        ;;
+esac

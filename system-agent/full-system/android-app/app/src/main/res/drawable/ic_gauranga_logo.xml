@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+    
+    <!-- Halo/Aura -->
+    <path
+        android:pathData="M50,10 A40,40 0 1,1 50,90 A40,40 0 1,1 50,10"
+        android:fillColor="#00000000"
+        android:strokeWidth="2"
+        android:strokeColor="#6366f1"/>
+    
+    <!-- Face Circle -->
+    <path
+        android:pathData="M50,20 A30,30 0 1,1 50,80 A30,30 0 1,1 50,20"
+        android:fillColor="#4f46e5"/>
+    
+    <!-- Eyes -->
+    <path
+        android:pathData="M38,45 A5,5 0 1,1 38,55 A5,5 0 1,1 38,45"
+        android:fillColor="#ffffff"/>
+    <path
+        android:pathData="M62,45 A5,5 0 1,1 62,55 A5,5 0 1,1 62,45"
+        android:fillColor="#ffffff"/>
+    
+    <!-- Pupils -->
+    <path
+        android:pathData="M40,48 A3,3 0 1,1 40,54 A3,3 0 1,1 40,48"
+        android:fillColor="#0a0a0a"/>
+    <path
+        android:pathData="M60,48 A3,3 0 1,1 60,54 A3,3 0 1,1 60,48"
+        android:fillColor="#0a0a0a"/>
+    
+    <!-- Smile -->
+    <path
+        android:pathData="M35,58 Q50,70 65,58"
+        android:strokeColor="#ffffff"
+        android:strokeWidth="2"
+        android:fillColor="#00000000"/>
+    
+    <!-- GA Text -->
+    <path
+        android:pathData="M50,28"
+        android:fillColor="#fbbf24"
+        android:strokeWidth="8"
+        android:strokeColor="#fbbf24"/>
+    
+</vector>
