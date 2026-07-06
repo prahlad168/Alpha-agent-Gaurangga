@@ -6,9 +6,17 @@
     <meta name="theme-color" content="#0a0a0a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>GAURANGA - Shortcut</title>
+    <meta name="apple-mobile-web-app-title" content="GAURANGA">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>🤖 GAURANGA - Shortcut</title>
+    
+    <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
+    
+    <!-- Icons -->
     <link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+    
     <style>
         * {
             margin: 0;
@@ -26,60 +34,95 @@
         }
         .container {
             text-align: center;
-            padding: 40px;
+            padding: 30px;
             max-width: 400px;
         }
         .logo {
-            font-size: 80px;
+            font-size: 100px;
             margin-bottom: 20px;
-            animation: pulse 2s infinite;
+            animation: float 3s ease-in-out infinite;
         }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
         h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
+            font-size: 32px;
+            margin-bottom: 5px;
             background: linear-gradient(90deg, #00d4ff, #7b2cbf);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         .subtitle {
             color: #888;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             font-size: 14px;
         }
-        .btn {
+        
+        /* Install Button */
+        .btn-install {
+            display: block;
+            width: 100%;
+            padding: 20px;
+            margin: 15px 0;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            background: linear-gradient(135deg, #00ff88, #00cc66);
+            color: #000;
+            animation: glow 2s infinite;
+            box-shadow: 0 4px 15px rgba(0,255,136,0.3);
+        }
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(0,255,136,0.5); }
+            50% { box-shadow: 0 0 40px rgba(0,255,136,0.8); }
+        }
+        
+        /* Open App Button */
+        .btn-open {
             display: block;
             width: 100%;
             padding: 18px 24px;
-            margin: 15px 0;
-            border: none;
+            margin: 10px 0;
+            border: 2px solid #00d4ff;
             border-radius: 12px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            background: rgba(0,212,255,0.1);
+            color: #00d4ff;
+            text-decoration: none;
         }
-        .btn-primary {
-            background: linear-gradient(135deg, #00d4ff, #0099cc);
-            color: #fff;
-        }
-        .btn-primary:active {
+        .btn-open:active {
+            background: rgba(0,212,255,0.2);
             transform: scale(0.98);
-            background: linear-gradient(135deg, #0099cc, #007799);
         }
-        .btn-secondary {
+        
+        /* Add to Home Button */
+        .btn-add {
+            display: block;
+            width: 100%;
+            padding: 18px 24px;
+            margin: 10px 0;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
             background: rgba(255,255,255,0.1);
             color: #fff;
-            border: 1px solid rgba(255,255,255,0.2);
+            text-decoration: none;
         }
-        .btn-secondary:active {
+        .btn-add:active {
             background: rgba(255,255,255,0.2);
         }
+        
+        /* Status */
         .status {
-            margin-top: 40px;
+            margin-top: 30px;
             padding: 20px;
             background: rgba(0,212,255,0.1);
             border-radius: 12px;
@@ -91,52 +134,76 @@
             padding: 8px 0;
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
-        .status-item:last-child {
-            border-bottom: none;
-        }
-        .status-label {
-            color: #888;
-        }
-        .status-value {
-            color: #00d4ff;
-            font-weight: 600;
-        }
-        .online {
-            color: #00ff00 !important;
-        }
+        .status-item:last-child { border-bottom: none; }
+        .status-label { color: #888; }
+        .status-value { color: #00ff88; font-weight: 600; }
+        
         .version {
             margin-top: 30px;
             color: #555;
             font-size: 12px;
         }
-        .install-hint {
-            margin-top: 20px;
+        
+        /* iPhone instructions */
+        .iphone-hint {
+            margin-top: 15px;
             padding: 15px;
             background: rgba(255,193,7,0.1);
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 12px;
             color: #ffc107;
+            display: none;
+        }
+        
+        /* Auto prompt */
+        .auto-install-banner {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #00ff88, #00cc66);
+            color: #000;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            z-index: 1000;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
+    <!-- Auto Install Banner (shows if can install) -->
+    <div id="installBanner" class="auto-install-banner" onclick="installPWA()">
+        📱 Install Alpha Gaurangga - Tap Here!
+    </div>
+
     <div class="container">
         <div class="logo">🤖</div>
         <h1>ALPHA GAURANGA</h1>
-        <p class="subtitle">Agent Alpha - System Agent</p>
+        <p class="subtitle">Agent Alpha v1.0 - Pak Pur</p>
         
-        <button class="btn btn-primary" onclick="launchApp()">
-            🚀 START GAURANGA
+        <!-- 1. Open App Button -->
+        <a href="index.html" class="btn-open">
+            🚀 BUKA ALPHA GAURANGA
+        </a>
+        
+        <!-- 2. Add to Home Screen (PWA) -->
+        <button class="btn-add" onclick="addToHomeScreen()">
+            ➕ TAMBAH KE LAYAR UTAMA
         </button>
         
-        <button class="btn btn-secondary" onclick="openSettings()">
-            ⚙️ SETTINGS
-        </button>
+        <!-- 3. Install Termux Version -->
+        <a href="termux://command/?command=pkg+update+%26%26+pkg+upgrade+-y+%26%26+pkg+install+python+git+nodejs+-y+%26%26+cd+~%2Fstorage%2Fshared+%26%26+git+clone+https%3A%2F%2Fgithub.com%2Fprahlad168%2FAlpha-agent-Gaurangga.git+%26%26+cd+Alpha-agent-Gaurangga%2Fsystem-agent+%26%26+pip+install+-r+requirements.txt+%26%26+python3+gauranga_agent.py+--always-on"
+           class="btn-install"
+           onclick="trackInstall()">
+            ⚡ INSTALL APP (1 KLIK)
+        </a>
         
         <div class="status">
             <div class="status-item">
                 <span class="status-label">Status</span>
-                <span class="status-value online">● ONLINE</span>
+                <span class="status-value">● ONLINE</span>
             </div>
             <div class="status-item">
                 <span class="status-label">Owner</span>
@@ -147,61 +214,81 @@
                 <span class="status-value">Maha Lakshmi</span>
             </div>
             <div class="status-item">
-                <span class="status-label">SBU Active</span>
-                <span class="status-value">10</span>
+                <span class="status-label">Security</span>
+                <span class="status-value">🔐 Encrypted</span>
             </div>
             <div class="status-item">
-                <span class="status-label">Security</span>
-                <span class="status-value">🔐 Multi-Layer</span>
+                <span class="status-label">Mode</span>
+                <span class="status-value">24/7 Active</span>
             </div>
         </div>
         
-        <div class="install-hint">
-            💡 Untuk Add to Home Screen: Klik menu browser → Add to Home Screen
+        <div class="iphone-hint" id="iphoneHint">
+            💡 Untuk iPhone/iPad: Tap Share → Add to Home Screen
         </div>
         
         <p class="version">Version 1.0.0 | © 2026 GAURANGA Team</p>
     </div>
 
     <script>
-        // Configuration
-        const APP_URL = 'index.html';
-        const APP_NAME = 'Alpha Gauranga';
+        let deferredPrompt;
+        const installBanner = document.getElementById('installBanner');
+        const iphoneHint = document.getElementById('iphoneHint');
         
-        // Launch main app
-        function launchApp() {
-            window.location.href = APP_URL;
+        // Detect iOS
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        if (isIOS) {
+            iphoneHint.style.display = 'block';
         }
         
-        // Open settings
-        function openSettings() {
-            window.location.href = APP_URL + '#settings';
+        // Capture install prompt (Android)
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBanner.style.display = 'block';
+        });
+        
+        // Install PWA
+        async function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                deferredPrompt = null;
+                installBanner.style.display = 'none';
+            }
         }
         
-        // Check if running as standalone/PWA
-        if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) {
-            // Running as PWA
-            console.log('Running as PWA');
+        // Add to Home Screen
+        function addToHomeScreen() {
+            if (isIOS) {
+                // iOS: Show instructions
+                alert('📱 Cara Add to Home Screen:\n\n1. Tap tombol Share (kotak dengan panah)\n2. Scroll ke bawah\n3. Tap "Add to Home Screen"\n4. Tap "Add" di kanan atas');
+            } else {
+                // Android: Try PWA install or show manual
+                if (deferredPrompt) {
+                    installPWA();
+                } else {
+                    alert('📱 Cara Add to Home Screen:\n\n1. Tap menu (⋮) di kanan atas browser\n2. Tap "Add to Home Screen"\n3. Tap "Add"');
+                }
+            }
         }
         
-        // Register service worker for offline support
+        // Track install click
+        function trackInstall() {
+            console.log('Install clicked');
+        }
+        
+        // Register service worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').catch(e => {
-                console.log('SW registration failed:', e);
+                console.log('SW registration failed');
             });
         }
         
-        // Prevent back navigation
-        history.pushState(null, '', location.href);
-        window.addEventListener('popstate', () => {
-            history.pushState(null, '', location.href);
-        });
-        
-        // Auto-launch if this is the first visit
-        const visited = localStorage.getItem('gauranga_visited');
-        if (!visited && window.location.hash === '') {
-            // First visit - show this page
-            localStorage.setItem('gauranga_visited', 'true');
+        // Check if already installed as PWA
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            // Already installed, redirect to app
+            window.location.href = 'index.html';
         }
     </script>
 </body>
