@@ -4,4 +4,7 @@
     <string name="accessibility_description">GAURANGA Agent Alpha - System AI Agent untuk kontrol penuh perangkat Android</string>
     <string name="notification_title">GAURANGA Agent</string>
     <string name="notification_text">Agent Alpha aktif</string>
+    <string name="owner_name">I Made Purna Ananda</string>
+    <string name="owner_nickname">Pak Pur</string>
+    <string name="company_name">Maha Lakshmi Holdings</string>
 </resources>
