@@ -1,0 +1,62 @@
+# ===========================================
+# GAURANGA SYSTEM AGENT - CONFIGURATION
+# ===========================================
+# Owner: I Made Purna Ananda (Pak Pur)
+# Company: MAHA LAKSHMI HOLDINGS
+# ===========================================
+
+# Agent Configuration
+agent:
+  name: "GAURANGA"
+  owner: "I Made Purna Ananda"
+  nickname: "Pak Pur"
+  company: "Maha Lakshmi Holdings"
+  version: "1.0.0"
+  mode: "executive"  # executive or warm
+
+# AI Configuration (Local LLM)
+ai:
+  provider: "ollama"
+  model: "llama3.2:1b"  # Small model for mobile
+  embedding: "nomic-embed-text"
+  base_url: "http://localhost:11434"
+  temperature: 0.7
+  max_tokens: 512
+
+# Voice Configuration
+voice:
+  stt: "whisper"  # whisper, webkit
+  tts: "piper"    # piper, kokoro, espeak, system
+  language: "id-ID"
+  rate: 1.0
+  pitch: 1.0
+
+# Memory Configuration
+memory:
+  type: "local"  # local, chroma
+  path: "./data/memory.json"
+  persist: true
+  max_memories: 10000
+
+# System Configuration
+system:
+  background: true
+  hotword: "hey gauranga"
+  permissions:
+    - storage
+    - notification
+    - process
+    - network
+  auto_start: true
+
+# Logging
+logging:
+  level: "INFO"
+  path: "./data/logs"
+  max_size: "10MB"
+
+# Security
+security:
+  biometric_auth: true
+  encrypted_storage: true
+  offline_only: true
