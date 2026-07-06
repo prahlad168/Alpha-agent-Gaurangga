@@ -58,52 +58,104 @@ const GAURANGA_AVATAR_SVG = `
 // ============================================
 let voiceEnabled = true;
 let lastSpokenText = "";
+let speechQueue = [];
+let isCurrentlySpeaking = false;
 
+// 🎤 Fungsi utama untuk berbicara - SELALU AKTIF
 function speak(text, forceSpeak = false) {
-    if (!voiceEnabled && !forceSpeak) return;
+    if (!text || text.trim() === '') return;
     
-    // Cancel any ongoing speech
-    if ('speechSynthesis' in window) {
-        speechSynthesis.cancel();
-    }
+    // Always speak when message comes (unless muted)
+    if (!voiceEnabled && !forceSpeak) return;
+
+    // Clean text for speech (remove markdown and special chars)
+    text = text.replace(/<[^>]*>/g, ' ')
+               .replace(/\*+/g, '')
+               .replace(/#+/g, '')
+               .replace(/`+/g, '')
+               .replace(/\n+/g, ' ')
+               .replace(/\s+/g, ' ')
+               .trim();
+    
+    if (text.length === 0) return;
     
     lastSpokenText = text;
+    
+    // Add to queue
+    speechQueue.push(text);
+    processSpeechQueue();
+}
+
+function processSpeechQueue() {
+    if (isCurrentlySpeaking || speechQueue.length === 0) return;
+    
+    const text = speechQueue.shift();
+    isCurrentlySpeaking = true;
     
     // Show speaking animation
     showSpeakingAnimation();
     
     // Use Web Speech API
     if ('speechSynthesis' in window) {
+        // Cancel any ongoing speech
+        speechSynthesis.cancel();
+        
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'id-ID';
         utterance.rate = 0.95;
         utterance.pitch = 1.1;
         utterance.volume = 1;
-        
+
         // Try to find Indonesian voice
         const voices = speechSynthesis.getVoices();
-        const indonesianVoice = voices.find(v => v.lang.includes('id'));
+        const indonesianVoice = voices.find(v => v.lang.includes('id')) 
+                             || voices.find(v => v.lang.includes('ID'))
+                             || voices[0];
         if (indonesianVoice) {
             utterance.voice = indonesianVoice;
         }
-        
+
         utterance.onstart = () => {
             document.querySelector('.gauranga-avatar')?.classList.add('speaking');
         };
-        
+
         utterance.onend = () => {
+            isCurrentlySpeaking = false;
             document.querySelector('.gauranga-avatar')?.classList.remove('speaking');
             hideSpeakingAnimation();
+            // Process next in queue
+            setTimeout(processSpeechQueue, 100);
         };
-        
+
         utterance.onerror = () => {
+            isCurrentlySpeaking = false;
             hideSpeakingAnimation();
+            // Continue with next
+            setTimeout(processSpeechQueue, 100);
         };
+
+        // Pre-load voices for mobile
+        if (speechSynthesis.getVoices().length === 0) {
+            speechSynthesis.onvoiceschanged = () => {
+                const voices = speechSynthesis.getVoices();
+                const indonesianVoice = voices.find(v => v.lang.includes('id')) || voices[0];
+                if (indonesianVoice) utterance.voice = indonesianVoice;
+            };
+        }
         
-        // Small delay for mobile browsers (require user interaction first)
-        setTimeout(() => {
-            speechSynthesis.speak(utterance);
-        }, 100);
+        speechSynthesis.speak(utterance);
+    } else {
+        // Fallback - no speech synthesis
+        isCurrentlySpeaking = false;
+    }
+}
+
+// Hapus semua antrian bicara
+function clearSpeechQueue() {
+    speechQueue = [];
+    isCurrentlySpeaking = false;
+    if ('speechSynthesis' in window) {
+        speechSynthesis.cancel();
     }
 }
 
@@ -443,6 +495,16 @@ function addMessage(text, type = 'bot') {
     
     chatMessages.appendChild(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    // 🎤 AUTO SPEAK - Bicara langsung untuk setiap pesan bot
+    if (type === 'bot') {
+        // Ekstrak teks dari HTML untuk diucapkan
+        const plainText = text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+        // Bicara setelah pesan muncul
+        setTimeout(() => {
+            speak(plainText);
+        }, 300);
+    }
 }
 
 function formatMessage(text) {
