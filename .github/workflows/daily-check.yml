@@ -1,5 +1,5 @@
 # Alpha Gaurangga - Daily Development Workflow
-name: Alpha Gaurangga Daily Development
+name: Daily Check
 
 on:
   # Run every day at 06:00 UTC (13:00 WIB)
@@ -8,49 +8,21 @@ on:
   
   # Also allow manual trigger
   workflow_dispatch:
-    inputs:
-      task:
-        description: 'Task to perform'
-        required: false
-        default: 'continue'
-
-env:
-  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
 jobs:
-  daily-development:
+  daily-check:
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install dependencies
+      - name: Generate Daily Report
         run: |
-          cd server
-          pip install -r requirements.txt
-
-      - name: Check AI Services
-        run: |
-          curl -s http://localhost:5000/api/status || echo "Server not running"
-
-      - name: Run Development Tasks
-        run: |
-          echo "Alpha Gaurangga daily check..."
-          echo "Checking Genesis logs..."
-          ls -la logs/
-          echo "Checking server status..."
-          curl -s http://localhost:5000/api/health || echo "Server offline"
-
-      - name: Commit daily progress
-        run: |
-          git config --local user.email "openhands@all-hands.dev"
-          git config --local user.name "OpenHands Agent"
-          git add -A
-          git diff --staged --quiet || git commit -m "📊 Daily update - $(date +%Y-%m-%d)"
-          git push || echo "No changes to push"
+          echo "📊 Alpha Gaurangga Daily Check"
+          echo "Date: $(date)"
+          echo "---"
+          echo "Files modified:"
+          git log --oneline -5
+          echo "---"
+          echo "Repository status:"
+          ls -la
