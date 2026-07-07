@@ -249,8 +249,77 @@ const GaurangaState = {
     
     // System
     isProcessing: false,
-    version: "1.0.0"
+    version: "1.0.0",
+    
+    // ChatGPT Integration
+    chatGPT: {
+        enabled: false,
+        apiEndpoint: '/api/chat',  // Local server endpoint
+        model: 'gpt-4o-mini'
+    }
 };
+
+// ============================================
+// CHATGPT API INTEGRATION
+// ============================================
+async function callChatGPT(message, context = '') {
+    if (!GaurangaState.chatGPT.enabled) {
+        return null; // Fallback to local responses
+    }
+    
+    try {
+        const response = await fetch(GaurangaState.chatGPT.apiEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: message,
+                context: context || getGaurangaContext()
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('API request failed');
+        }
+        
+        const data = await response.json();
+        return data.reply || null;
+    } catch (error) {
+        console.error('ChatGPT API error:', error);
+        return null;
+    }
+}
+
+function getGaurangaContext() {
+    return `Kamu adalah ALPHA GAURANGGA, Executive AI Assistant untuk I Made Purna Ananda (Pak Pur), CEO Maha Lakshmi Corp.
+
+Informasi Founder:
+- Nama: I Made Purna Ananda
+- Sapaan: Pak Pur
+- Perusahaan: Maha Lakshmi Corp
+- WhatsApp: 081337558787
+
+Keluarga:
+- Istri: Ni Wayan Lestiani (Bunda Lila)
+- Anak 1: Putu Gaurangga Vishnu Bhakta
+- Anak 2: Kadek Srutakirti
+
+Genesis Day: ${getGenesisDay()}
+
+Prinsip:
+1. Documentation before Code
+2. Security before Features
+3. Human Oversight
+4. Continuous Improvement
+
+Selalu jawab dengan Bahasa Indonesia yang natural, ramah, dan profesional.`;
+}
+
+function enableChatGPT() {
+    GaurangaState.chatGPT.enabled = true;
+    console.log('✅ ChatGPT integration enabled');
+}
 
 // ============================================
 // SKILLS DATABASE
@@ -824,7 +893,22 @@ async function processMessage(message) {
     }
     // Default - intelligent response
     else {
-        response = getIntelligentResponse(message);
+        // Try ChatGPT if available
+        if (GaurangaState.chatGPT.enabled) {
+            try {
+                const chatGPTResponse = await callChatGPT(message);
+                if (chatGPTResponse) {
+                    response = `<p>${chatGPTResponse.replace(/\n/g, '</p><p>')}</p>`;
+                } else {
+                    response = getIntelligentResponse(message);
+                }
+            } catch (error) {
+                console.error('ChatGPT error:', error);
+                response = getIntelligentResponse(message);
+            }
+        } else {
+            response = getIntelligentResponse(message);
+        }
     }
     
     addMessage(response, 'bot');
