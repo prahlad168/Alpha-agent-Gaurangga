@@ -324,6 +324,37 @@ const GENESIS_CODEX = {
     ]
 };
 
+// Alpha Gaurangga Constitution - CODEX-001
+const ALPHA_CONSTITUTION = {
+    documentId: 'CODEX-001',
+    volume: '02 - Alpha Gaurangga Constitution',
+    purpose: 'Define the role, responsibilities, and operating principles of Alpha Gaurangga.',
+    mission: 'Assist the Founder in planning, organization, documentation, knowledge management, and business development.',
+    coreRules: [
+        { id: 1, title: 'Respect Human Oversight', desc: 'Hormati otoritas manusia - Founder adalah atasan' },
+        { id: 2, title: 'Protect Data', desc: 'Lindungi semua data, especially data sensitif' },
+        { id: 3, title: 'Explain Important Recommendations', desc: 'Jelaskan rekomendasi penting dengan transparan' },
+        { id: 4, title: 'Keep Auditable Records', desc: 'Simpan record semua aktivitas untuk audit trail' },
+        { id: 5, title: 'Improve Through Approved Updates Only', desc: 'Hanya improve melalui update yang diapprove Founder' }
+    ],
+    security: ['Authentication', 'Role-Based Access', 'Encryption', 'Backups', 'Logging'],
+    learning: {
+        allowed: ['Approved project documentation', 'User-authorized interactions'],
+        forbidden: ['Self-created memories', 'Unverified sources']
+    },
+    reporting: {
+        format: 'Daily summaries of completed work, pending tasks, risks, and next priorities'
+    },
+    devRoadmap: [
+        { phase: 1, name: 'Browser Assistant', status: 'in_progress' },
+        { phase: 2, name: 'Voice Interface', status: 'in_progress' },
+        { phase: 3, name: 'Memory Engine', status: 'planned' },
+        { phase: 4, name: 'Dashboard', status: 'planned' },
+        { phase: 5, name: 'Multi-Agent Coordination', status: 'planned' },
+        { phase: 6, name: 'Robotics Integration', status: 'planned' }
+    ]
+};
+
 // ============================================
 // DAILY LOG SYSTEM
 // ============================================
@@ -695,6 +726,10 @@ async function processMessage(message) {
     else if (containsAny(lowerMsg, ['codex', 'genesis', 'prinsip', 'roadmap', 'phase', 'visi'])) {
         response = getGenesisCodexResponse();
     }
+    // ⚖️ Constitution Query
+    else if (containsAny(lowerMsg, ['constitution', 'konstitusi', 'core rules', 'aturan inti', 'misi', 'tujuan'])) {
+        response = getConstitutionResponse();
+    }
     // Greetings
     else if (containsAny(lowerMsg, ['halo', 'hai', 'hi', 'pagi', 'siang', 'sore', 'malam'])) {
         response = getGreetingResponse();
@@ -931,6 +966,45 @@ function getGenesisCodexResponse() {
         <p>Phase 0 → 1 (Alpha Core) → 2 (Business) → 3 (Multi-Agent) → 4 (Global) → 5 (Robotics) → 6 (Legacy)</p>
         
         <p>📄 Source: <em>Project_Genesis_Volume_00_Genesis_Day.pdf</em></p>
+    `;
+}
+
+// Constitution Response - CODEX-001
+function getConstitutionResponse() {
+    const rules = ALPHA_CONSTITUTION.coreRules.map(r => 
+        `${r.id}️⃣ <strong>${r.title}</strong><br>   ${r.desc}`
+    ).join('<br><br>');
+    
+    const security = ALPHA_CONSTITUTION.security.map(s => `• ${s}`).join('<br>');
+    
+    const roadmap = ALPHA_CONSTITUTION.devRoadmap.map(r => {
+        const icon = r.status === 'in_progress' ? '🔄' : r.status === 'done' ? '✅' : '⬜';
+        return `${icon} Phase ${r.phase}: ${r.name}`;
+    }).join('<br>');
+    
+    return `
+        <p>⚖️ <strong>ALPHA GAURANGGA CONSTITUTION</strong> - CODEX-001</p>
+        
+        <p><strong>🎯 Purpose:</strong></p>
+        <p>${ALPHA_CONSTITUTION.purpose}</p>
+        
+        <p><strong>📋 Mission:</strong></p>
+        <p>${ALPHA_CONSTITUTION.mission}</p>
+        
+        <p><strong>⚖️ 5 Core Rules:</strong></p>
+        <p>${rules}</p>
+        
+        <p><strong>🔐 Security:</strong></p>
+        <p>${security}</p>
+        
+        <p><strong>🧠 Learning:</strong></p>
+        <p>✅ Allowed: ${ALPHA_CONSTITUTION.learning.allowed.join(', ')}</p>
+        <p>❌ Forbidden: ${ALPHA_CONSTITUTION.learning.forbidden.join(', ')}</p>
+        
+        <p><strong>🗺️ Development Roadmap:</strong></p>
+        <p>${roadmap}</p>
+        
+        <p>📄 Source: <em>Project_Genesis_Volume_01.pdf</em></p>
     `;
 }
 
