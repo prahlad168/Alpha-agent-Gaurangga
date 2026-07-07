@@ -355,6 +355,58 @@ const ALPHA_CONSTITUTION = {
     ]
 };
 
+// Genesis Council Agent Registry - CODEX-002
+const GENESIS_COUNCIL = {
+    documentId: 'CODEX-002',
+    phase: '03 - AI Agents',
+    totalAgents: 75,
+    progress: '0%',
+    divisions: [
+        {
+            name: 'Core AI Council',
+            icon: '👑',
+            agents: ['CEO Agent', 'CTO Agent', 'CFO Agent', 'COO Agent', 'CMO Agent', 'Legal Agent', 'HR Agent', 'Security Agent', 'Research Agent', 'Knowledge Agent']
+        },
+        {
+            name: 'Business Agents',
+            icon: '💼',
+            agents: ['Marketing AI', 'Sales AI', 'Customer Service AI', 'SEO AI', 'Social Media AI', 'TikTok AI', 'YouTube AI', 'Content AI', 'Email AI', 'Marketplace AI']
+        },
+        {
+            name: 'Engineering Agents',
+            icon: '⚙️',
+            agents: ['Frontend', 'Backend', 'DevOps', 'Testing', 'QA', 'Database', 'Cloud', 'API', 'Documentation', 'Deployment']
+        },
+        {
+            name: 'Healthcare Agents',
+            icon: '🏥',
+            agents: ['Medical Knowledge', 'Hospital SOP', 'Radiology', 'Pharmacy', 'Ayurveda Knowledge', 'Wellness Coach', 'Nutrition', 'Health Reminder']
+        },
+        {
+            name: 'Finance Agents',
+            icon: '💰',
+            agents: ['Accounting', 'Tax', 'Budget', 'Cashflow', 'Invoice', 'Payroll', 'Audit']
+        },
+        {
+            name: 'Robotics Agents',
+            icon: '🤖',
+            agents: ['Camera Vision', 'Speech', 'Navigation', 'Sensor', 'Motion', 'Robot Control', 'Drone']
+        },
+        {
+            name: 'Founder Assistant',
+            icon: '👤',
+            agents: ['Daily Briefing', 'Calendar', 'Meeting', 'Reminder', 'Family Assistant', 'Knowledge', 'Travel', 'Health Assistant']
+        }
+    ],
+    mvpAgents: ['CEO Agent', 'Knowledge Agent', 'Daily Briefing', 'HR Agent', 'Calendar', 'Marketing AI', 'Sales AI', 'Content AI', 'Customer Service AI', 'Email AI'],
+    priorityPhases: {
+        1: { name: 'Foundation (MVP)', agents: 10 },
+        2: { name: 'Business', agents: 25 },
+        3: { name: 'Engineering', agents: 25 },
+        4: { name: 'Advanced', agents: 15 }
+    }
+};
+
 // ============================================
 // DAILY LOG SYSTEM
 // ============================================
@@ -730,6 +782,10 @@ async function processMessage(message) {
     else if (containsAny(lowerMsg, ['constitution', 'konstitusi', 'core rules', 'aturan inti', 'misi', 'tujuan'])) {
         response = getConstitutionResponse();
     }
+    // 🤖 Genesis Council / Agents Query
+    else if (containsAny(lowerMsg, ['agent', 'agents', 'council', 'genesis council', 'robot', 'drones'])) {
+        response = getGenesisCouncilResponse();
+    }
     // Greetings
     else if (containsAny(lowerMsg, ['halo', 'hai', 'hi', 'pagi', 'siang', 'sore', 'malam'])) {
         response = getGreetingResponse();
@@ -1005,6 +1061,40 @@ function getConstitutionResponse() {
         <p>${roadmap}</p>
         
         <p>📄 Source: <em>Project_Genesis_Volume_01.pdf</em></p>
+    `;
+}
+
+// Genesis Council Response - CODEX-002
+function getGenesisCouncilResponse() {
+    const divisions = GENESIS_COUNCIL.divisions.map(d => {
+        const agentsList = d.agents.map(a => `  • ${a}`).join('<br>');
+        return `${d.icon} <strong>${d.name}</strong><br>${agentsList}`;
+    }).join('<br><br>');
+    
+    const mvpList = GENESIS_COUNCIL.mvpAgents.map(a => `• ${a}`).join('<br>');
+    
+    return `
+        <p>🤖 <strong>GENESIS COUNCIL</strong> - CODEX-002</p>
+        <p>Phase 03: AI Agents Checklist</p>
+        
+        <p><strong>📊 Overview:</strong></p>
+        <p>• Total Agents: <strong>${GENESIS_COUNCIL.totalAgents}+</strong><br>
+        • Progress: <strong>${GENESIS_COUNCIL.progress}</strong><br>
+        • Divisions: <strong>${GENESIS_COUNCIL.divisions.length}</strong></p>
+        
+        <p><strong>🏛️ Divisions:</strong></p>
+        <p>${divisions}</p>
+        
+        <p><strong>⭐ MVP Priority Agents (Phase 1):</strong></p>
+        <p>${mvpList}</p>
+        
+        <p><strong>🗺️ Development Phases:</strong></p>
+        <p>• Phase 1: Foundation (MVP) - 10 agents<br>
+        • Phase 2: Business - 25 agents<br>
+        • Phase 3: Engineering - 25 agents<br>
+        • Phase 4: Advanced - 15 agents</p>
+        
+        <p>📄 Source: <em>Project_Genesis_Volume_02.pdf</em></p>
     `;
 }
 
