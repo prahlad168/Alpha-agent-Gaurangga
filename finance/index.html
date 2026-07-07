@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💰 Finance Dashboard - Maha Lakshmi Corp</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --dark: #1e293b;
+            --light: #f8fafc;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark) 0%, #312e81 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .header {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-icon {
+            font-size: 40px;
+        }
+
+        .logo-text h1 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .logo-text span {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 30px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .stat-value.income { color: var(--success); }
+        .stat-value.expense { color: var(--danger); }
+        .stat-value.balance { color: var(--warning); }
+
+        .nav-tabs {
+            display: flex;
+            background: rgba(255,255,255,0.05);
+            padding: 10px;
+            gap: 10px;
+            border-radius: 12px;
+            margin: 20px 30px;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .nav-tab:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .nav-tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .main-content {
+            padding: 0 30px 30px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Dashboard Tab */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 24px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-badge {
+            background: var(--primary);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        /* Quick Stats */
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .quick-stat {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .quick-stat-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .quick-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .quick-stat-label {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 5px;
+        }
+
+        /* Transaction List */
+        .transaction-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.05);
+            transition: all 0.3s;
+        }
+
+        .transaction-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .transaction-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .transaction-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .transaction-icon.income { background: rgba(16, 185, 129, 0.2); }
+        .transaction-icon.expense { background: rgba(239, 68, 68, 0.2); }
+
+        .transaction-info h4 {
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .transaction-info span {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .transaction-amount {
+            text-align: right;
+        }
+
+        .transaction-amount.income { color: var(--success); }
+        .transaction-amount.expense { color: var(--danger); }
+
+        .transaction-amount .amount {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .transaction-amount .date {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255,255,255,0.15);
+        }
+
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5558e3;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* Invoice Styles */
+        .invoice-preview {
+            background: white;
+            color: #333;
+            border-radius: 12px;
+            padding: 30px;
+            margin-top: 20px;
+        }
+
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .invoice-title {
+            font-size: 28px;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .invoice-number {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .invoice-parties {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .invoice-party h4 {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .invoice-party p {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        .invoice-table th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #666;
+        }
+
+        .invoice-table td {
+            padding: 15px 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .invoice-total {
+            text-align: right;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Chart Placeholder */
+        .chart-placeholder {
+            height: 200px;
+            background: linear-gradient(45deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #94a3b8;
+        }
+
+        .empty-state-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        /* SBU Section */
+        .sbu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .sbu-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .sbu-card:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: var(--primary);
+        }
+
+        .sbu-card.active {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .sbu-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .sbu-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .sbu-revenue {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--success);
+        }
+
+        .sbu-status {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 8px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--dark);
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--success);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            display: none;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .notification.show {
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .header-stats {
+                width: 100%;
+                justify-content: space-around;
+            }
+
+            .quick-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-tabs {
+                flex-wrap: wrap;
+            }
+
+            .invoice-parties {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <span class="logo-icon">💰</span>
+            <div class="logo-text">
+                <h1>Finance Dashboard</h1>
+                <span>Maha Lakshmi Corp</span>
+            </div>
+        </div>
+        <div class="header-stats">
+            <div class="stat-item">
+                <div class="stat-value income" id="totalIncome">Rp 0</div>
+                <div class="stat-label">Total Masuk</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value expense" id="totalExpense">Rp 0</div>
+                <div class="stat-label">Total Keluar</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value balance" id="balance">Rp 0</div>
+                <div class="stat-label">Saldo</div>
+            </div>
+        </div>
+    </header>
+
+    <nav class="nav-tabs">
+        <button class="nav-tab active" onclick="switchTab('dashboard')">
+            📊 Dashboard
+        </button>
+        <button class="nav-tab" onclick="switchTab('transactions')">
+            💳 Transaksi
+        </button>
+        <button class="nav-tab" onclick="switchTab('invoice')">
+            🧾 Invoice
+        </button>
+        <button class="nav-tab" onclick="switchTab('sbu')">
+            🏢 SBU
+        </button>
+        <button class="nav-tab" onclick="switchTab('report')">
+            📈 Laporan
+        </button>
+    </nav>
+
+    <main class="main-content">
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <div class="quick-stats">
+                <div class="quick-stat">
+                    <div class="quick-stat-icon">📈</div>
+                    <div class="quick-stat-value" id="monthlyIncome">Rp 0</div>
+                    <div class="quick-stat-label">Pendapatan Bulan Ini</div>
+                </div>
+                <div class="quick-stat">
+                    <div class="quick-stat-icon">📉</div>
+                    <div class="quick-stat-value" id="monthlyExpense">Rp 0</div>
+                    <div class="quick-stat-label">Pengeluaran Bulan Ini</div>
+                </div>
+                <div class="quick-stat">
+                    <div class="quick-stat-icon">🎯</div>
+                    <div class="quick-stat-value" id="targetProgress">0%</div>
+                    <div class="quick-stat-label">Target Tercapai</div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">📋 Transaksi Terakhir</span>
+                        <button class="btn btn-primary" onclick="openModal('transaction')">
+                            + Tambah
+                        </button>
+                    </div>
+                    <div class="transaction-list" id="recentTransactions">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">💸</div>
+                            <p>Belum ada transaksi</p>
+                            <p style="font-size: 12px; margin-top: 10px;">Tambah transaksi pertama Anda!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">📊 Ringkasan Per SBU</span>
+                    </div>
+                    <div id="sbuSummary">
+                        <div class="chart-placeholder">
+                            📈 Chart akan muncul setelah ada data
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transactions Tab -->
+        <div id="transactions" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">💳 Semua Transaksi</span>
+                    <button class="btn btn-primary" onclick="openModal('transaction')">
+                        + Tambah Transaksi
+                    </button>
+                </div>
+                <div class="transaction-list" id="allTransactions">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <p>Belum ada transaksi</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Invoice Tab -->
+        <div id="invoice" class="tab-content">
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">🧾 Buat Invoice Baru</span>
+                    </div>
+                    <form id="invoiceForm">
+                        <div class="form-group">
+                            <label class="form-label">Nomor Invoice</label>
+                            <input type="text" class="form-input" id="invNumber" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Klien / Pelanggan</label>
+                            <input type="text" class="form-input" id="invClient" placeholder="Nama klien">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">SBU</label>
+                            <select class="form-input form-select" id="invSBU">
+                                <option value="">Pilih SBU</option>
+                                <option value="hospital">🏥 Rumah Sakit</option>
+                                <option value="ecommerce">🛒 E-Commerce</option>
+                                <option value="edutech">🎓 Education Tech</option>
+                                <option value="travel">✈️ Travel Tech</option>
+                                <option value="property">🏠 Property Tech</option>
+                                <option value="food">🍔 Food Tech</option>
+                                <option value="other">📦 Lainnya</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Deskripsi Layanan</label>
+                            <input type="text" class="form-input" id="invDesc" placeholder="Deskripsi layanan">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Jumlah (Rp)</label>
+                            <input type="number" class="form-input" id="invAmount" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tanggal</label>
+                            <input type="date" class="form-input" id="invDate">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Status</label>
+                            <select class="form-input form-select" id="invStatus">
+                                <option value="pending">⏳ Menunggu</option>
+                                <option value="paid">✅ Lunas</option>
+                                <option value="overdue">⚠️ Jatuh Tempo</option>
+                            </select>
+                        </div>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-primary" onclick="generateInvoice()">
+                                📄 Generate Invoice
+                            </button>
+                            <button type="button" class="btn btn-success" onclick="saveInvoice()">
+                                💾 Simpan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">📋 Preview Invoice</span>
+                    </div>
+                    <div class="invoice-preview" id="invoicePreview">
+                        <div class="invoice-header">
+                            <div>
+                                <div class="invoice-title">INVOICE</div>
+                                <div class="invoice-number" id="previewInvNumber">#INV-0001</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <strong>PT Maha Lakshmi Corp</strong><br>
+                                <span style="font-size: 12px; color: #666;">Jakarta, Indonesia</span>
+                            </div>
+                        </div>
+                        <div class="invoice-parties">
+                            <div class="invoice-party">
+                                <h4>Tagihan Kepada</h4>
+                                <p id="previewClient">Nama Klien</p>
+                            </div>
+                            <div class="invoice-party">
+                                <h4>Tanggal</h4>
+                                <p id="previewDate">-</p>
+                            </div>
+                        </div>
+                        <table class="invoice-table">
+                            <thead>
+                                <tr>
+                                    <th>Deskripsi</th>
+                                    <th style="text-align: right;">Jumlah</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td id="previewDesc">-</td>
+                                    <td style="text-align: right;" id="previewAmount">Rp 0</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="invoice-total" id="previewTotal">
+                            Total: Rp 0
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 20px;">
+                <div class="card-header">
+                    <span class="card-title">📑 Daftar Invoice</span>
+                </div>
+                <div id="invoiceList">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🧾</div>
+                        <p>Belum ada invoice</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SBU Tab -->
+        <div id="sbu" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">🏢 Strategic Business Units</span>
+                    <span class="card-badge">10 SBUs</span>
+                </div>
+                <div class="sbu-grid" id="sbuGrid">
+                    <div class="sbu-card" data-sbu="hospital">
+                        <div class="sbu-icon">🏥</div>
+                        <div class="sbu-name">Hospital Management</div>
+                        <div class="sbu-revenue" id="sbu-hospital">Rp 0</div>
+                        <div class="sbu-status">💼 Active</div>
+                    </div>
+                    <div class="sbu-card" data-sbu="ecommerce">
+                        <div class="sbu-icon">🛒</div>
+                        <div class="sbu-name">E-Commerce</div>
+                        <div class="sbu-revenue" id="sbu-ecommerce">Rp 0</div>
+                        <div class="sbu-status">💼 Active</div>
+                    </div>
+                    <div class="sbu-card" data-sbu="edutech">
+                        <div class="sbu-icon">🎓</div>
+                        <div class="sbu-name">Education Tech</div>
+                        <div class="sbu-revenue" id="sbu-edutech">Rp 0</div>
+                        <div class="sbu-status">💼 Active</div>
+                    </div>
+                    <div class="sbu-card" data-sbu="travel">
+                        <div class="sbu-icon">✈️</div>
+                        <div class="sbu-name">Travel Tech</div>
+                        <div class="sbu-revenue" id="sbu-travel">Rp 0</div>
+                        <div class="sbu-status">💼 Active</div>
+                    </div>
+                    <div class="sbu-card" data-sbu="property">
+                        <div class="sbu-icon">🏠</div>
+                        <div class="sbu-name">Property Tech</div>
+                        <div class="sbu-revenue" id="sbu-property">Rp 0</div>
+                        <div class="sbu-status">💼 Active</div>
+                    </div>
+                    <div class="sbu-card" data-sbu="food">
+                        <div class="sbu-icon">🍔</div>
+                        <div class="sbu-name">Food Tech</div>
+                        <div class="sbu-revenue" id="sbu-food">Rp 0</div>
+                        <div class="sbu-status">💼 Active</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 20px;">
+                <div class="card-header">
+                    <span class="card-title">📊 SBU Revenue Distribution</span>
+                </div>
+                <div id="sbuChart" style="height: 300px; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
+                    📈 Chart akan muncul setelah ada data dari semua SBU
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Tab -->
+        <div id="report" class="tab-content">
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">📈 Laporan Bulanan</span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Pilih Bulan</label>
+                        <select class="form-input form-select" id="reportMonth" onchange="generateMonthlyReport()">
+                            <option value="2026-07">Juli 2026</option>
+                            <option value="2026-06">Juni 2026</option>
+                            <option value="2026-05">Mei 2026</option>
+                        </select>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <div style="display: flex; justify-content: space-between; padding: 15px; background: rgba(16, 185, 129, 0.2); border-radius: 10px; margin-bottom: 10px;">
+                            <span>Total Pendapatan</span>
+                            <strong id="reportIncome" style="color: var(--success);">Rp 0</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 15px; background: rgba(239, 68, 68, 0.2); border-radius: 10px; margin-bottom: 10px;">
+                            <span>Total Pengeluaran</span>
+                            <strong id="reportExpense" style="color: var(--danger);">Rp 0</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 15px; background: rgba(245, 158, 11, 0.2); border-radius: 10px;">
+                            <span>Profit</span>
+                            <strong id="reportProfit" style="color: var(--warning);">Rp 0</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">🎯 Target vs Realisasi</span>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <div style="margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span>Target Bulanan</span>
+                                <span id="targetAmount">Rp 5.000.000</span>
+                            </div>
+                            <div style="background: #333; height: 20px; border-radius: 10px; overflow: hidden;">
+                                <div id="targetBar" style="background: linear-gradient(90deg, var(--primary), var(--secondary)); height: 100%; width: 0%; transition: all 0.5s;"></div>
+                            </div>
+                            <div style="text-align: center; margin-top: 5px; font-size: 12px; color: #94a3b8;">
+                                <span id="targetPercentage">0%</span> tercapai
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 20px;">
+                <div class="card-header">
+                    <span class="card-title">📥 Export Data</span>
+                    <button class="btn btn-success" onclick="exportData()">
+                        📥 Download JSON
+                    </button>
+                </div>
+                <p style="color: #94a3b8; font-size: 14px; margin-top: 10px;">
+                    Download semua data keuangan dalam format JSON untuk backup atau analisis lebih lanjut.
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Transaction Modal -->
+    <div class="modal" id="transactionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">💳 Tambah Transaksi</span>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="transactionForm">
+                <div class="form-group">
+                    <label class="form-label">Jenis Transaksi</label>
+                    <select class="form-input form-select" id="txType">
+                        <option value="income">💰 Masuk (Pendapatan)</option>
+                        <option value="expense">💸 Keluar (Pengeluaran)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">SBU</label>
+                    <select class="form-input form-select" id="txSBU">
+                        <option value="general">📦 Umum</option>
+                        <option value="hospital">🏥 Rumah Sakit</option>
+                        <option value="ecommerce">🛒 E-Commerce</option>
+                        <option value="edutech">🎓 Education Tech</option>
+                        <option value="travel">✈️ Travel Tech</option>
+                        <option value="property">🏠 Property Tech</option>
+                        <option value="food">🍔 Food Tech</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Deskripsi</label>
+                    <input type="text" class="form-input" id="txDesc" placeholder="Deskripsi transaksi">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Jumlah (Rp)</label>
+                    <input type="number" class="form-input" id="txAmount" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tanggal</label>
+                    <input type="date" class="form-input" id="txDate">
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-primary" onclick="saveTransaction()">
+                        💾 Simpan
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="closeModal()">
+                        ❌ Batal
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">
+        ✅ Data berhasil disimpan!
+    </div>
+
+    <script>
+        // ============================================
+        // FINANCE DATA STORAGE
+        // ============================================
+        const FinanceData = {
+            transactions: [],
+            invoices: [],
+            sbus: ['hospital', 'ecommerce', 'edutech', 'travel', 'property', 'food'],
+            targets: {
+                monthly: 5000000, // Rp 5 juta/bulan
+                quarterly: 25000000, // Rp 25 juta/quarter
+                yearly: 100000000 // Rp 100 juta/tahun
+            }
+        };
+
+        // Load data from localStorage
+        function loadData() {
+            const saved = localStorage.getItem('mahaLakshmiFinance');
+            if (saved) {
+                const data = JSON.parse(saved);
+                FinanceData.transactions = data.transactions || [];
+                FinanceData.invoices = data.invoices || [];
+                updateAllStats();
+            }
+            generateInvoiceNumber();
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('mahaLakshmiFinance', JSON.stringify({
+                transactions: FinanceData.transactions,
+                invoices: FinanceData.invoices
+            }));
+        }
+
+        // Format currency
+        function formatCurrency(amount) {
+            return 'Rp ' + amount.toLocaleString('id-ID');
+        }
+
+        // Format date
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric'
+            });
+        }
+
+        // ============================================
+        // TAB NAVIGATION
+        // ============================================
+        function switchTab(tabId) {
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            document.querySelector(`.nav-tab[onclick="switchTab('${tabId}')"]`).classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // ============================================
+        // MODAL
+        // ============================================
+        function openModal(type) {
+            if (type === 'transaction') {
+                document.getElementById('transactionModal').classList.add('active');
+                document.getElementById('txDate').value = new Date().toISOString().split('T')[0];
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('transactionModal').classList.remove('active');
+        }
+
+        // ============================================
+        // TRANSACTIONS
+        // ============================================
+        function saveTransaction() {
+            const type = document.getElementById('txType').value;
+            const sbu = document.getElementById('txSBU').value;
+            const desc = document.getElementById('txDesc').value;
+            const amount = parseInt(document.getElementById('txAmount').value) || 0;
+            const date = document.getElementById('txDate').value;
+
+            if (!desc || amount <= 0 || !date) {
+                alert('Mohon isi semua field dengan benar!');
+                return;
+            }
+
+            const transaction = {
+                id: Date.now(),
+                type,
+                sbu,
+                desc,
+                amount,
+                date
+            };
+
+            FinanceData.transactions.push(transaction);
+            saveData();
+            updateAllStats();
+            closeModal();
+            showNotification('Transaksi berhasil disimpan!');
+
+            // Reset form
+            document.getElementById('txDesc').value = '';
+            document.getElementById('txAmount').value = '';
+        }
+
+        function deleteTransaction(id) {
+            if (confirm('Hapus transaksi ini?')) {
+                FinanceData.transactions = FinanceData.transactions.filter(t => t.id !== id);
+                saveData();
+                updateAllStats();
+                showNotification('Transaksi dihapus!');
+            }
+        }
+
+        // ============================================
+        // INVOICE
+        // ============================================
+        function generateInvoiceNumber() {
+            const count = FinanceData.invoices.length + 1;
+            const invNumber = `INV-${String(count).padStart(4, '0')}/MLC/${new Date().getFullYear()}`;
+            document.getElementById('invNumber').value = invNumber;
+            document.getElementById('previewInvNumber').textContent = `#${invNumber}`;
+        }
+
+        function generateInvoice() {
+            const client = document.getElementById('invClient').value || 'Nama Klien';
+            const desc = document.getElementById('invDesc').value || '-';
+            const amount = parseInt(document.getElementById('invAmount').value) || 0;
+            const date = document.getElementById('invDate').value || new Date().toISOString().split('T')[0];
+
+            document.getElementById('previewClient').textContent = client;
+            document.getElementById('previewDesc').textContent = desc;
+            document.getElementById('previewDate').textContent = formatDate(date);
+            document.getElementById('previewAmount').textContent = formatCurrency(amount);
+            document.getElementById('previewTotal').textContent = `Total: ${formatCurrency(amount)}`;
+        }
+
+        function saveInvoice() {
+            const invNumber = document.getElementById('invNumber').value;
+            const client = document.getElementById('invClient').value;
+            const sbu = document.getElementById('invSBU').value;
+            const desc = document.getElementById('invDesc').value;
+            const amount = parseInt(document.getElementById('invAmount').value) || 0;
+            const date = document.getElementById('invDate').value;
+            const status = document.getElementById('invStatus').value;
+
+            if (!client || !desc || amount <= 0) {
+                alert('Mohon isi semua field dengan benar!');
+                return;
+            }
+
+            const invoice = {
+                id: Date.now(),
+                invNumber,
+                client,
+                sbu,
+                desc,
+                amount,
+                date,
+                status
+            };
+
+            FinanceData.invoices.push(invoice);
+            saveData();
+            updateInvoiceList();
+            generateInvoiceNumber();
+            showNotification('Invoice berhasil disimpan!');
+
+            // Reset form
+            document.getElementById('invClient').value = '';
+            document.getElementById('invDesc').value = '';
+            document.getElementById('invAmount').value = '';
+        }
+
+        function updateInvoiceList() {
+            const list = document.getElementById('invoiceList');
+            
+            if (FinanceData.invoices.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🧾</div>
+                        <p>Belum ada invoice</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = FinanceData.invoices.map(inv => `
+                <div class="transaction-item">
+                    <div class="transaction-left">
+                        <div class="transaction-icon ${inv.status === 'paid' ? 'income' : 'expense'}">
+                            ${inv.status === 'paid' ? '✅' : inv.status === 'overdue' ? '⚠️' : '⏳'}
+                        </div>
+                        <div class="transaction-info">
+                            <h4>${inv.client}</h4>
+                            <span>${inv.invNumber} • ${inv.desc}</span>
+                        </div>
+                    </div>
+                    <div class="transaction-amount ${inv.status === 'paid' ? 'income' : ''}">
+                        <div class="amount">${formatCurrency(inv.amount)}</div>
+                        <div class="date">${formatDate(inv.date)} • ${inv.status.toUpperCase()}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ============================================
+        // STATISTICS & UPDATES
+        // ============================================
+        function updateAllStats() {
+            // Calculate totals
+            let totalIncome = 0;
+            let totalExpense = 0;
+            const sbuRevenue = {};
+
+            FinanceData.transactions.forEach(tx => {
+                if (tx.type === 'income') {
+                    totalIncome += tx.amount;
+                    sbuRevenue[tx.sbu] = (sbuRevenue[tx.sbu] || 0) + tx.amount;
+                } else {
+                    totalExpense += tx.amount;
+                }
+            });
+
+            // Update header stats
+            document.getElementById('totalIncome').textContent = formatCurrency(totalIncome);
+            document.getElementById('totalExpense').textContent = formatCurrency(totalExpense);
+            document.getElementById('balance').textContent = formatCurrency(totalIncome - totalExpense);
+
+            // Update monthly stats
+            const now = new Date();
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            let monthlyIncome = 0;
+            let monthlyExpense = 0;
+
+            FinanceData.transactions.forEach(tx => {
+                const txDate = new Date(tx.date);
+                if (txDate >= monthStart) {
+                    if (tx.type === 'income') monthlyIncome += tx.amount;
+                    else monthlyExpense += tx.amount;
+                }
+            });
+
+            document.getElementById('monthlyIncome').textContent = formatCurrency(monthlyIncome);
+            document.getElementById('monthlyExpense').textContent = formatCurrency(monthlyExpense);
+
+            // Target progress
+            const targetPercent = Math.min(100, Math.round((monthlyIncome / FinanceData.targets.monthly) * 100));
+            document.getElementById('targetProgress').textContent = targetPercent + '%';
+            document.getElementById('targetPercentage').textContent = targetPercent + '%';
+            document.getElementById('targetBar').style.width = targetPercent + '%';
+
+            // Update SBU revenues
+            FinanceData.sbus.forEach(sbu => {
+                document.getElementById(`sbu-${sbu}`).textContent = formatCurrency(sbuRevenue[sbu] || 0);
+            });
+
+            // Update transaction lists
+            updateTransactionLists();
+
+            // Update report
+            document.getElementById('reportIncome').textContent = formatCurrency(monthlyIncome);
+            document.getElementById('reportExpense').textContent = formatCurrency(monthlyExpense);
+            document.getElementById('reportProfit').textContent = formatCurrency(monthlyIncome - monthlyExpense);
+        }
+
+        function updateTransactionLists() {
+            const recent = document.getElementById('recentTransactions');
+            const all = document.getElementById('allTransactions');
+
+            const sorted = [...FinanceData.transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+            const recentTx = sorted.slice(0, 5);
+
+            if (recentTx.length === 0) {
+                recent.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">💸</div>
+                        <p>Belum ada transaksi</p>
+                    </div>
+                `;
+            } else {
+                recent.innerHTML = recentTx.map(tx => createTransactionHTML(tx)).join('');
+            }
+
+            if (sorted.length === 0) {
+                all.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <p>Belum ada transaksi</p>
+                    </div>
+                `;
+            } else {
+                all.innerHTML = sorted.map(tx => createTransactionHTML(tx)).join('');
+            }
+        }
+
+        function createTransactionHTML(tx) {
+            const icon = tx.type === 'income' ? '💰' : '💸';
+            const sign = tx.type === 'income' ? '+' : '-';
+            return `
+                <div class="transaction-item">
+                    <div class="transaction-left">
+                        <div class="transaction-icon ${tx.type}">${icon}</div>
+                        <div class="transaction-info">
+                            <h4>${tx.desc}</h4>
+                            <span>${getSBUName(tx.sbu)}</span>
+                        </div>
+                    </div>
+                    <div class="transaction-amount ${tx.type}">
+                        <div class="amount">${sign} ${formatCurrency(tx.amount)}</div>
+                        <div class="date">${formatDate(tx.date)}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getSBUName(sbu) {
+            const names = {
+                hospital: '🏥 Rumah Sakit',
+                ecommerce: '🛒 E-Commerce',
+                edutech: '🎓 Education',
+                travel: '✈️ Travel',
+                property: '🏠 Property',
+                food: '🍔 Food',
+                general: '📦 Umum'
+            };
+            return names[sbu] || sbu;
+        }
+
+        // ============================================
+        // EXPORT DATA
+        // ============================================
+        function exportData() {
+            const dataStr = JSON.stringify(FinanceData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `maha-lakshmi-finance-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            showNotification('Data berhasil diunduh!');
+        }
+
+        function generateMonthlyReport() {
+            updateAllStats();
+        }
+
+        // ============================================
+        // NOTIFICATION
+        // ============================================
+        function showNotification(message) {
+            const notif = document.getElementById('notification');
+            notif.textContent = message;
+            notif.classList.add('show');
+            setTimeout(() => notif.classList.remove('show'), 3000);
+        }
+
+        // ============================================
+        // INITIALIZE
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            document.getElementById('invDate').value = new Date().toISOString().split('T')[0];
+        });
+    </script>
+</body>
+</html>
