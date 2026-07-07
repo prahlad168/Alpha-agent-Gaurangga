@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GAURANGA Alpha</string>
+    <string name="app_description">24/7 Voice Assistant - Offline Ready</string>
+    
+    <!-- Status Messages -->
+    <string name="status_ready">Ready</string>
+    <string name="status_listening">🎤 Mendengarkan...</string>
+    <string name="status_speaking">🔊 Speaking...</string>
+    <string name="status_processing">Processing...</string>
+    <string name="service_running">Service Running 24/7</string>
+    <string name="service_stopped">Service Stopped</string>
+    
+    <!-- Buttons -->
+    <string name="btn_start_service">▶ START 24/7</string>
+    <string name="btn_stop_service">⏹ STOP 24/7</string>
+    <string name="btn_voice_input">🎤</string>
+    <string name="btn_stop_listening">⏹ Stop</string>
+    <string name="btn_send">Send</string>
+    
+    <!-- Notifications -->
+    <string name="notification_title">🤖 GAURANGA Alpha</string>
+    <string name="notification_listening">🎤 Mendengarkan...</string>
+    <string name="notification_ready">Siap menerima perintah</string>
+    
+    <!-- Errors -->
+    <string name="error_permission_denied">Izin microphone diperlukan!</string>
+    <string name="error_tts_not_ready">Text-to-Speech belum siap</string>
+    <string name="error_stt_not_ready">Speech Recognition belum siap</string>
+</resources>
