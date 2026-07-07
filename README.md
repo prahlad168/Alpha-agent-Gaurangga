@@ -109,4 +109,58 @@ python3 -m http.server 8080
 
 ---
 
-**Version:** 1.0.0 | **Created:** 2026-07-05 | **Status:** 🚀 ACTIVE
+## 🤖 AI Integration
+
+### Server Setup
+```bash
+cd server
+pip install -r requirements.txt
+
+# Set API Key
+export GEMINI_API_KEY="your-gemini-key"  # RECOMMENDED - FREE
+
+# atau
+
+export OPENAI_API_KEY="your-openai-key"  # Paid
+
+# Run server
+python gauranga_server.py
+```
+
+### AI Services
+| Service | Status | Cost |
+|---------|--------|------|
+| Gemini (Google) | ✅ Ready | FREE |
+| ChatGPT (OpenAI) | ⏳ Ready (quota limited) | Paid |
+
+---
+
+## 🔄 For AI Agents (OpenHands/Gemini)
+
+### To Continue Development:
+
+1. **Load the skill:**
+   ```
+   Use /add-skill with .agents/skills/gauranga-main.md
+   ```
+
+2. **Read the context:**
+   ```
+   - Read logs/LOG-*.md for history
+   - Read docs/CODEX-*.md for knowledge
+   - Check .agents/skills/gauranga-main.md
+   ```
+
+3. **Continue from logs:**
+   ```
+   - LOG-000005: AI Integration (waiting for quota reset)
+   - Next: MVP Agents Development
+   - Then: Memory Engine, Dashboard, Voice Interface
+   ```
+
+### Skill File
+All context is saved in `.agents/skills/gauranga-main.md`
+
+---
+
+**Version:** 1.0.0 | **Created:** 2026-07-05 | **Updated:** 2026-07-07 | **Status:** 🚀 ACTIVE
