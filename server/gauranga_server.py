@@ -73,10 +73,10 @@ def chat():
         if gemini_model:
             try:
                 response = gemini_model.models.generate_content(
-                    model='gemini-2.0-flash',
+                    model='gemini-flash-latest',
                     contents=f"{GAURANGA_SYSTEM}\n\nUser: {message}"
                 )
-                return jsonify({'success': True, 'reply': response.text, 'model': 'gemini-2.0-flash'})
+                return jsonify({'success': True, 'reply': response.text, 'model': 'gemini-flash-latest'})
             except Exception as e:
                 print(f"Gemini error: {e}")
         

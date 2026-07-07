@@ -162,21 +162,24 @@ Alpha-agent-Gaurangga/
 ## 🔧 TECHNICAL SETUP
 
 ### AI Services:
-- **Primary:** Google Gemini (FREE tier - 60 req/min)
+- **Primary:** Google Gemini (FREE tier - gemini-flash-latest) ✅ ACTIVE
 - **Backup:** OpenAI ChatGPT (paid - quota limited)
 
-### To Enable AI:
+### To Run AI Server:
 ```bash
-# Gemini (RECOMMENDED - FREE)
-export GEMINI_API_KEY="your-key-here"
-
-# OpenAI (backup)
-export OPENAI_API_KEY="your-key-here"
-
-# Run server
-cd server
+cd /workspace/project/Alpha-agent-Gaurangga/server
+cp .env.example .env
+# Edit .env and add your API keys
+export GEMINI_API_KEY="your-gemini-key"
 python gauranga_server.py
 ```
+
+### API Endpoints:
+- POST /api/chat - Send message to AI
+- GET /api/status - Check AI status
+- GET /api/health - Health check
+
+### Model: gemini-flash-latest (FREE - works!) ✅
 
 ### Frontend:
 - Single HTML file with embedded JS
