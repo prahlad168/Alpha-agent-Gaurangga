@@ -1006,8 +1006,21 @@
         // FINANCE DATA STORAGE
         // ============================================
         const FinanceData = {
-            transactions: [],
-            invoices: [],
+            transactions: [
+                // Juli 2026 - Sample Data Genesis Day
+                { id: 1, type: 'income', sbu: 'ecommerce', desc: 'Setup Online Shop - Client A', amount: 3500000, date: '2026-07-01' },
+                { id: 2, type: 'income', sbu: 'edutech', desc: 'Konsultasi LMS Setup', amount: 1500000, date: '2026-07-02' },
+                { id: 3, type: 'expense', sbu: 'general', desc: 'Server Hosting - Bulan Juli', amount: 350000, date: '2026-07-03' },
+                { id: 4, type: 'income', sbu: 'food', desc: 'Food Tech MVP Development', amount: 2500000, date: '2026-07-04' },
+                { id: 5, type: 'expense', sbu: 'general', desc: 'Domain & SSL Certificate', amount: 500000, date: '2026-07-05' },
+                { id: 6, type: 'income', sbu: 'hospital', desc: 'SIMRS Consultation - Clinic X', amount: 5000000, date: '2026-07-06' },
+                { id: 7, type: 'expense', sbu: 'general', desc: 'AI Services - Gemini API', amount: 200000, date: '2026-07-07' }
+            ],
+            invoices: [
+                { id: 1, client: 'PT Sehat Sentosa', invNumber: 'INV-2026-001', desc: 'SIMRS Development', amount: 15000000, date: '2026-07-01', status: 'pending' },
+                { id: 2, client: 'Toko Grosir Bali', invNumber: 'INV-2026-002', desc: 'E-Commerce Platform', amount: 8500000, date: '2026-07-03', status: 'paid' },
+                { id: 3, client: 'Bimbingan Belajar Cerdas', invNumber: 'INV-2026-003', desc: 'LMS & Content Platform', amount: 5000000, date: '2026-07-05', status: 'pending' }
+            ],
             sbus: ['hospital', 'ecommerce', 'edutech', 'travel', 'property', 'food'],
             targets: {
                 monthly: 5000000, // Rp 5 juta/bulan
