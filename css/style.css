@@ -962,3 +962,76 @@ input:checked + .slider:before {
     background: var(--border);
     border-radius: 4px;
 }
+
+/* === Voice Animations === */
+
+/* Listening Pulse Animation */
+@keyframes voice-pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 0 15px rgba(34, 197, 94, 0);
+        transform: scale(1.05);
+    }
+}
+
+.voice-btn.listening {
+    animation: voice-pulse 1s infinite;
+}
+
+/* Speaking Animation for Avatar */
+.gauranga-avatar.speaking {
+    animation: speaking-bounce 0.3s infinite alternate;
+}
+
+@keyframes speaking-bounce {
+    from {
+        transform: scale(1) translateY(0);
+    }
+    to {
+        transform: scale(1.02) translateY(-2px);
+    }
+}
+
+/* Voice Wave Animation */
+@keyframes wave {
+    0% { transform: scaleY(0.3); }
+    50% { transform: scaleY(1); }
+    100% { transform: scaleY(0.3); }
+}
+
+.voice-wave {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    height: 20px;
+}
+
+.voice-wave span {
+    width: 3px;
+    background: var(--success);
+    border-radius: 2px;
+    animation: wave 1.2s infinite;
+}
+
+.voice-wave span:nth-child(1) { animation-delay: 0.1s; height: 8px; }
+.voice-wave span:nth-child(2) { animation-delay: 0.2s; height: 12px; }
+.voice-wave span:nth-child(3) { animation-delay: 0.3s; height: 16px; }
+.voice-wave span:nth-child(4) { animation-delay: 0.4s; height: 12px; }
+.voice-wave span:nth-child(5) { animation-delay: 0.5s; height: 8px; }
+
+/* Typing dots animation */
+.typing-dot {
+    animation: typing 1.4s infinite;
+    color: var(--primary);
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+}
