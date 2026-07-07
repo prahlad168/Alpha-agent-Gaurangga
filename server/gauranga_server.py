@@ -1,57 +1,22 @@
 """
-GAURANGA - ChatGPT Integration Server
-Handles API calls to OpenAI with secure key storage
+GAURANGA - AI Integration Server
+Supports Gemini (FREE) and OpenAI (paid)
 """
 
 import os
-import json
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from openai import OpenAI
 import traceback
 
 app = Flask(__name__)
 CORS(app)
 
-# Initialize OpenAI client with API key from environment
-client = None
+# AI Clients
+gemini_model = None
+openai_client = None
 
-def init_openai():
-    global client
-    api_key = os.environ.get('OPENAI_API_KEY')
-    if api_key:
-        client = OpenAI(api_key=api_key)
-        print("✅ OpenAI client initialized")
-    else:
-        print("⚠️ OPENAI_API_KEY not set")
-
-@app.route('/api/chat', methods=['POST'])
-def chat():
-    """Proxy endpoint for ChatGPT queries"""
-    try:
-        data = request.json
-        message = data.get('message', '')
-        system_context = data.get('context', '')
-        
-        if not client:
-            return jsonify({
-                'error': 'OpenAI not configured',
-                'message': 'API key not set'
-            }), 500
-        
-        # Build messages
-        messages = []
-        
-        # System prompt with GAURANGA context
-        if system_context:
-            messages.append({
-                "role": "system", 
-                "content": system_context
-            })
-        else:
-            messages.append({
-                "role": "system", 
-                "content": """Kamu adalah ALPHA GAURANGGA, Executive AI Assistant untuk I Made Purna Ananda (Pak Pur), CEO Maha Lakshmi Corp.
+# System prompt for GAURANGA
+GAURANGA_SYSTEM = """Kamu adalah ALPHA GAURANGGA, Executive AI Assistant untuk I Made Purna Ananda (Pak Pur), CEO Maha Lakshmi Corp.
 
 Karakteristikmu:
 - Berbahasa Indonesia natural
@@ -67,47 +32,96 @@ Prinsip:
 4. Continuous Improvement
 
 Selalu jawab dengan hangat dan membantu. Gunakan emoji secukupnya."""
-            })
+
+def init_gemini():
+    global gemini_model
+    try:
+        from google import genai
+        api_key = os.environ.get('GEMINI_API_KEY')
+        if api_key:
+            client = genai.Client(api_key=api_key)
+            gemini_model = client
+            print("✅ Gemini initialized (FREE tier)")
+            return True
+        print("⚠️ GEMINI_API_KEY not set")
+        return False
+    except Exception as e:
+        print(f"❌ Gemini init failed: {e}")
+        return False
+
+def init_openai():
+    global openai_client
+    try:
+        from openai import OpenAI
+        api_key = os.environ.get('OPENAI_API_KEY')
+        if api_key:
+            openai_client = OpenAI(api_key=api_key)
+            print("✅ OpenAI initialized")
+            return True
+        return False
+    except Exception as e:
+        print(f"❌ OpenAI init failed: {e}")
+        return False
+
+@app.route('/api/chat', methods=['POST'])
+def chat():
+    try:
+        data = request.json
+        message = data.get('message', '')
         
-        messages.append({"role": "user", "content": message})
+        # Try Gemini first (free)
+        if gemini_model:
+            try:
+                response = gemini_model.models.generate_content(
+                    model='gemini-2.0-flash',
+                    contents=f"{GAURANGA_SYSTEM}\n\nUser: {message}"
+                )
+                return jsonify({'success': True, 'reply': response.text, 'model': 'gemini-2.0-flash'})
+            except Exception as e:
+                print(f"Gemini error: {e}")
         
-        # Call ChatGPT
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",  # Fast and affordable
-            messages=messages,
-            max_tokens=1000,
-            temperature=0.8
-        )
+        # Fallback to OpenAI
+        if openai_client:
+            try:
+                response = openai_client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": GAURANGA_SYSTEM},
+                        {"role": "user", "content": message}
+                    ],
+                    max_tokens=1000
+                )
+                return jsonify({
+                    'success': True,
+                    'reply': response.choices[0].message.content,
+                    'model': 'gpt-3.5-turbo'
+                })
+            except Exception as e:
+                return jsonify({'error': f'OpenAI error: {str(e)}'}), 500
         
-        reply = response.choices[0].message.content
-        
-        return jsonify({
-            'success': True,
-            'reply': reply,
-            'model': 'gpt-4o-mini'
-        })
+        return jsonify({'error': 'No AI service configured'}), 500
         
     except Exception as e:
-        return jsonify({
-            'error': str(e),
-            'trace': traceback.format_exc()
-        }), 500
+        return jsonify({'error': str(e), 'trace': traceback.format_exc()}), 500
 
 @app.route('/api/status', methods=['GET'])
 def status():
-    """Check if OpenAI is configured"""
     return jsonify({
         'status': 'online',
-        'openai_configured': client is not None,
-        'model': 'gpt-4o-mini'
+        'gemini': gemini_model is not None,
+        'openai': openai_client is not None,
+        'model': 'gemini-1.5-flash' if gemini_model else 'gpt-3.5-turbo'
     })
 
 @app.route('/api/health', methods=['GET'])
 def health():
-    """Health check"""
     return jsonify({'status': 'healthy'})
 
 if __name__ == '__main__':
+    print("🚀 GAURANGA Server starting...")
+    init_gemini()
     init_openai()
-    print("🚀 GAURANGA Server starting on port 5000...")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    if not gemini_model and not openai_client:
+        print("⚠️ No AI service available!")
+    print("🚀 Server running on port 5000...")
+    app.run(host='0.0.0.0', port=5000, debug=False)

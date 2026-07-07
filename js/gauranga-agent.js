@@ -255,7 +255,7 @@ const GaurangaState = {
     chatGPT: {
         enabled: false,
         apiEndpoint: '/api/chat',  // Local server endpoint
-        model: 'gpt-4o-mini'
+        model: 'gpt-3.5-turbo'
     }
 };
 
