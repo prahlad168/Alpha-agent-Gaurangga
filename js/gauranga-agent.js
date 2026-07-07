@@ -293,6 +293,37 @@ const SkillsDatabase = {
 // ============================================
 const GENESIS_DATE = new Date('2026-07-07');
 
+// Project Genesis Codex Configuration
+const GENESIS_CODEX = {
+    documentId: 'CODEX-000',
+    volume: '00 - Genesis Day',
+    version: '0.0.1',
+    vision: 'Build a documented AI-centered enterprise platform.',
+    principles: [
+        'Documentation before Code',
+        'Security before Features',
+        'Human Oversight',
+        'Continuous Improvement'
+    ],
+    phases: {
+        0: { name: 'Foundation', focus: 'Codex, Architecture, Repository', status: 'in_progress' },
+        1: { name: 'Alpha Core', focus: 'Core AI Engine, Memory, Voice', status: 'planned' },
+        2: { name: 'Business', focus: 'Sales, Marketing, Operations Agents', status: 'planned' },
+        3: { name: 'Multi-Agent', focus: 'Orchestration, Coordination', status: 'planned' },
+        4: { name: 'Global', focus: 'Scalability, Integration', status: 'planned' },
+        5: { name: 'Robotics', focus: 'Physical AI Integration', status: 'planned' },
+        6: { name: 'Legacy', focus: 'Eternal Platform', status: 'planned' }
+    },
+    foundationComponents: [
+        { name: 'Codex', status: 'done' },
+        { name: 'Architecture', status: 'todo' },
+        { name: 'Repository', status: 'done' },
+        { name: 'Alpha Core', status: 'todo' },
+        { name: 'Dashboard', status: 'todo' },
+        { name: 'Task Engine', status: 'todo' }
+    ]
+};
+
 // ============================================
 // DAILY LOG SYSTEM
 // ============================================
@@ -660,6 +691,10 @@ async function processMessage(message) {
         lowerMsg.includes('pagi laporan')) {
         response = generateMorningReport();
     }
+    // 📖 Genesis Codex Query
+    else if (containsAny(lowerMsg, ['codex', 'genesis', 'prinsip', 'roadmap', 'phase', 'visi'])) {
+        response = getGenesisCodexResponse();
+    }
     // Greetings
     else if (containsAny(lowerMsg, ['halo', 'hai', 'hi', 'pagi', 'siang', 'sore', 'malam'])) {
         response = getGreetingResponse();
@@ -867,6 +902,35 @@ function getAboutResponse() {
         🏢 <strong>Business</strong> - Full support untuk Maha Lakshmi Corp<br>
         👨‍👩‍👧‍👦 <strong>Family</strong> - Mengenali & menghormati keluarga</p>
         <p>Versi: <strong>${GaurangaState.version}</strong> | Target: <strong>Rp 1Milyar/bulan</strong> 🚀</p>
+    `;
+}
+
+// Genesis Codex Response
+function getGenesisCodexResponse() {
+    const principles = GENESIS_CODEX.principles.map((p, i) => `${i+1}️⃣ ${p}`).join('<br>');
+    const currentPhase = GENESIS_CODEX.phases[0];
+    const components = GENESIS_CODEX.foundationComponents.map(c => {
+        const icon = c.status === 'done' ? '✅' : '⬜';
+        return `${icon} ${c.name}`;
+    }).join('<br>');
+    
+    return `
+        <p>📖 <strong>GENESIS CODEX</strong> - CODEX-000</p>
+        <p><em>"${GENESIS_CODEX.vision}"</em></p>
+        
+        <p><strong>🎯 Prinsip Dasar:</strong></p>
+        <p>${principles}</p>
+        
+        <p><strong>📍 Phase Saat Ini: Phase 0 - Foundation</strong></p>
+        <p>Fokus: ${currentPhase.focus}</p>
+        
+        <p><strong>🔧 Komponen Foundation:</strong></p>
+        <p>${components}</p>
+        
+        <p><strong>🗺️ Roadmap:</strong></p>
+        <p>Phase 0 → 1 (Alpha Core) → 2 (Business) → 3 (Multi-Agent) → 4 (Global) → 5 (Robotics) → 6 (Legacy)</p>
+        
+        <p>📄 Source: <em>Project_Genesis_Volume_00_Genesis_Day.pdf</em></p>
     `;
 }
 
