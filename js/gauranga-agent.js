@@ -652,6 +652,15 @@ function initApp() {
     // Initialize STT (Speech-to-Text) ✅
     initSTT();
     
+    // Initialize Wake Word Detection 🎤
+    initWakeWord();
+    // Auto-enable wake word after 3 seconds
+    setTimeout(() => {
+        if (toggleWakeWord()) {
+            showNotification('🎤 Wake Word AKTIF - Katakan "Alpha" untuk memanggil saya!');
+        }
+    }, 3000);
+    
     // Update Genesis Day display
     updateGenesisStatus();
     
@@ -1434,6 +1443,205 @@ function showNotification(message) {
     setTimeout(() => {
         toast.classList.add('hidden');
     }, 3000);
+}
+
+// ============================================
+// ============================================
+// WAKE WORD DETECTION (Always Listening)
+// ============================================
+let wakeWordEnabled = false;
+let wakeWordRecognition = null;
+let wakeWordListening = false;
+let wakeWordBounceTimer = null;
+
+const WAKE_WORDS = ['alpha', 'gaurangga', 'gauranga', ' alfa', ' alfa'];
+
+function initWakeWord() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        console.log('⚠️ Speech Recognition tidak tersedia');
+        return;
+    }
+    
+    wakeWordRecognition = new SpeechRecognition();
+    wakeWordRecognition.continuous = true;
+    wakeWordRecognition.interimResults = false;
+    wakeWordRecognition.lang = 'id-ID';
+    wakeWordRecognition.maxAlternatives = 3;
+    
+    wakeWordRecognition.onstart = () => {
+        wakeWordListening = true;
+        updateWakeWordIndicator();
+    };
+    
+    wakeWordRecognition.onresult = (event) => {
+        const results = Array.from(event.results);
+        const lastResult = results[results.length - 1];
+        if (lastResult.isFinal) {
+            const transcript = lastResult[0].transcript.toLowerCase().trim();
+            console.log('🎤 Wake Word Detection:', transcript);
+            
+            // Check for wake words
+            for (const wakeWord of WAKE_WORDS) {
+                if (transcript.includes(wakeWord)) {
+                    triggerWakeWord(wakeWord);
+                    break;
+                }
+            }
+        }
+    };
+    
+    wakeWordRecognition.onerror = (event) => {
+        console.log('Wake Word Error:', event.error);
+        if (event.error === 'not-allowed') {
+            wakeWordEnabled = false;
+            showNotification('⚠️ Izin microphone ditolak untuk wake word');
+        }
+        wakeWordListening = false;
+        updateWakeWordIndicator();
+        
+        // Restart after error (except permission denied)
+        if (event.error !== 'not-allowed' && wakeWordEnabled) {
+            setTimeout(restartWakeWord, 2000);
+        }
+    };
+    
+    wakeWordRecognition.onend = () => {
+        wakeWordListening = false;
+        updateWakeWordIndicator();
+        
+        // Auto-restart if still enabled
+        if (wakeWordEnabled) {
+            setTimeout(restartWakeWord, 500);
+        }
+    };
+}
+
+function restartWakeWord() {
+    if (!wakeWordEnabled || !wakeWordRecognition) return;
+    
+    try {
+        wakeWordRecognition.start();
+    } catch(e) {
+        console.log('Wake word restart error:', e);
+        try {
+            wakeWordRecognition.stop();
+            setTimeout(() => {
+                if (wakeWordEnabled) wakeWordRecognition.start();
+            }, 200);
+        } catch(e2) {
+            console.log('Wake word restart failed:', e2);
+        }
+    }
+}
+
+function triggerWakeWord(wakeWord) {
+    // Prevent rapid triggers
+    if (wakeWordBounceTimer) return;
+    
+    wakeWordBounceTimer = setTimeout(() => {
+        wakeWordBounceTimer = null;
+    }, 3000);
+    
+    console.log('🎉 WAKED:', wakeWord);
+    
+    // Stop wake word listener temporarily
+    try {
+        wakeWordRecognition.stop();
+    } catch(e) {}
+    
+    // Unlock and show main app
+    const lockScreen = document.getElementById('lockScreen');
+    const mainApp = document.getElementById('mainApp');
+    
+    if (lockScreen && mainApp) {
+        lockScreen.classList.add('hidden');
+        mainApp.classList.remove('hidden');
+    }
+    
+    // Greet and listen
+    speak('Ya Pak Pur, Alpha siap! Silakan bicara...', true);
+    
+    // Focus input and start voice
+    setTimeout(() => {
+        const chatInput = document.getElementById('chatInput');
+        if (chatInput) {
+            chatInput.focus();
+        }
+        startVoiceInput();
+    }, 1500);
+    
+    // Show visual feedback
+    showNotification('🎤 "Alpha siap! Silakan bicara..."');
+    
+    // Resume wake word after delay
+    setTimeout(() => {
+        if (wakeWordEnabled) restartWakeWord();
+    }, 10000);
+}
+
+function toggleWakeWord() {
+    if (!wakeWordRecognition) {
+        showNotification('⚠️ Wake word tidak tersedia');
+        return;
+    }
+    
+    wakeWordEnabled = !wakeWordEnabled;
+    
+    if (wakeWordEnabled) {
+        restartWakeWord();
+        showNotification('🔊 Wake Word AKTIF - Katakan "Alpha" untuk memanggil');
+    } else {
+        try {
+            wakeWordRecognition.stop();
+        } catch(e) {}
+        showNotification('🔇 Wake Word NONAKTIF');
+    }
+    
+    updateWakeWordIndicator();
+    return wakeWordEnabled;
+}
+
+function updateWakeWordIndicator() {
+    // Create or update wake word indicator
+    let indicator = document.getElementById('wakeWordIndicator');
+    
+    if (!indicator) {
+        indicator = document.createElement('div');
+        indicator.id = 'wakeWordIndicator';
+        indicator.innerHTML = '<i class="fas fa-broadcast-tower"></i> <span>Wake Word</span>';
+        indicator.style.cssText = `
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 9999;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        `;
+        indicator.onclick = toggleWakeWord;
+        document.body.appendChild(indicator);
+    }
+    
+    if (wakeWordEnabled && wakeWordListening) {
+        indicator.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)';
+        indicator.style.boxShadow = '0 4px 15px rgba(34, 197, 94, 0.5)';
+        indicator.innerHTML = '<i class="fas fa-broadcast-tower" style="animation: pulse 1s infinite;"></i> <span>👋 "Alpha"</span>';
+    } else if (wakeWordEnabled) {
+        indicator.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+        indicator.innerHTML = '<i class="fas fa-sync fa-spin"></i> <span>Loading...</span>';
+    } else {
+        indicator.style.background = 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)';
+        indicator.innerHTML = '<i class="fas fa-broadcast-tower"></i> <span>Wake Word OFF</span>';
+    }
 }
 
 // ============================================
