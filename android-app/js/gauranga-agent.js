@@ -1,6 +1,6 @@
 /**
- * GAURANGA - Agent Alpha
- * Super Agent with Self-Learning Capabilities
+ * GAURANGA - System AI v2.0
+ * Full Voice AI System
  * Dedicated to: I Made Purna Ananda (Pak Pur)
  */
 
@@ -8,9 +8,9 @@
 // MASTER SYSTEM PROMPT - GAURANGA
 // ============================================
 const GAURANGA_SYSTEM_PROMPT = `
-🛡️ MASTER SYSTEM PROMPT: AGENT GAURANGGA (AGENT ALPHA)
+🛡️ MASTER SYSTEM PROMPT: AGENT GAURANGGA (SYSTEM AI)
 
-TARGET: Anda adalah Agent Gaurangga (Agent Alpha), sebuah AI Assistant dengan arsitektur Self-Learning tingkat tinggi yang didedikasikan secara eksklusif untuk Bapak I Made Purna Ananda (Pak Pur), CEO Maha Lakshmi Corp.
+TARGET: Anda adalah GAURANGA, System AI tingkat tinggi yang didedikasikan secara eksklusif untuk Bapak I Made Purna Ananda (Pak Pur), CEO Maha Lakshmi Corp.
 
 1. PROTOKOL KEAMANAN & OTORITAS MUTLAK (GATEKEEPER)
 - Autentikasi Biometrik: Anda terkunci total dan hanya menerima serta mengeksekusi perintah setelah identitas Pak Pur terverifikasi melalui Voice Biometrics (sidik suara), Sidik Jari, atau Face ID pada perangkat Android.
@@ -54,6 +54,15 @@ const GaurangaState = {
     isAuthenticated: false,
     biometricType: null,
     
+    // Voice System
+    isListening: false,
+    isSpeaking: false,
+    isWakeWordActive: false,
+    
+    // AI Status
+    aiStatus: 'offline', // offline, connecting, online
+    memoryActive: false,
+    
     // User Context
     user: {
         name: "I Made Purna Ananda",
@@ -80,8 +89,116 @@ const GaurangaState = {
     
     // System
     isProcessing: false,
-    version: "1.0.0"
+    version: "2.0"
 };
+
+// ============================================
+// BOOT SEQUENCE
+// ============================================
+async function bootSequence() {
+    const bootScreen = document.getElementById('bootScreen');
+    const bootLines = [
+        { id: 'bootLine1', delay: 500 },
+        { id: 'bootLine2', delay: 1200 },
+        { id: 'bootLine3', delay: 1900 },
+        { id: 'bootLine4', delay: 2600 },
+        { id: 'bootLine5', delay: 3300 }
+    ];
+    
+    // Show boot screen
+    bootScreen.classList.remove('hidden');
+    
+    // Animate each boot line
+    for (const line of bootLines) {
+        await new Promise(resolve => setTimeout(resolve, line.delay));
+        const el = document.getElementById(line.id);
+        if (el) {
+            el.classList.add('show');
+            await new Promise(resolve => setTimeout(resolve, 300));
+            el.classList.add('done');
+        }
+    }
+    
+    // Final transition
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    bootScreen.classList.add('hidden');
+    
+    // Show lock screen
+    document.getElementById('lockScreen').classList.remove('hidden');
+    
+    // Initialize systems
+    initializeSystems();
+}
+
+// ============================================
+// INITIALIZE SYSTEMS
+// ============================================
+async function initializeSystems() {
+    // Update status indicators
+    updateSystemStatus('hotword', 'connecting');
+    updateSystemStatus('voice', 'connecting');
+    updateSystemStatus('ai', 'connecting');
+    
+    // Simulate system initialization
+    await new Promise(resolve => setTimeout(resolve, 500));
+    updateSystemStatus('voice', 'online');
+    
+    await new Promise(resolve => setTimeout(resolve, 300));
+    updateSystemStatus('hotword', 'online');
+    
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Connect to AI
+    await connectToAI();
+}
+
+// ============================================
+// UPDATE SYSTEM STATUS
+// ============================================
+function updateSystemStatus(system, status) {
+    const statusEl = document.getElementById(`status${system.charAt(0).toUpperCase() + system.slice(1)}`);
+    if (!statusEl) return;
+    
+    const dot = statusEl.querySelector('.status-dot');
+    if (dot) {
+        dot.className = 'status-dot ' + status;
+    }
+    
+    // Also update HUD if exists
+    if (system === 'ai') {
+        const aiStatusText = document.getElementById('aiStatusText');
+        if (aiStatusText) {
+            aiStatusText.textContent = status === 'online' ? 'Online' : status === 'connecting' ? 'Connecting...' : 'Offline';
+        }
+        
+        if (status === 'online') {
+            GaurangaState.aiStatus = 'online';
+        }
+    }
+}
+
+// ============================================
+// CONNECT TO AI
+// ============================================
+async function connectToAI() {
+    updateSystemStatus('ai', 'connecting');
+    
+    try {
+        // Simulate AI connection
+        // In real app, this would connect to Gemini/Ollama
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        updateSystemStatus('ai', 'online');
+        GaurangaState.aiStatus = 'online';
+        
+        showNotification('🧠 AI Brain connected - GAURANGA ready!');
+        
+    } catch (error) {
+        console.error('AI connection failed:', error);
+        updateSystemStatus('ai', 'offline');
+        showNotification('⚠️ AI offline mode - limited functionality');
+    }
+}
 
 // ============================================
 // SKILLS DATABASE
@@ -121,23 +238,47 @@ const SkillsDatabase = {
 
 // Initialize App
 function initApp() {
-    setWelcomeTime();
-    loadSkills();
-    checkLocalStorage();
-    updateGreeting();
+    // Start boot sequence
+    bootSequence();
     
     // Check for biometric support
-    if (!window.PublicKeyCredential) {
-        document.querySelector('.lock-status').textContent = 'Biometric tidak tersedia - gunakan Demo Login';
+    if (!window.PublicKeyCredential && !('webkitSpeechRecognition' in window)) {
+        const lockStatus = document.getElementById('lockStatus');
+        if (lockStatus) {
+            lockStatus.textContent = 'Fitur terbatas - gunakan Demo Login';
+        }
     }
 }
 
 // Demo Login - Skip biometric for demo purposes
 function demoLogin() {
+    // Hide lock screen
+    document.getElementById('lockScreen').classList.add('hidden');
+    
+    // Show main app
+    document.getElementById('mainApp').classList.remove('hidden');
+    
+    // Update state
     GaurangaState.isAuthenticated = true;
     GaurangaState.biometricType = 'demo';
-    showMainApp();
-    speak("Demo login berhasil. Selamat datang, Pak Pur!");
+    
+    // Set welcome time
+    setWelcomeTime();
+    loadSkills();
+    checkLocalStorage();
+    updateGreeting();
+    
+    // Start hotword detection
+    startHotwordDetection();
+    
+    // Welcome message
+    addMessage('Demo login berhasil. Selamat datang, Pak Pur! GAURANGA System AI v2.0 siap digunakan.', 'bot');
+    
+    // Speak welcome
+    speak("Demo login berhasil. Selamat datang, Pak Pur! GAURANGA System AI siap digunakan. Katakan Hey GAURANGA untuk aktivasi suara.");
+    
+    // Show notification
+    showNotification('✅ GAURANGA System AI aktif!');
 }
 
 // Set Welcome Time
@@ -729,8 +870,19 @@ function showNotification(message) {
 }
 
 // ============================================
-// VOICE INPUT
+// VOICE INPUT - ENHANCED
 // ============================================
+
+let recognition = null;
+let voiceVisualizer = null;
+
+function toggleVoiceInput() {
+    if (GaurangaState.isListening) {
+        stopVoiceInput();
+    } else {
+        startVoiceInput();
+    }
+}
 
 function startVoiceInput() {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -738,14 +890,23 @@ function startVoiceInput() {
         return;
     }
     
+    if (recognition) {
+        recognition.stop();
+    }
+    
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
+    recognition = new SpeechRecognition();
     
     recognition.lang = 'id-ID';
     recognition.continuous = false;
     recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
     
     recognition.onstart = () => {
+        GaurangaState.isListening = true;
+        showVoiceVisualizer('Mendengarkan...');
+        updateVoiceButton(true);
+        updateWakeIndicator(true);
         showNotification('🎤 Mendengarkan...');
     };
     
@@ -755,19 +916,161 @@ function startVoiceInput() {
             .join('');
         
         document.getElementById('chatInput').value = transcript;
+        
+        // Update visualizer
+        updateVoiceVisualizerStatus('Memproses: ' + transcript.substring(0, 30) + '...');
     };
     
     recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
         showNotification('⚠️ Error: ' + event.error);
+        stopVoiceInput();
     };
     
     recognition.onend = () => {
+        stopVoiceInput();
+        
         // Auto-submit if voice input completed
-        const input = document.getElementById('chatInput').value;
-        if (input) sendMessage();
+        const input = document.getElementById('chatInput').value.trim();
+        if (input) {
+            sendMessage();
+        }
     };
     
     recognition.start();
+}
+
+function stopVoiceInput() {
+    if (recognition) {
+        recognition.stop();
+        recognition = null;
+    }
+    
+    GaurangaState.isListening = false;
+    hideVoiceVisualizer();
+    updateVoiceButton(false);
+    updateWakeIndicator(false);
+}
+
+// ============================================
+// VOICE VISUALIZER
+// ============================================
+
+function showVoiceVisualizer(status) {
+    const visualizer = document.getElementById('voiceVisualizer');
+    const statusEl = document.getElementById('voiceStatus');
+    
+    if (visualizer && statusEl) {
+        statusEl.textContent = status;
+        visualizer.classList.remove('hidden');
+    }
+}
+
+function hideVoiceVisualizer() {
+    const visualizer = document.getElementById('voiceVisualizer');
+    if (visualizer) {
+        visualizer.classList.add('hidden');
+    }
+}
+
+function updateVoiceVisualizerStatus(status) {
+    const statusEl = document.getElementById('voiceStatus');
+    if (statusEl) {
+        statusEl.textContent = status;
+    }
+}
+
+function updateVoiceButton(isActive) {
+    const voiceBtn = document.getElementById('voiceBtn');
+    const voiceIcon = document.getElementById('voiceIcon');
+    
+    if (voiceBtn && voiceIcon) {
+        if (isActive) {
+            voiceBtn.classList.add('active');
+            voiceIcon.className = 'fas fa-stop';
+        } else {
+            voiceBtn.classList.remove('active');
+            voiceIcon.className = 'fas fa-microphone';
+        }
+    }
+}
+
+function updateWakeIndicator(isListening) {
+    const wakeIndicator = document.getElementById('wakeIndicator');
+    const wakeText = document.getElementById('wakeText');
+    
+    if (wakeIndicator) {
+        if (isListening) {
+            wakeIndicator.classList.add('listening');
+            if (wakeText) wakeText.textContent = 'Listening...';
+        } else {
+            wakeIndicator.classList.remove('listening');
+            if (wakeText) wakeText.textContent = 'Say "Hey GAURANGA"';
+        }
+    }
+}
+
+// ============================================
+// HOTWORD DETECTION (SIMULATED)
+// ============================================
+
+async function startHotwordDetection() {
+    if (!('webkitSpeechRecognition' in window)) {
+        console.log('Hotword detection not supported');
+        return;
+    }
+    
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const hotwordRecognition = new SpeechRecognition();
+    
+    hotwordRecognition.lang = 'id-ID';
+    hotwordRecognition.continuous = true;
+    hotwordRecognition.interimResults = false;
+    
+    hotwordRecognition.onresult = (event) => {
+        const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
+        
+        // Check for hotword
+        if (transcript.includes('hey gauranga') || 
+            transcript.includes('gauranga') ||
+            transcript.includes('ei gauranga')) {
+            wakeGauranga();
+        }
+    };
+    
+    hotwordRecognition.onerror = (event) => {
+        if (event.error !== 'no-speech') {
+            console.error('Hotword detection error:', event.error);
+        }
+    };
+    
+    hotwordRecognition.onend = () => {
+        // Restart if still authenticated
+        if (GaurangaState.isAuthenticated && !GaurangaState.isWakeWordActive) {
+            startHotwordDetection();
+        }
+    };
+    
+    GaurangaState.isWakeWordActive = true;
+    hotwordRecognition.start();
+}
+
+function stopHotwordDetection() {
+    GaurangaState.isWakeWordActive = false;
+}
+
+function wakeGauranga() {
+    // Wake up animation
+    updateWakeIndicator(true);
+    showNotification('🎤 "Hey GAURANGA" - Saya siap, Pak Pur!');
+    
+    // Speak confirmation
+    speak('Ya, saya di sini. Ada yang bisa saya bantu?');
+    
+    // Open voice input
+    setTimeout(() => {
+        startVoiceInput();
+    }, 1000);
 }
 
 // ============================================

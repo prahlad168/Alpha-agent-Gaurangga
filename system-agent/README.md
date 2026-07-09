@@ -1,13 +1,20 @@
-# 🤖 GAURANGA SYSTEM AGENT - Offline AI Super Agent
+# 🤖 GAURANGA SYSTEM AI v2.0 - JARVIS Indonesia
 
-## 🎯 Konsep
+## 🎯 KONSEP UTAMA
 
-GAURANGA adalah **System-Level AI Agent** yang berjalan di Android tanpa perlu aplikasi terpisah. Agent ini:
-- ✅ Berjalan di background SELALU
-- ✅ Bisa akses semua file & sistem
-- ✅ Offline-first (tanpa internet)
-- ✅ Autonomous decision making
-- ✅ Bisa dikontrol via terminal/shell
+**GAURANGA** adalah System-Level AI Agent yang berjalan di Android - seperti **JARVIS di Iron Man**! 
+
+```
+"Hey GAURANGA!"  →  GAURANGA AKTIF! 🎉
+```
+
+### Fitur Utama:
+- ✅ **Always-On** - Berjalan di background 24/7
+- ✅ **Voice-First** - Kontrol dengan suara
+- ✅ **Offline-Capable** - Bekerja tanpa internet
+- ✅ **Self-Learning** - Belajar dari interaksi
+- ✅ **System-Level** - Akses penuh ke Android
+- ✅ **Biometric Security** - Voice ID, Fingerprint, Face ID
 
 ---
 

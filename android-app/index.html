@@ -6,14 +6,36 @@
     <meta name="theme-color" content="#0a0a0a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>GAURANGA - Agent Alpha</title>
+    <title>GAURANGA - System AI</title>
+    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
+    <!-- Boot Screen -->
+    <div id="bootScreen" class="boot-screen">
+        <div class="boot-content">
+            <div class="boot-logo">
+                <div class="logo-pulse"></div>
+                <div class="logo-ring-animated"></div>
+                <div class="logo-text">GA</div>
+            </div>
+            <h1 class="boot-title">GAURANGA</h1>
+            <p class="boot-subtitle">System AI v1.0</p>
+            <div class="boot-status">
+                <div class="boot-line" id="bootLine1">⚡ Initializing core systems...</div>
+                <div class="boot-line" id="bootLine2">🧠 Loading AI brain...</div>
+                <div class="boot-line" id="bootLine3">🎤 Setting up voice engine...</div>
+                <div class="boot-line" id="bootLine4">🔒 Security protocols active...</div>
+                <div class="boot-line" id="bootLine5">✅ GAURANGA ready!</div>
+            </div>
+            <p class="boot-wait" id="bootWait">Mohon tunggu...</p>
+        </div>
+    </div>
+
     <!-- Biometric Lock Screen -->
-    <div id="lockScreen" class="lock-screen">
+    <div id="lockScreen" class="lock-screen hidden">
         <div class="lock-content">
             <div class="gaurangga-logo">
                 <div class="logo-ring">
@@ -23,9 +45,26 @@
                 </div>
             </div>
             <h1>GAURANGA</h1>
-            <p>Agent Alpha v1.0</p>
+            <p class="lock-subtitle">System AI - Waiting for authorization</p>
+            <div class="system-status-bar">
+                <div class="status-item" id="statusHotword">
+                    <i class="fas fa-ear-listen"></i>
+                    <span>Hotword</span>
+                    <div class="status-dot offline"></div>
+                </div>
+                <div class="status-item" id="statusVoice">
+                    <i class="fas fa-microphone"></i>
+                    <span>Voice</span>
+                    <div class="status-dot offline"></div>
+                </div>
+                <div class="status-item" id="statusAI">
+                    <i class="fas fa-brain"></i>
+                    <span>AI</span>
+                    <div class="status-dot offline"></div>
+                </div>
+            </div>
             <div class="biometric-buttons">
-                <button class="bio-btn" onclick="authenticate('voice')">
+                <button class="bio-btn primary" onclick="authenticate('voice')">
                     <i class="fas fa-microphone"></i>
                     <span>Voice ID</span>
                 </button>
@@ -38,12 +77,11 @@
                     <span>Face ID</span>
                 </button>
             </div>
-            <p class="lock-status" id="lockStatus">Tap untuk autentikasi</p>
-            <div class="demo-section" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border);">
-                <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 10px;">DEMO MODE</p>
-                <button class="bio-btn" onclick="demoLogin()" style="background: var(--primary); border-color: var(--primary);">
+            <p class="lock-status" id="lockStatus">Say "Hey GAURANGA" or tap to authenticate</p>
+            <div class="demo-section">
+                <button class="bio-btn" onclick="demoLogin()" style="background: linear-gradient(135deg, #00ff88, #00cc6a); border-color: #00ff88;">
                     <i class="fas fa-rocket"></i>
-                    <span>🔓 Demo Login (Skip Auth)</span>
+                    <span>🚀 Quick Start (Demo)</span>
                 </button>
             </div>
         </div>
@@ -95,6 +133,39 @@
             </div>
         </div>
 
+        <!-- System Status Bar (Always Visible) -->
+        <div class="system-hud" id="systemHUD">
+            <div class="hud-left">
+                <div class="hud-item" id="aiStatus">
+                    <div class="hud-icon"><i class="fas fa-brain"></i></div>
+                    <div class="hud-info">
+                        <span class="hud-label">AI Brain</span>
+                        <span class="hud-value" id="aiStatusText">Connecting...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hud-center">
+                <div class="wake-indicator" id="wakeIndicator">
+                    <div class="wake-ring"></div>
+                    <div class="wake-ring delay1"></div>
+                    <div class="wake-ring delay2"></div>
+                    <div class="wake-icon">
+                        <i class="fas fa-ear-listen"></i>
+                    </div>
+                </div>
+                <p class="wake-text" id="wakeText">Listening...</p>
+            </div>
+            <div class="hud-right">
+                <div class="hud-item" id="memoryStatus">
+                    <div class="hud-icon"><i class="fas fa-database"></i></div>
+                    <div class="hud-info">
+                        <span class="hud-label">Memory</span>
+                        <span class="hud-value" id="memoryStatusText">Active</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Chat Container -->
         <main class="chat-container" id="chatContainer">
             <div class="chat-messages" id="chatMessages">
@@ -105,8 +176,14 @@
                     </div>
                     <div class="message-content">
                         <div class="message-text">
-                            <p>🛡️ <strong>GAURANGA - Agent Alpha</strong> aktif dan siap melayani, Pak Pur!</p>
-                            <p>Saya adalah asisten AI dengan kapabilitas Self-Learning yang didedikasikan untuk Anda.</p>
+                            <p>🛡️ <strong>GAURANGA System AI v2.0</strong> aktif dan siap melayani, Pak Pur!</p>
+                            <p>Saya adalah asisten AI System-Level dengan kapabilitas Self-Learning yang didedikasikan untuk Anda.</p>
+                            <p>📌 <strong>Cara menggunakan:</strong></p>
+                            <p>• Ketik pesan di bawah atau tekan microphone<br>• Katakan <strong>"Hey GAURANGA"</strong> untuk aktivasi suara<br>• Tekan tombol Agents untuk melihat sub-agents</p>
+                            <p>🔔 <strong>System Status:</strong></p>
+                            <p>• AI Brain: <span id="aiStatusWelcome">Connecting...</span><br>
+                            • Voice Engine: ✅ Active<br>
+                            • Memory: ✅ Online</p>
                             <p>Silakan berikan perintah atau bertanya apa saja. 🔥</p>
                         </div>
                         <div class="message-time" id="welcomeTime"></div>
@@ -114,6 +191,23 @@
                 </div>
             </div>
         </main>
+
+        <!-- Voice Waveform Visualizer -->
+        <div class="voice-visualizer hidden" id="voiceVisualizer">
+            <div class="wave-bars">
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+            </div>
+            <p class="voice-status" id="voiceStatus">Mendengarkan...</p>
+        </div>
 
         <!-- Quick Actions -->
         <div class="quick-actions" id="quickActions">
@@ -133,18 +227,26 @@
                 <i class="fas fa-bell"></i>
                 <span>Notif</span>
             </button>
+            <button class="quick-btn" onclick="quickAction('agents')">
+                <i class="fas fa-robot"></i>
+                <span>Agents</span>
+            </button>
         </div>
 
-        <!-- Input Area -->
+        <!-- Input Area - Voice First -->
         <div class="input-area">
             <div class="input-container">
-                <input type="text" id="chatInput" placeholder="Ketik perintah untuk GAURANGA..." onkeypress="handleKeyPress(event)">
-                <button class="voice-btn" onclick="startVoiceInput()">
-                    <i class="fas fa-microphone"></i>
+                <input type="text" id="chatInput" placeholder="Ketik perintah atau bicara ke GAURANGA..." onkeypress="handleKeyPress(event)">
+                <button class="voice-btn" id="voiceBtn" onclick="toggleVoiceInput()">
+                    <i class="fas fa-microphone" id="voiceIcon"></i>
                 </button>
                 <button class="send-btn" onclick="sendMessage()">
                     <i class="fas fa-paper-plane"></i>
                 </button>
+            </div>
+            <div class="hotword-hint" id="hotwordHint">
+                <i class="fas fa-bullhorn"></i>
+                <span>Katakan "Hey GAURANGA" untuk aktivasi suara</span>
             </div>
         </div>
 
