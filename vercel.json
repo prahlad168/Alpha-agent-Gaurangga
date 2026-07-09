@@ -8,10 +8,15 @@
     {
       "src": "finance/index.html",
       "use": "@vercel/static"
+    },
+    {
+      "src": "android-app/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
     { "src": "/", "dest": "/index.html" },
-    { "src": "/finance", "dest": "/finance/index.html" }
+    { "src": "/finance", "dest": "/finance/index.html" },
+    { "src": "/android-app/(.*)", "dest": "/android-app/$1" }
   ]
 }

@@ -1,0 +1,30 @@
+{
+  "name": "GAURANGA System AI",
+  "short_name": "GAURANGA",
+  "description": "System AI Assistant untuk I Made Purna Ananda - JARVIS Indonesia",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#00ff88",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%230a0a0a' width='512' height='512' rx='100'/><circle cx='256' cy='256' r='180' fill='none' stroke='%2300ff88' stroke-width='10'/><text x='256' y='290' font-size='160' font-weight='bold' fill='%2300ff88' text-anchor='middle' font-family='Arial'>GA</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%230a0a0a' width='192' height='192' rx='40'/><circle cx='96' cy='96' r='70' fill='none' stroke='%2300ff88' stroke-width='6'/><text x='96' y='115' font-size='60' font-weight='bold' fill='%2300ff88' text-anchor='middle' font-family='Arial'>GA</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "lang": "id-ID",
+  "dir": "ltr",
+  "scope": "/",
+  "id": "gauranga-system-ai",
+  "prefer_related_applications": false
+}
