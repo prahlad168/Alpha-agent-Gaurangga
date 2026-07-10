@@ -91,6 +91,28 @@
         @keyframes wave { 0%,100% { height: 10px; } 50% { height: 40px; } }
         .voice-status { font-size: 14px; }
         
+        /* Wake Indicator States */
+        .wake-indicator.listening .wake-ring { border-color: #00d4ff; animation: wake-pulse-blue 1s infinite; }
+        .wake-indicator.speaking { border-color: #00d4ff; }
+        .wake-indicator.speaking .wake-ring { border-color: #00d4ff; animation: speak-pulse 0.5s infinite; }
+        @keyframes wake-pulse-blue { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(2); opacity: 0; } }
+        @keyframes speak-pulse { 0%,100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.5); opacity: 1; } }
+        
+        /* Voice Button Enhanced */
+        .voice-btn.recording { animation: recording-pulse 1.5s infinite; }
+        @keyframes recording-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(0,255,136,0.7); } 50% { box-shadow: 0 0 0 15px rgba(0,255,136,0); } }
+        
+        /* Sound Wave Visualizer */
+        .sound-wave { display: flex; align-items: center; justify-content: center; gap: 3px; height: 30px; }
+        .sound-bar { width: 3px; background: linear-gradient(to top, var(--primary), #00d4ff); border-radius: 3px; transition: height 0.1s; }
+        
+        /* Voice Mode Indicator */
+        .voice-mode { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; background: var(--bg-card); border: 2px solid var(--primary); border-radius: 50%; width: 150px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 0 60px rgba(0,255,136,0.5); animation: voice-mode-pulse 2s infinite; }
+        .voice-mode.hidden { display: none; }
+        .voice-mode-icon { font-size: 40px; color: var(--primary); margin-bottom: 10px; }
+        .voice-mode-text { font-size: 14px; color: var(--text); font-weight: 600; }
+        @keyframes voice-mode-pulse { 0%,100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.05); } }
+        
         /* Quick Actions */
         .quick-actions { display: flex; gap: 10px; padding: 10px 20px; overflow-x: auto; }
         .quick-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 16px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-size: 11px; cursor: pointer; white-space: nowrap; min-width: 70px; transition: all 0.3s; }
@@ -214,6 +236,19 @@
             </div>
             <p class="voice-status" id="voiceStatus">Mendengarkan...</p>
         </div>
+        
+        <!-- Voice Mode Full Screen -->
+        <div class="voice-mode hidden" id="voiceMode">
+            <div class="voice-mode-icon"><i class="fas fa-microphone"></i></div>
+            <div class="voice-mode-text" id="voiceModeText">Mendengarkan...</div>
+            <div class="sound-wave" id="soundWave">
+                <div class="sound-bar" style="height: 5px;"></div>
+                <div class="sound-bar" style="height: 10px;"></div>
+                <div class="sound-bar" style="height: 15px;"></div>
+                <div class="sound-bar" style="height: 10px;"></div>
+                <div class="sound-bar" style="height: 5px;"></div>
+            </div>
+        </div>
 
         <!-- Quick Actions -->
         <div class="quick-actions">
@@ -240,6 +275,9 @@
         <div class="toast-content"><i class="fas fa-info-circle"></i><span id="toastMessage">Notifikasi</span></div>
     </div>
 
+    <!-- Voice Engine -->
+    <script src="js/voice-engine.js"></script>
+    
     <script>
     // GAURANGA State
     const state = {
@@ -268,6 +306,35 @@
             await new Promise(r => setTimeout(r, line.delay - (lines.indexOf(line) > 0 ? lines[lines.indexOf(line)-1].delay : 0)));
             const el = document.getElementById(line.id);
             if (el) { el.classList.add('show', 'done'); }
+        }
+        
+        // Initialize Voice Engine
+        await new Promise(r => setTimeout(r, 500));
+        initVoiceEngine();
+        startHotwordDetection();
+        
+        // Welcome message with voice
+        await new Promise(r => setTimeout(r, 300));
+        const welcomeMsg = document.querySelector('.message-text');
+        if (welcomeMsg) {
+            welcomeMsg.innerHTML = `
+                <p>🛡️ <strong>GAURANGA System AI v2.0</strong> aktif, Pak Pur!</p>
+                <p>🎤 <strong>Voice Interface:</strong> Siap digunakan!</p>
+                <p>Saya adalah asisten AI System-Level yang siap membantu Anda 24/7.</p>
+                <p>📌 <strong>Cara pakai:</strong></p>
+                <p>• Ketik pesan atau tekan 🎤 untuk voice<br>• Katakan <strong>"Hey GAURANGA"</strong> untuk aktivasi suara<br>• Klik quick action di bawah</p>
+                <p>🔔 <strong>System Status:</strong> Semua sistem ONLINE ✅</p>
+                <p>Silakan berikan perintah! 🔥</p>
+            `;
+            const timeEl = document.getElementById('welcomeTime');
+            if (timeEl) timeEl.textContent = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            
+            // Speak welcome message
+            setTimeout(() => {
+                if (gaurangaVoice) {
+                    gaurangaVoice.speak('GAURANGA System AI aktif, Pak Pur! Voice interface siap digunakan. Silakan berikan perintah!');
+                }
+            }, 1000);
         }
         
         await new Promise(r => setTimeout(r, 1000));
