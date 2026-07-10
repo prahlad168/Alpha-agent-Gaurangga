@@ -113,6 +113,24 @@
         .voice-mode-text { font-size: 14px; color: var(--text); font-weight: 600; }
         @keyframes voice-mode-pulse { 0%,100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.05); } }
         
+        /* Voice Settings Modal */
+        .voice-settings-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 10001; display: flex; align-items: center; justify-content: center; }
+        .voice-settings-modal.hidden { display: none; }
+        .voice-settings-content { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 24px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto; }
+        .voice-settings-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .voice-settings-title { font-size: 18px; font-weight: 600; color: var(--primary); }
+        .voice-settings-close { background: none; border: none; color: var(--text); font-size: 20px; cursor: pointer; }
+        .voice-setting-item { margin-bottom: 20px; }
+        .voice-setting-label { font-size: 14px; color: var(--text-muted); margin-bottom: 8px; display: block; }
+        .voice-setting-select { width: 100%; padding: 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 14px; }
+        .voice-setting-slider { width: 100%; margin: 10px 0; }
+        .voice-setting-value { font-size: 14px; color: var(--primary); text-align: center; }
+        .voice-test-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border: none; border-radius: 10px; color: var(--bg-dark); font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+        .voice-test-btn:hover { opacity: 0.9; }
+        
+        /* Voice Toggle Active */
+        #voiceToggleBtn.active { background: var(--primary); color: var(--bg-dark); }
+        
         /* Quick Actions */
         .quick-actions { display: flex; gap: 10px; padding: 10px 20px; overflow-x: auto; }
         .quick-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 16px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-size: 11px; cursor: pointer; white-space: nowrap; min-width: 70px; transition: all 0.3s; }
@@ -182,8 +200,9 @@
                 </div>
             </div>
             <div class="header-right">
+                <button class="header-btn" id="voiceToggleBtn" onclick="toggleVoiceOutput()" title="Toggle Voice"><i class="fas fa-volume-up" id="voiceToggleIcon"></i></button>
                 <button class="header-btn" onclick="toggleMode()"><i class="fas fa-exchange-alt"></i></button>
-                <button class="header-btn" onclick="showNotification('⚙️ Settings coming soon!')"><i class="fas fa-cog"></i></button>
+                <button class="header-btn" onclick="showVoiceSettings()"><i class="fas fa-cog"></i></button>
             </div>
         </header>
 
@@ -275,6 +294,43 @@
         <div class="toast-content"><i class="fas fa-info-circle"></i><span id="toastMessage">Notifikasi</span></div>
     </div>
 
+    <!-- Voice Settings Modal -->
+    <div id="voiceSettingsModal" class="voice-settings-modal hidden">
+        <div class="voice-settings-content">
+            <div class="voice-settings-header">
+                <span class="voice-settings-title">🎤 Pengaturan Suara</span>
+                <button class="voice-settings-close" onclick="closeVoiceSettings()"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="voice-setting-item">
+                <label class="voice-setting-label">🔊 Volume</label>
+                <input type="range" class="voice-setting-slider" id="volumeSlider" min="0" max="100" value="100" oninput="updateVolume(this.value)">
+                <div class="voice-setting-value" id="volumeValue">100%</div>
+            </div>
+            
+            <div class="voice-setting-item">
+                <label class="voice-setting-label">⚡ Kecepatan</label>
+                <input type="range" class="voice-setting-slider" id="rateSlider" min="50" max="200" value="100" oninput="updateRate(this.value)">
+                <div class="voice-setting-value" id="rateValue">Normal</div>
+            </div>
+            
+            <div class="voice-setting-item">
+                <label class="voice-setting-label">🎵 Nadanya</label>
+                <input type="range" class="voice-setting-slider" id="pitchSlider" min="50" max="150" value="100" oninput="updatePitch(this.value)">
+                <div class="voice-setting-value" id="pitchValue">Normal</div>
+            </div>
+            
+            <div class="voice-setting-item">
+                <label class="voice-setting-label">🗣️ Suara</label>
+                <select class="voice-setting-select" id="voiceSelect" onchange="selectVoice(this.value)">
+                    <option value="">Memuat suara...</option>
+                </select>
+            </div>
+            
+            <button class="voice-test-btn" onclick="testVoice()">🔊 Tes Suara</button>
+        </div>
+    </div>
+
     <!-- Voice Engine -->
     <script src="js/voice-engine.js"></script>
     
@@ -308,6 +364,9 @@
             if (el) { el.classList.add('show', 'done'); }
         }
         
+        // Initialize TTS first
+        initTTS();
+        
         // Initialize Voice Engine
         await new Promise(r => setTimeout(r, 500));
         initVoiceEngine();
@@ -329,11 +388,9 @@
             const timeEl = document.getElementById('welcomeTime');
             if (timeEl) timeEl.textContent = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
             
-            // Speak welcome message
+            // Speak welcome message with enhanced TTS
             setTimeout(() => {
-                if (gaurangaVoice) {
-                    gaurangaVoice.speak('GAURANGA System AI aktif, Pak Pur! Voice interface siap digunakan. Silakan berikan perintah!');
-                }
+                speak('GAURANGA System AI aktif, Pak Pur! Voice interface siap digunakan. Silakan berikan perintah!');
             }, 1000);
         }
         
@@ -343,7 +400,11 @@
         document.getElementById('welcomeTime').textContent = new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
         updateGreeting();
         startHotwordDetection();
-        speak('GAURANGA System AI siap! Silakan berikan perintah, Pak Pur!');
+        
+        // Final voice greeting with enhanced TTS
+        setTimeout(() => {
+            speak('GAURANGA System AI siap! Silakan berikan perintah, Pak Pur!');
+        }, 1500);
     }
 
     function updateGreeting() {
@@ -575,14 +636,139 @@
         setTimeout(() => startVoice(), 1000);
     }
 
-    // TTS
-    function speak(text) {
+    // TTS - Enhanced with voice selection
+    let currentVoice = null;
+    let isSpeaking = false;
+    
+    function initTTS() {
         if ('speechSynthesis' in window) {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'id-ID';
-            utterance.rate = 1;
-            speechSynthesis.speak(utterance);
+            // Wait for voices to load
+            const loadVoices = () => {
+                const voices = speechSynthesis.getVoices();
+                // Try to find Indonesian voice first, then fallback
+                currentVoice = voices.find(v => v.lang.includes('id')) || 
+                               voices.find(v => v.lang.includes('ID')) ||
+                               voices.find(v => v.lang.includes('en')) ||
+                               voices[0];
+                console.log('TTS Ready, Voice:', currentVoice?.name);
+            };
+            
+            loadVoices();
+            speechSynthesis.onvoiceschanged = loadVoices;
         }
+    }
+    
+    function speak(text) {
+        if (!('speechSynthesis' in window)) {
+            showNotification('⚠️ TTS tidak tersedia');
+            return;
+        }
+        
+        // Check if voice output is enabled
+        if (!voiceOutputEnabled) {
+            console.log('Voice output disabled');
+            return;
+        }
+        
+        // Cancel any ongoing speech
+        speechSynthesis.cancel();
+        
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'id-ID';
+        
+        // Get settings from sliders
+        const volumeSlider = document.getElementById('volumeSlider');
+        const rateSlider = document.getElementById('rateSlider');
+        const pitchSlider = document.getElementById('pitchSlider');
+        
+        utterance.volume = volumeSlider ? volumeSlider.value / 100 : 1;
+        utterance.rate = rateSlider ? rateSlider.value / 100 : 1;
+        utterance.pitch = pitchSlider ? pitchSlider.value / 100 : 1;
+        
+        // Use selected voice if available
+        if (currentVoice) {
+            utterance.voice = currentVoice;
+        }
+        
+        // Visual feedback
+        isSpeaking = true;
+        updateSpeakingIndicator(true);
+        
+        utterance.onstart = () => {
+            showVoiceMode('speaking');
+        };
+        
+        utterance.onend = () => {
+            isSpeaking = false;
+            updateSpeakingIndicator(false);
+            showVoiceMode(null);
+        };
+        
+        utterance.onerror = () => {
+            isSpeaking = false;
+            updateSpeakingIndicator(false);
+            showVoiceMode(null);
+        };
+        
+        speechSynthesis.speak(utterance);
+    }
+    
+    function stopSpeaking() {
+        speechSynthesis.cancel();
+        isSpeaking = false;
+        updateSpeakingIndicator(false);
+        showVoiceMode(null);
+    }
+    
+    function updateSpeakingIndicator(speaking) {
+        const wakeIndicator = document.getElementById('wakeIndicator');
+        if (wakeIndicator) {
+            if (speaking) {
+                wakeIndicator.classList.add('speaking');
+            } else {
+                wakeIndicator.classList.remove('speaking');
+            }
+        }
+    }
+    
+    function showVoiceMode(mode) {
+        const voiceMode = document.getElementById('voiceMode');
+        const voiceModeText = document.getElementById('voiceModeText');
+        
+        if (voiceMode) {
+            if (mode === 'speaking') {
+                voiceMode.classList.remove('hidden');
+                voiceMode.style.borderColor = '#00d4ff';
+                if (voiceModeText) voiceModeText.textContent = 'GAURANGA bicara...';
+                // Animate sound wave
+                animateSoundWave();
+            } else if (mode === 'listening') {
+                voiceMode.classList.remove('hidden');
+                voiceMode.style.borderColor = 'var(--primary)';
+                if (voiceModeText) voiceModeText.textContent = 'Mendengarkan...';
+            } else if (mode === 'processing') {
+                if (voiceModeText) voiceModeText.textContent = 'Memproses...';
+            } else {
+                voiceMode.classList.add('hidden');
+            }
+        }
+    }
+    
+    function animateSoundWave() {
+        const soundBars = document.querySelectorAll('.sound-bar');
+        if (!soundBars.length) return;
+        
+        let animationFrame = 0;
+        const animate = () => {
+            if (!isSpeaking) return;
+            animationFrame++;
+            soundBars.forEach((bar, i) => {
+                const height = 5 + Math.abs(Math.sin(animationFrame * 0.1 + i * 0.5)) * 20;
+                bar.style.height = height + 'px';
+            });
+            requestAnimationFrame(animate);
+        };
+        animate();
     }
 
     // Mode Toggle
@@ -598,6 +784,99 @@
         document.getElementById('toastMessage').textContent = msg;
         toast.classList.remove('hidden');
         setTimeout(() => toast.classList.add('hidden'), 3000);
+    }
+    
+    // Voice Output Toggle
+    let voiceOutputEnabled = true;
+    
+    function toggleVoiceOutput() {
+        voiceOutputEnabled = !voiceOutputEnabled;
+        const btn = document.getElementById('voiceToggleBtn');
+        const icon = document.getElementById('voiceToggleIcon');
+        
+        if (voiceOutputEnabled) {
+            btn.classList.add('active');
+            icon.className = 'fas fa-volume-up';
+            showNotification('🔊 Suara GAURANGA AKTIF');
+        } else {
+            btn.classList.remove('active');
+            icon.className = 'fas fa-volume-mute';
+            showNotification('🔇 Suara GAURANGA NONAKTIF');
+            stopSpeaking();
+        }
+    }
+    
+    // Voice Settings Modal
+    function showVoiceSettings() {
+        const modal = document.getElementById('voiceSettingsModal');
+        modal.classList.remove('hidden');
+        loadAvailableVoices();
+    }
+    
+    function closeVoiceSettings() {
+        const modal = document.getElementById('voiceSettingsModal');
+        modal.classList.add('hidden');
+    }
+    
+    function loadAvailableVoices() {
+        const voiceSelect = document.getElementById('voiceSelect');
+        if (!voiceSelect) return;
+        
+        const voices = speechSynthesis.getVoices();
+        voiceSelect.innerHTML = '';
+        
+        if (voices.length === 0) {
+            voiceSelect.innerHTML = '<option value="">Tidak ada suara tersedia</option>';
+            return;
+        }
+        
+        voices.forEach((voice, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = `${voice.name} (${voice.lang})`;
+            option.selected = voice === currentVoice;
+            voiceSelect.appendChild(option);
+        });
+    }
+    
+    function updateVolume(value) {
+        document.getElementById('volumeValue').textContent = value + '%';
+        // Volume is set in the speak function
+    }
+    
+    function updateRate(value) {
+        const rateLabel = value < 80 ? 'Lambat' : value > 120 ? 'Cepat' : 'Normal';
+        document.getElementById('rateValue').textContent = rateLabel + ' (' + (value/100).toFixed(1) + 'x)';
+    }
+    
+    function updatePitch(value) {
+        const pitchLabel = value < 80 ? 'Rendah' : value > 120 ? 'Tinggi' : 'Normal';
+        document.getElementById('pitchValue').textContent = pitchLabel;
+    }
+    
+    function selectVoice(index) {
+        const voices = speechSynthesis.getVoices();
+        if (voices[index]) {
+            currentVoice = voices[index];
+            showNotification(`Suara berubah ke: ${currentVoice.name}`);
+        }
+    }
+    
+    function testVoice() {
+        speak('Halo Pak Pur! Ini adalah test suara GAURANGA. Bagaimana kedengarannya?');
+    }
+    
+    // Initialize voice toggle button state
+    document.addEventListener('DOMContentLoaded', () => {
+        const btn = document.getElementById('voiceToggleBtn');
+        if (btn) btn.classList.add('active');
+    });
+    
+    // Load voices when available
+    if ('speechSynthesis' in window) {
+        speechSynthesis.onvoiceschanged = () => {
+            loadAvailableVoices();
+        };
     }
     </script>
 </body>
