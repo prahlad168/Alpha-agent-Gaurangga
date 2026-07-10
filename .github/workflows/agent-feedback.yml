@@ -1,0 +1,230 @@
+# GAURANGA - Continuous Feedback Loop
+name: Agent Feedback Loop
+
+on:
+  # Run on every push
+  push:
+    branches: [main, develop]
+  
+  # Run daily at key times
+  schedule:
+    # Morning check (13:00 WIB = 06:00 UTC)
+    - cron: '0 6 * * *'
+    # Evening check (21:00 WIB = 14:00 UTC)
+    - cron: '0 14 * * *'
+  
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Mode'
+        required: true
+        default: 'full-check'
+        type: choice
+        options:
+          - full-check
+          - status-only
+          - report
+
+permissions:
+  contents: read
+
+jobs:
+  # ============================================
+  # JOB 1: System Health Check
+  # ============================================
+  health-check:
+    name: System Health Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check Python dependencies
+        run: |
+          echo "📦 Checking dependencies..."
+          if [ -f server/requirements.txt ]; then
+            echo "✅ Requirements file found"
+            pip freeze | grep -E "flask|openai|requests" || echo "⚠️ Dependencies may need update"
+          else
+            echo "❌ Requirements file not found"
+          fi
+
+      - name: Verify skill files
+        run: |
+          echo "📂 Checking skill files..."
+          if [ -d ".agents/skills" ]; then
+            count=$(find .agents/skills -name "*.md" | wc -l)
+            echo "✅ Found $count skill files"
+          else
+            echo "❌ Skills directory not found"
+          fi
+
+      - name: Verify log files
+        run: |
+          echo "📝 Checking logs..."
+          if [ -d "logs" ]; then
+            latest=$(ls -t logs/*.md 2>/dev/null | head -1)
+            echo "📌 Latest log: $latest"
+          fi
+
+  # ============================================
+  # JOB 2: Code Quality Check
+  # ============================================
+  code-quality:
+    name: Code Quality Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check Python syntax
+        run: |
+          echo "🔍 Checking Python files..."
+          python_files=$(find . -name "*.py" -type f ! -path "./venv/*" 2>/dev/null)
+          for file in $python_files; do
+            python3 -m py_compile "$file" 2>/dev/null && echo "✅ $file" || echo "❌ $file"
+          done
+
+      - name: Check JavaScript syntax
+        run: |
+          echo "🔍 Checking JavaScript files..."
+          if command -v node &> /dev/null; then
+            for file in $(find js -name "*.js" 2>/dev/null); do
+              node --check "$file" 2>/dev/null && echo "✅ $file" || echo "❌ $file"
+            done
+          else
+            echo "⚠️ Node.js not installed, skipping JS checks"
+          fi
+
+      - name: Check HTML structure
+        run: |
+          echo "🔍 Checking HTML files..."
+          for file in $(find . -name "*.html" -type f 2>/dev/null); do
+            if grep -q "<!DOCTYPE html>" "$file" || grep -q "<html" "$file"; then
+              echo "✅ $file"
+            else
+              echo "❌ $file - Invalid HTML"
+            fi
+          done
+
+  # ============================================
+  # JOB 3: Generate Agent Status Report
+  # ============================================
+  agent-status:
+    name: Generate Agent Status
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event.inputs.mode == 'report'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate Status Report
+        run: |
+          echo "=============================================="
+          echo "🤖 GAURANGA AGENT - STATUS REPORT"
+          echo "=============================================="
+          echo "📅 Date: $(date -u '+%Y-%m-%d %H:%M UTC')"
+          echo ""
+          
+          echo "📊 Repository Status:"
+          echo "- Branch: ${{ github.ref_name }}"
+          echo "- Commit: ${{ github.sha }}"
+          echo ""
+          
+          echo "📁 Project Structure:"
+          echo "- Core files: $(find . -maxdepth 1 -type f | wc -l)"
+          echo "- Directories: $(find . -maxdepth 1 -type d ! -name '.' | wc -l)"
+          echo "- Total files: $(git ls-files | wc -l)"
+          echo ""
+          
+          echo "🤖 Agent Components:"
+          [ -d "server" ] && echo "✅ Server (AI Backend)"
+          [ -d "system-agent" ] && echo "✅ System Agent"
+          [ -d "android-app" ] && echo "✅ Android App"
+          [ -d ".agents/skills" ] && echo "✅ OpenHands Skills"
+          [ -f "AGENTS.md" ] && echo "✅ Agent Config"
+          echo ""
+          
+          echo "📈 Recent Activity:"
+          git log --oneline -5
+          echo ""
+          
+          echo "🎯 Ready for development tasks!"
+
+  # ============================================
+  # JOB 4: GitHub Sync Status
+  # ============================================
+  sync-status:
+    name: GitHub Sync Status
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check remote
+        run: |
+          echo "🔗 Remote Repository:"
+          git remote -v
+          
+      - name: Check sync status
+        run: |
+          echo "📊 Sync Status:"
+          if git status | grep -q "up to date"; then
+            echo "✅ Repository is up to date"
+          else
+            echo "📝 Uncommitted changes:"
+            git status --short
+          fi
+          
+      - name: List workflows
+        run: |
+          echo "⚙️ GitHub Actions Workflows:"
+          if [ -d ".github/workflows" ]; then
+            for wf in .github/workflows/*.yml .github/workflows/*.yaml; do
+              if [ -f "$wf" ]; then
+                name=$(basename "$wf")
+                echo "  - $name"
+              fi
+            done
+          fi
+
+  # ============================================
+  # JOB 5: Skills Validation
+  # ============================================
+  validate-skills:
+    name: Validate Agent Skills
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check skill structure
+        run: |
+          echo "🎓 Skill Files:"
+          if [ -d ".agents/skills" ]; then
+            for skill in .agents/skills/*.md; do
+              if [ -f "$skill" ]; then
+                name=$(basename "$skill")
+                lines=$(wc -l < "$skill")
+                echo "  ✅ $name ($lines lines)"
+              fi
+            done
+          fi
+
+      - name: Validate skill format
+        run: |
+          echo "🔍 Skill Format Check:"
+          for skill in .agents/skills/*.md; do
+            if [ -f "$skill" ]; then
+              if head -5 "$skill" | grep -q "##"; then
+                echo "✅ $(basename $skill) - Valid format"
+              else
+                echo "⚠️ $(basename $skill) - May need header"
+              fi
+            fi
+          done
+
+# ============================================
+# SUMMARY
+# ============================================
