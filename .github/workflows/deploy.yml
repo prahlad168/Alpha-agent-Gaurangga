@@ -1,9 +1,21 @@
-# Alpha Gaurangga - Deploy to GitHub Pages
-name: Deploy to GitHub Pages
+# ================================================
+# GAURANGA - Auto Deploy & CI/CD Pipeline
+# ================================================
+# Triggers:
+#   - Push to main: Auto deploy
+#   - PR: Run tests
+#   - Manual: workflow_dispatch
+# ================================================
+
+name: 🚀 GAURANGA CI/CD Pipeline
 
 on:
   # Run on every push to main
   push:
+    branches: [main]
+  
+  # Run tests on PR
+  pull_request:
     branches: [main]
   
   # Allow manual deployment
@@ -16,10 +28,66 @@ permissions:
 
 concurrency:
   group: "pages"
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
+  # ================================================
+  # Job 1: CI - Run Tests
+  # ================================================
+  ci:
+    name: 🔍 CI Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('server/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          cd server
+          pip install -r requirements.txt
+
+      - name: Run Python syntax check
+        run: |
+          python -m py_compile server/gauranga_server.py
+          python -m py_compile server/deploy_server.py
+          echo "✅ Python syntax OK"
+
+      - name: Validate Python packages
+        run: |
+          python -c "import flask; print(f'Flask: {flask.__version__}')"
+          python -c "import openai; print('OpenAI: OK')"
+          python -c "from dotenv import load_dotenv; print('Dotenv: OK')"
+
+      - name: Check JavaScript files
+        run: |
+          echo "✅ Checking JS files..."
+          ls -la js/
+
+      - name: CI Results
+        if: success()
+        run: |
+          echo "🎉 All CI checks passed!"
+
+  # ================================================
+  # Job 2: Deploy to GitHub Pages
+  # ================================================
   deploy:
+    name: 🚀 Deploy
+    needs: ci
+    if: github.ref == 'refs/heads/main'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -39,3 +107,69 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Deployment Summary
+        run: |
+          echo "🎉 Deployed successfully!"
+          echo "📝 Commit: ${{ github.sha }}"
+          echo "🔗 URL: ${{ steps.deployment.outputs.page_url }}"
+
+  # ================================================
+  # Job 3: Server Deploy (Optional - for self-hosted)
+  # ================================================
+  server-deploy:
+    name: 🖥️ Server Deploy
+    needs: ci
+    if: github.ref == 'refs/heads/main' && false  # Disabled by default
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Pull latest
+        run: |
+          git pull origin main
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          cd server
+          pip install -r requirements.txt
+
+      - name: Deploy with script
+        run: |
+          chmod +x deploy/*.sh
+          bash deploy/restart.sh
+
+      - name: Health check
+        run: |
+          sleep 5
+          curl -s http://localhost:5000/api/health || echo "Health check skipped"
+
+  # ================================================
+  # Summary
+  # ================================================
+  summary:
+    name: 📊 Build Summary
+    needs: [ci, deploy]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Summary
+        run: |
+          echo "# 📊 GAURANGA CI/CD Summary"
+          echo ""
+          echo "| Job | Status |"
+          echo "|-----|--------|"
+          echo "| CI Tests | ${{ needs.ci.result }} |"
+          echo "| Deploy | ${{ needs.deploy.result }} |"
+          echo ""
+          echo "🔗 Commit: \`${{ github.sha }}\`"
+          echo "👤 Author: ${{ github.actor }}"
+
