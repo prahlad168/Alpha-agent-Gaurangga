@@ -1,23 +1,31 @@
 #!/bin/bash
 # ================================================
-# GAURANGA - Auto-Start Script (rc.local style)
+# GAURANGA - Boot Startup Script
 # ================================================
-# For systems without systemd or development use
-# Add to /etc/rc.local or crontab
+# Auto-start GAURANGA on system boot
+# Add to crontab: @reboot bash /path/to/boot-startup.sh
 # ================================================
 
 APP_DIR="/workspace/project/Alpha-agent-Gaurangga"
-SERVER_DIR="$APP_DIR/server"
+DEPLOY_DIR="$APP_DIR/deploy"
 LOG_DIR="$APP_DIR/logs"
-PID_FILE="$APP_DIR/deploy/gauranga.pid"
+PID_FILE="$DEPLOY_DIR/gauranga.pid"
 PORT=5000
 
-# Wait for system to be ready
-sleep 10
+# Log
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> $LOG_DIR/boot-startup.log
+}
+
+log "========================================="
+log "GAURANGA Boot Startup - Initializing..."
+
+# Wait for system services
+sleep 5
 
 # Check if already running
 if lsof -Pi :$PORT -sTCP:LISTEN -t >/dev/null 2>&1; then
-    echo "GAURANGA already running on port $PORT"
+    log "GAURANGA already running on port $PORT"
     exit 0
 fi
 
@@ -25,9 +33,16 @@ fi
 mkdir -p $LOG_DIR
 
 # Start server
-cd $SERVER_DIR
-source venv/bin/activate
-nohup python3 gauranga_server.py > $LOG_DIR/gauranga.log 2>&1 &
-echo $! > $PID_FILE
+log "Starting GAURANGA server..."
+cd $APP_DIR
+bash deploy/start.sh > /dev/null 2>&1 &
 
-echo "GAURANGA started on port $PORT (PID: $(cat $PID_FILE))"
+# Wait and verify
+sleep 5
+
+if lsof -Pi :$PORT -sTCP:LISTEN -t >/dev/null 2>&1; then
+    PID=$(lsof -Pi :$PORT -sTCP:LISTEN -t)
+    log "✅ GAURANGA started successfully (PID: $PID)"
+else
+    log "❌ GAURANGA failed to start"
+fi

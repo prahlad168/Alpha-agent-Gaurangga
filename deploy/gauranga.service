@@ -1,19 +1,42 @@
 [Unit]
-Description=GAURANGA AI Agent Server
+Description=GAURANGA Alpha Agent - AI Assistant Server
+Documentation=https://github.com/prahlad168/Alpha-agent-Gaurangga
 After=network.target
+Wants=network-online.target
 
 [Service]
 Type=simple
+
+# Run as openhands user
 User=openhands
+Group=openhands
+
+# Working directory
 WorkingDirectory=/workspace/project/Alpha-agent-Gaurangga/server
+
+# Python virtual environment
+Environment="PATH=/workspace/project/Alpha-agent-Gaurangga/server/venv/bin:/usr/local/bin:/usr/bin:/bin"
+EnvironmentFile=/workspace/project/Alpha-agent-Gaurangga/server/.env
+
+# Start command
 ExecStart=/workspace/project/Alpha-agent-Gaurangga/server/venv/bin/python gauranga_server.py
+
+# Restart policy
 Restart=always
 RestartSec=10
+
+# Logging
 StandardOutput=append:/workspace/project/Alpha-agent-Gaurangga/logs/gauranga.log
 StandardError=append:/workspace/project/Alpha-agent-Gaurangga/logs/gauranga_error.log
 
-# Environment variables
-EnvironmentFile=/workspace/project/Alpha-agent-Gaurangga/server/.env
+# PID file
+PIDFile=/workspace/project/Alpha-agent-Gaurangga/deploy/gauranga.pid
+
+# Security (optional hardening)
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/workspace/project/Alpha-agent-Gaurangga/logs
 
 [Install]
 WantedBy=multi-user.target
