@@ -570,6 +570,7 @@
 
     <!-- GAURANGA Agents -->
     <script src="js/daily-briefing.js"></script>
+    <script src="js/knowledge-agent.js"></script>
 
     <script>
         // ==================== LOCK SCREEN ====================
@@ -729,11 +730,42 @@ Saya adalah <b>AI Assistant utama</b> untuk Pak Pur (I Made Purna Ananda).<br><b
 Siap membantu Pak Pur kapan saja! 💪`;
             }
             
+            // Knowledge Agent Integration
+            if (msg.includes('company') || msg.includes('perusahaan') || msg.includes('maha') || msg.includes('lakshmi')) {
+                return KnowledgeAgent.getCompanyInfo();
+            }
+            
+            if (msg.includes('target') || msg.includes('revenue')) {
+                return KnowledgeAgent.getRevenueTargets();
+            }
+            
+            if (msg.includes('harga') || msg.includes('price') || msg.includes('biaya')) {
+                return KnowledgeAgent.getPricing();
+            }
+            
+            if (msg.includes('sbu') || msg.includes('bisnis')) {
+                return KnowledgeAgent.getSBUs();
+            }
+            
+            if (msg.includes('skill') || msg.includes('kemampuan')) {
+                return KnowledgeAgent.getSkills();
+            }
+            
+            if (msg.includes('tim') || msg.includes('team')) {
+                return KnowledgeAgent.getTeam();
+            }
+            
+            if (msg.includes('info') || msg.includes('knowledge') || msg.includes('knowledge base')) {
+                return KnowledgeAgent.getSummary();
+            }
+            
             if (msg.includes('halo') || msg.includes('hi') || msg.includes('hai')) {
                 return `👋 Halo Pak Pur!<br><br>
 Senang bertemu dengan Anda! Ada yang bisa GAURANGA bantu hari ini?<br><br>
 Saya bisa:<br>
 • 📊 Generate laporan<br>
+• 🧠 Info company & knowledge base<br>
+• 💰 Target revenue & pricing<br>
 • 📢 Atur marketing campaigns<br>
 • 💰 Koordinasi sales agents<br>
 • 🔧 Setup automation<br>
@@ -753,14 +785,7 @@ Mau buat task baru, Pak Pur? Ketik aja! ✨`;
             }
             
             if (msg.includes('jual') || msg.includes('sales') || msg.includes('uang')) {
-                return `💰 <b>Sales Update</b><br><br>
-<b>Target Bulan Ini:</b><br>
-• SaaS Sales: Rp 30.000.000<br>
-• Freelance: Rp 25.000.000<br>
-• Digital Products: Rp 20.000.000<br>
-• <b>Total:</b> Rp 75.000.000<br><br>
-<b>Progress:</b> 0%<br><br>
-Mau saya aktivasi Sales Agents, Pak Pur? 🚀`;
+                return KnowledgeAgent.getPricing();
             }
             
             if (msg.includes('marketing') || msg.includes('promosi')) {
