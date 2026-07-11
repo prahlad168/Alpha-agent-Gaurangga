@@ -288,10 +288,30 @@ Chat:    POST http://localhost:5000/api/chat
 | 1 | Daily Briefing | ✅ ACTIVE | "laporan pagi" |
 | 2 | Knowledge | ✅ ACTIVE | "company", "harga" |
 | 3 | HR Agent | ✅ ACTIVE | "hire", "lowongan", "tim" |
+| 4 | Sales Agent | ✅ ACTIVE | "sales", "pipeline", "revenue" |
 
 ---
 
-**Version:** 1.2.0
+## 🔄 Auto-Start Service
+
+```bash
+# Install systemd service (as root)
+sudo bash deploy/install-service.sh
+
+# Commands
+sudo systemctl start gauranga
+sudo systemctl stop gauranga
+sudo systemctl restart gauranga
+sudo systemctl status gauranga
+
+# For development (rc.local)
+# Add to /etc/rc.local:
+bash /workspace/project/Alpha-agent-Gaurangga/deploy/rc.local-start.sh
+```
+
+---
+
+**Version:** 1.3.0
 **Created:** 2026-07-05
 **Updated:** 2026-07-11
 **Status:** 🚀 ACTIVE
