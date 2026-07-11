@@ -573,6 +573,12 @@
     <script src="js/knowledge-agent.js"></script>
     <script src="js/hr-agent.js"></script>
     <script src="js/sales-agent.js"></script>
+    <script src="js/marketing-agent.js"></script>
+    <script src="js/content-agent.js"></script>
+    <script src="js/cs-agent.js"></script>
+    <script src="js/pm-agent.js"></script>
+    <script src="js/finance-agent.js"></script>
+    <script src="js/calendar-agent.js"></script>
 
     <script>
         // ==================== LOCK SCREEN ====================
@@ -838,14 +844,113 @@ Mau saya mulai kampanyenya, Pak Pur? 🎯`;
                 return HRAgent.getTeamStructure();
             }
             
-            if (msg.includes('help') || msg.includes('bantu') || msg.includes('cara')) {
-                return `🆘 <b>Bantuan GAURANGA</b><br><br>
-Saya bisa bantu Pak Pur untuk:<br><br>
-📊 <b>Laporan:</b> "gaurangga, buat laporan harian"<br><br>
-💰 <b>Sales:</b> "gaurangga, update sales pipeline"<br><br>
-📢 <b>Marketing:</b> "gaurangga, mulai kampanyenya"<br><br>
-👥 <b>HR:</b> "gaurangga, rekrut sales agent baru"<br><br>
-🔧 <b>Automation:</b> "gaurangga, setup auto-reply"<br><br>
+            // Marketing Agent Integration
+            if (msg.includes('marketing') || msg.includes('promosi')) {
+                return MarketingAgent.getDashboard();
+            }
+            
+            if (msg.includes('campaign')) {
+                return MarketingAgent.getCampaigns();
+            }
+            
+            if (msg.includes('channel') || msg.includes('social media')) {
+                return MarketingAgent.getChannels();
+            }
+            
+            if (msg.includes('social strategy') || msg.includes('instagram') || msg.includes('tiktok')) {
+                return MarketingAgent.getSocialStrategy();
+            }
+            
+            // Content Agent Integration
+            if (msg.includes('content') || msg.includes('konten')) {
+                if (msg.includes('idea')) return ContentAgent.query(msg);
+                return ContentAgent.getDashboard();
+            }
+            
+            if (msg.includes('calendar') && msg.includes('content')) {
+                return ContentAgent.getCalendar();
+            }
+            
+            if (msg.includes('seo')) {
+                return ContentAgent.getSEOTips();
+            }
+            
+            // Customer Service Agent Integration
+            if (msg.includes('ticket') || msg.includes('support')) {
+                return CSAgent.getTickets();
+            }
+            
+            if (msg.includes('template') && (msg.includes('response') || msg.includes('balas'))) {
+                return CSAgent.getTemplates();
+            }
+            
+            if (msg.includes('cs') || msg.includes('customer service')) {
+                return CSAgent.getDashboard();
+            }
+            
+            // Project Manager Agent Integration
+            if (msg.includes('project') || msg.includes('proyek')) {
+                return PMAgent.getProjects();
+            }
+            
+            if (msg.includes('task') || msg.includes('todo')) {
+                return PMAgent.getTaskManagement();
+            }
+            
+            if (msg.includes('quality') || msg.includes('qa')) {
+                return PMAgent.getQualityGates();
+            }
+            
+            if (msg.includes('pm') || msg.includes('project manager')) {
+                return PMAgent.getDashboard();
+            }
+            
+            // Finance Agent Integration
+            if (msg.includes('expense') || msg.includes('biaya')) {
+                return FinanceAgent.getExpenses();
+            }
+            
+            if (msg.includes('invoice') || msg.includes('tagihan')) {
+                return FinanceAgent.getInvoiceTemplate();
+            }
+            
+            if (msg.includes('profit') || msg.includes('pnl') || msg.includes('laba')) {
+                return FinanceAgent.getProfitLoss();
+            }
+            
+            if (msg.includes('finance') || msg.includes('keuangan')) {
+                return FinanceAgent.getDashboard();
+            }
+            
+            // Calendar Agent Integration
+            if (msg.includes('weekly') && msg.includes('jadwal')) {
+                return CalendarAgent.getWeeklySchedule();
+            }
+            
+            if (msg.includes('time block')) {
+                return CalendarAgent.getTimeBlocking();
+            }
+            
+            if (msg.includes('reminder')) {
+                return CalendarAgent.getReminders();
+            }
+            
+            if (msg.includes('calendar') || msg.includes('jadwal')) {
+                return CalendarAgent.getDashboard();
+            }
+            
+            if (msg.includes('help') || msg.includes('bantu') || msg.includes('cara') || msg.includes('commands') || msg.includes('perintah')) {
+                return `🆘 <b>Bantuan GAURANGA - All Commands</b><br><br>
+📊 <b>Laporan:</b> "laporan pagi" | "briefing"<br><br>
+🧠 <b>Knowledge:</b> "company" | "harga" | "skill"<br><br>
+💰 <b>Sales:</b> "sales" | "pipeline" | "revenue"<br><br>
+👥 <b>HR:</b> "hire" | "lowongan" | "tim"<br><br>
+📢 <b>Marketing:</b> "marketing" | "campaign"<br><br>
+✍️ <b>Content:</b> "content" | "content idea [topic]"<br><br>
+🎧 <b>Support:</b> "ticket" | "support"<br><br>
+📋 <b>PM:</b> "project" | "task" | "pm"<br><br>
+💵 <b>Finance:</b> "finance" | "invoice" | "expense"<br><br>
+📅 <b>Calendar:</b> "calendar" | "jadwal"<br><br>
 Coba ketik perintah, Pak Pur! 😊`;
             }
             
