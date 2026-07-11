@@ -572,6 +572,7 @@
     <script src="js/daily-briefing.js"></script>
     <script src="js/knowledge-agent.js"></script>
     <script src="js/hr-agent.js"></script>
+    <script src="js/sales-agent.js"></script>
 
     <script>
         // ==================== LOCK SCREEN ====================
@@ -785,8 +786,21 @@ Saya bisa bantu Pak Pur:<br><br>
 Mau buat task baru, Pak Pur? Ketik aja! ✨`;
             }
             
-            if (msg.includes('jual') || msg.includes('sales') || msg.includes('uang')) {
-                return KnowledgeAgent.getPricing();
+            // Sales Agent Integration
+            if (msg.includes('sales') || msg.includes('revenue') || msg.includes('pipeline') || msg.includes('leads')) {
+                return SalesAgent.getDashboard();
+            }
+            
+            if (msg.includes('jual') || msg.includes('uang')) {
+                return SalesAgent.getDashboard();
+            }
+            
+            if (msg.includes('harga') || msg.includes('price')) {
+                return SalesAgent.getPricing();
+            }
+            
+            if (msg.includes('tips sales') || msg.includes('sales tips')) {
+                return SalesAgent.getSalesTips();
             }
             
             if (msg.includes('marketing') || msg.includes('promosi')) {
