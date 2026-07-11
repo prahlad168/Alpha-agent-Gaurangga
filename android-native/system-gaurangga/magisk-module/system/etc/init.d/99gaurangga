@@ -1,0 +1,97 @@
+#!/system/bin/sh
+# GAURANGA SYSTEM - Magisk Boot Script
+# Executes at boot via Magisk
+# Requires: Magisk installed
+
+MODDIR=${0%/*}
+GAURANGA_LOG="/data/gaurangga/logs/boot.log"
+GAURANGA_DATA="/data/gaurangga"
+GAURANGA_BIN="$MODDIR/system/bin/gaurangga-service"
+
+# Create directories
+mkdir -p $GAURANGA_DATA
+mkdir -p $GAURANGA_DATA/logs
+mkdir -p $GAURANGA_DATA/data
+mkdir -p $GAURANGA_DATA/cache
+
+# Log function
+log() {
+    mkdir -p $GAURANGA_DATA/logs
+    echo "[$(date)] MAGISK-GAURANGA: $1" >> $GAURANGA_LOG 2>/dev/null
+    log -p i -t GAURANGA "$1"
+}
+
+log "=========================================="
+log "👑 GAURANGA MAGISK MODULE BOOTING"
+log "=========================================="
+
+# Check if GAURANGA is disabled
+if [ -f "$GAURANGA_DATA/.disabled" ]; then
+    log "⚠️ GAURANGA is disabled"
+    exit 0
+fi
+
+# Set system properties
+setprop gauranga.magisk.active 1
+setprop gauranga.enabled 1
+setprop gauranga.boot.started 1
+
+log "📱 Device: $(getprop ro.product.model)"
+log "🤖 Android: $(getprop ro.build.version.release)"
+log "🔐 SDK: $(getprop ro.build.version.sdk)"
+
+# Check biometric availability
+BIOMETRIC_HW=$(getprop ro.hardware.biometric 2>/dev/null)
+if [ -n "$BIOMETRIC_HW" ]; then
+    log "🔐 Biometric hardware: $BIOMETRIC_HW"
+    setprop gauranga.biometric.available 1
+else
+    log "🔐 Biometric: Software-based"
+    setprop gauranga.biometric.available 1
+fi
+
+# Wait for boot completed
+log "⏳ Waiting for system boot..."
+while [ "$(getprop sys.boot_completed)" != "1" ]; do
+    sleep 2
+done
+
+sleep 3
+
+log "✅ System boot completed!"
+
+# Make binary executable
+chmod 0755 $GAURANGA_BIN 2>/dev/null
+chmod 0755 $MODDIR/system/etc/init.d/* 2>/dev/null
+
+# Start GAURANGA biometric authentication
+log "🚀 Starting GAURANGA Biometric Authentication..."
+
+# Launch security activity
+am start -n com.gaurangga.alpha/.ui.SecurityActivity \
+    -a android.intent.action.MAIN \
+    -c android.intent.category.LAUNCHER \
+    --ez from_boot true \
+    --ez fullscreen true \
+    --ez require_biometric true 2>/dev/null
+
+# Alternative launch method
+if [ $? -ne 0 ]; then
+    log "⚠️ Fallback launch method..."
+    am start -n com.gaurangga.alpha/.ui.SecurityActivity \
+        -f 0x10000000 \
+        --ez from_boot true
+fi
+
+log "👑 GAURANGA BOOT SEQUENCE COMPLETE!"
+log "=========================================="
+
+# Start background service
+if [ -x "$GAURANGA_BIN" ]; then
+    log "🔄 Starting background service..."
+    $GAURANGA_BIN daemon &
+fi
+
+setprop gauranga.boot.completed 1
+
+exit 0

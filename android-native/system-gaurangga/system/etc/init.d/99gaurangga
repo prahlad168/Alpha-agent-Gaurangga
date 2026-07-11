@@ -1,0 +1,75 @@
+#!/system/bin/sh
+# GAURANGA SYSTEM - Boot Script (init.d)
+# Executes at early boot stage
+# Requires: Root access
+
+GAURANGA_LOG="/data/gaurangga/logs/boot.log"
+GAURANGA_DATA="/data/gaurangga"
+GAURANGA_BIN="/system/bin/gaurangga-service"
+
+# Create log directory
+mkdir -p $GAURANGA_DATA/logs
+mkdir -p $GAURANGA_DATA/data
+mkdir -p $GAURANGA_DATA/cache
+
+# Log function
+log() {
+    echo "[$(date)] GAURANGA: $1" >> $GAURANGA_LOG 2>/dev/null
+    log -p i -t GAURANGA "$1"
+}
+
+log "=== GAURANGA BOOT SCRIPT STARTED ==="
+log "Device: $(getprop ro.product.model)"
+log "Android: $(getprop ro.build.version.release)"
+log "SDK: $(getprop ro.build.version.sdk)"
+
+# Check if GAURANGA is enabled
+if [ -f "$GAURANGA_DATA/.disabled" ]; then
+    log "GAURANGA is disabled via .disabled file"
+    exit 0
+fi
+
+# Set permissions
+chmod 0775 $GAURANGA_DATA 2>/dev/null
+chmod 0775 $GAURANGA_DATA/logs 2>/dev/null
+chmod 0771 $GAURANGA_DATA/data 2>/dev/null
+chmod 0771 $GAURANGA_DATA/cache 2>/dev/null
+
+# Set system properties
+setprop gauranga.enabled 1
+setprop gauranga.boot.phase 1
+
+log "Boot phase 1 complete - Setting up system"
+
+# Check biometric hardware
+BIOMETRIC_HW=$(getprop ro.hardware.biometric)
+if [ -n "$BIOMETRIC_HW" ]; then
+    log "Biometric hardware detected: $BIOMETRIC_HW"
+    setprop gauranga.biometric.available 1
+else
+    log "No biometric hardware detected"
+    setprop gauranga.biometric.available 0
+fi
+
+# Wait for system ready
+while [ "$(getprop sys.boot_completed)" != "1" ]; do
+    sleep 1
+done
+
+sleep 2
+
+setprop gauranga.boot.phase 2
+log "Boot phase 2 complete - System ready"
+
+# Start GAURANGA biometric service
+if [ -x "$GAURANGA_BIN" ]; then
+    log "Starting GAURANGA biometric service..."
+    $GAURANGA_BIN start-biometric &
+else
+    log "GAURANGA binary not found at $GAURANGA_BIN"
+fi
+
+setprop gauranga.boot.phase 3
+log "=== GAURANGA BOOT SCRIPT COMPLETE ==="
+
+exit 0

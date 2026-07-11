@@ -1,0 +1,100 @@
+#!/sbin/sh
+# GAURANGA SYSTEM - Update Binary
+# For custom recovery flash
+
+outfd=$2
+zipfile=$3
+
+GAURANGA_LOG="/data/gaurangga/logs/install.log"
+
+ui_print() {
+    echo -n -e "ui_print $1\n" > /proc/self/fd/outfd
+    echo -e "ui_print\n" > /proc/self/fd/outfd
+}
+
+# Check if root
+if [ ! "$(id)" = "uid=0" ]; then
+    ui_print "❌ Root required!"
+    exit 1
+fi
+
+ui_print "=========================================="
+ui_print "  👑 GAURANGA SYSTEM INSTALLER 👑"
+ui_print "=========================================="
+ui_print ""
+
+# Mount system rw
+ui_print "📦 Mounting system as rw..."
+mount -o rw,remount /system 2>/dev/null
+mount -o rw,remount /data 2>/dev/null
+
+# Create directories
+ui_print "📁 Creating directories..."
+mkdir -p /system/etc/init.d
+mkdir -p /system/etc/permissions
+mkdir -p /data/gaurangga
+mkdir -p /data/gaurangga/logs
+mkdir -p /data/gaurangga/data
+mkdir -p /data/su.d
+
+# Copy init script
+ui_print "📄 Installing init script..."
+if [ -f /tmp/gaurangga/system/etc/init.d/99gaurangga ]; then
+    cp /tmp/gaurangga/system/etc/init.d/99gaurangga /system/etc/init.d/99gaurangga
+    chmod 0755 /system/etc/init.d/99gaurangga
+fi
+
+# Copy permissions
+ui_print "🔐 Installing permissions..."
+if [ -d /tmp/gaurangga/system/etc/permissions ]; then
+    cp -r /tmp/gaurangga/system/etc/permissions/* /system/etc/permissions/
+fi
+
+# Copy root scripts
+ui_print "🔧 Installing root scripts..."
+if [ -f /tmp/gaurangga/root/su.d/99gaurangga ]; then
+    cp /tmp/gaurangga/root/su.d/99gaurangga /data/su.d/99gaurangga
+    chmod 0755 /data/su.d/99gaurangga
+fi
+
+# Copy service binary
+ui_print "⚙️ Installing service binary..."
+if [ -f /tmp/gaurangga/tools/gaurangga-service ]; then
+    mkdir -p /system/bin/gaurangga-service
+    cp /tmp/gaurangga/tools/gaurangga-service /system/bin/gaurangga-service
+    chmod 0755 /system/bin/gaurangga-service
+fi
+
+# Copy app
+ui_print "📱 Installing GAURANGA app..."
+if [ -d /tmp/gaurangga/system/app/GAURANGA ]; then
+    mkdir -p /system/app/GAURANGA
+    cp -r /tmp/gaurangga/system/app/GAURANGA/* /system/app/GAURANGA/
+    chmod 0755 /system/app/GAURANGA/*.apk 2>/dev/null
+fi
+
+# Copy priv-app
+if [ -d /tmp/gaurangga/system/priv-app/GAURANGASystem ]; then
+    mkdir -p /system/priv-app/GAURANGASystem
+    cp -r /tmp/gaurangga/system/priv-app/GAURANGASystem/* /system/priv-app/GAURANGASystem/
+fi
+
+# Create log
+echo "GAURANGA INSTALL: $(date)" > /data/gaurangga/logs/install.log
+
+ui_print ""
+ui_print "=========================================="
+ui_print "  ✅ INSTALLATION COMPLETE!"
+ui_print "=========================================="
+ui_print ""
+ui_print "📱 Rebooting in 5 seconds..."
+ui_print ""
+
+# Cleanup
+rm -rf /tmp/gaurangga
+
+# Set SELinux context
+chcon u:object_r:system_file:s0 /system/etc/init.d/99gaurangga 2>/dev/null
+chcon u:object_r:system_file:s0 /system/bin/gaurangga-service 2>/dev/null
+
+exit 0

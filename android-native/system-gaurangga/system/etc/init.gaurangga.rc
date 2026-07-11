@@ -1,0 +1,74 @@
+# GAURANGA SYSTEM - Init Script
+# Autorun at boot with biometric authentication
+
+on boot
+    # Set GAURANGA paths
+    setprop gauranga.system.path /system/app/GAURANGA
+    setprop gauranga.data.path /data/gauranga
+    setprop gauranga.log.path /data/gauranga/logs
+    setprop gauranga.boot.completed 0
+    
+    # Create directories
+    mkdir /data/gaurangga 0775 system system
+    mkdir /data/gaurangga/logs 0775 system system
+    mkdir /data/gaurangga/data 0771 system system
+    mkdir /data/gaurangga/cache 0771 system system
+    
+    # Set permissions
+    chmod 0775 /data/gaurangga
+    chmod 0775 /data/gaurangga/logs
+    chmod 0771 /data/gaurangga/data
+    chmod 0771 /data/gaurangga/cache
+    
+    # Create symlinks
+    symlink /system/app/GAURANGA /data/gaurangga/system_link
+
+# Start GAURANGA service after boot completed
+on property:sys.boot_completed=1
+    # Log boot
+    write /data/gaurangga/logs/boot.log "GAURANGA Boot: $(date)\n"
+    
+    # Mark boot started
+    setprop gauranga.boot.completed 1
+    
+    # Start GAURANGA main service
+    start gaurangga-main
+    
+    # Start biometric authentication
+    start gaurangga-biometric
+    
+    # Start background daemon
+    start gaurangga-daemon
+
+# GAURANGA Main Service
+service gaurangga-main /system/bin/gaurangga-service main
+    class main
+    user system
+    group system audio bluetooth
+    disabled
+    seclabel u:r:gaurangga:s0
+
+# GAURANGA Biometric Authentication Service
+service gaurangga-biometric /system/bin/gaurangga-service biometric
+    class main
+    user system
+    group system
+    disabled
+    seclabel u:r:gaurangga:s0
+
+# GAURANGA Background Daemon
+service gaurangga-daemon /system/bin/gaurangga-service daemon
+    class late_start
+    user system
+    group system
+    disabled
+    seclabel u:r:gaurangga:s0
+
+# GAURANGA Boot Animation Service
+service gaurangga-boot /system/bin/gaurangga-service boot
+    class main
+    user root
+    group root
+    disabled
+    oneshot
+    seclabel u:r:gaurangga:s0

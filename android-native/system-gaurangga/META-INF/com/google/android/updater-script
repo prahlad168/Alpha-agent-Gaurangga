@@ -1,0 +1,97 @@
+# GAURANGA SYSTEM - Updater Script
+# For TWRP/Custom Recovery Flash
+
+# Set progress
+show_progress(0.5, 0);
+
+# Check for root
+ifelse(is_mounted("/system"), mount("/system"));
+ifelse(is_mounted("/data"), mount("/data"));
+
+# UI Print function
+ui_print("==========================================");
+ui_print("  👑 GAURANGA ALPHA SYSTEM 👑");
+ui_print("==========================================");
+ui_print("");
+
+# Device info
+ui_print("Device: " + getprop("ro.product.model"));
+ui_print("Android: " + getprop("ro.build.version.release"));
+ui_print("SDK: " + getprop("ro.build.version.sdk"));
+ui_print("");
+
+# Delete old files
+ui_print("🧹 Cleaning old installation...");
+delete("/system/etc/init.d/99gaurangga");
+delete("/system/bin/gaurangga-service");
+delete_recursive("/system/app/GAURANGA");
+delete_recursive("/system/priv-app/GAURANGASystem");
+delete("/data/su.d/99gaurangga");
+delete_recursive("/data/gaurangga");
+
+# Create directories
+ui_print("📁 Creating directories...");
+run_program("/sbin/mkdir", "-p", "/data/gaurangga/logs");
+run_program("/sbin/mkdir", "-p", "/data/gaurangga/data");
+run_program("/sbin/mkdir", "-p", "/data/gaurangga/cache");
+run_program("/sbin/mkdir", "-p", "/system/etc/init.d");
+run_program("/sbin/mkdir", "-p", "/system/etc/permissions");
+run_program("/sbin/mkdir", "-p", "/system/app/GAURANGA");
+run_program("/sbin/mkdir", "-p", "/system/priv-app/GAURANGASystem");
+
+# Set progress
+show_progress(0.5, 5);
+
+# Install init script
+ui_print("📄 Installing init script...");
+package_extract_file("system/etc/init.d/99gaurangga", "/tmp/99gaurangga");
+run_program("/sbin/mv", "/tmp/99gaurangga", "/system/etc/init.d/99gaurangga");
+set_perm("/system/etc/init.d/99gaurangga", 0, 0, 0755);
+
+# Install permissions
+ui_print("🔐 Installing permissions...");
+package_extract_dir("system/etc/permissions", "/system/etc/permissions");
+
+# Install root script
+ui_print("🔧 Installing root script...");
+package_extract_file("root/su.d/99gaurangga", "/tmp/su99gaurangga");
+run_program("/sbin/mv", "/tmp/su99gaurangga", "/data/su.d/99gaurangga");
+set_perm("/data/su.d/99gaurangga", 0, 0, 0755);
+
+# Install service binary
+ui_print("⚙️ Installing service binary...");
+package_extract_file("tools/gaurangga-service", "/tmp/gaurangga-service");
+run_program("/sbin/mv", "/tmp/gaurangga-service", "/system/bin/gaurangga-service");
+set_perm("/system/bin/gaurangga-service", 0, 0, 0755);
+
+# Install app
+ui_print("📱 Installing GAURANGA app...");
+package_extract_dir("system/app/GAURANGA", "/system/app/GAURANGA");
+package_extract_dir("system/priv-app/GAURANGASystem", "/system/priv-app/GAURANGASystem");
+
+# Set app permissions
+set_progress(0.9);
+
+# Create install log
+ui_print("📝 Creating install log...");
+run_program("/sbin/sh", "-c", "echo 'GAURANGA INSTALLED: '$(date) > /data/gaurangga/logs/install.log");
+
+# Finalize
+set_progress(1.0);
+
+ui_print("");
+ui_print("==========================================");
+ui_print("  ✅ INSTALLATION COMPLETE!");
+ui_print("==========================================");
+ui_print("");
+ui_print("🔄 Rebooting in 5 seconds...");
+ui_print("");
+ui_print("After reboot:");
+ui_print("1. GAURANGA lock screen will appear");
+ui_print("2. Scan fingerprint/face to unlock");
+ui_print("3. 👑 GAURANGA is ACTIVE! 💪");
+ui_print("");
+
+# Unmount
+unmount("/system");
+unmount("/data");

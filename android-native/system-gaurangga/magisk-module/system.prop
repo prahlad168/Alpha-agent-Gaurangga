@@ -1,0 +1,7 @@
+# GAURANGA SYSTEM - Magisk Module Configuration
+id=gaurangga_system
+name=GAURANGA Alpha System
+version=v1.1.0
+versionCode=1100
+author=GAURANGA Team
+description=Alpha Agent System - System-level AI Assistant with biometric authentication

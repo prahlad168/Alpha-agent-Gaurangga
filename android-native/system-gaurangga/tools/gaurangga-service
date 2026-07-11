@@ -1,0 +1,109 @@
+#!/system/bin/sh
+# GAURANGA SYSTEM - Main Service Binary
+# System-level boot service
+# Part of GAURANGA Alpha System
+
+GAURANGA_LOG="/data/gaurangga/logs/service.log"
+GAURANGA_DATA="/data/gaurangga"
+GAURANGA_PKG="com.gaurangga.alpha"
+
+log() {
+    mkdir -p $GAURANGA_DATA/logs
+    echo "[$(date)] $1" >> $GAURANGA_LOG 2>/dev/null
+}
+
+case "$1" in
+    start)
+        log "=== GAURANGA Service Starting ==="
+        log "Command: start"
+        
+        # Check if disabled
+        if [ -f "$GAURANGA_DATA/.disabled" ]; then
+            log "GAURANGA is disabled"
+            exit 0
+        fi
+        
+        # Set properties
+        setprop gauranga.service.running 1
+        setprop gauranga.start.time $(date +%s)
+        
+        log "GAURANGA Service Started!"
+        log "Package: $GAURANGA_PKG"
+        log "Ready to serve! 👑"
+        ;;
+        
+    start-biometric)
+        log "=== GAURANGA Biometric Service Starting ==="
+        
+        # Launch biometric authentication
+        log "Launching biometric authentication..."
+        
+        am start -n "$GAURANGA_PKG/.ui.SecurityActivity" \
+            -a android.intent.action.MAIN \
+            -c android.intent.category.LAUNCHER \
+            --ez from_boot true \
+            --ez fullscreen true \
+            --ez require_biometric true 2>/dev/null
+        
+        log "Biometric authentication launched!"
+        ;;
+        
+    daemon)
+        log "=== GAURANGA Daemon Starting ==="
+        
+        # Background monitoring loop
+        while true; do
+            # Check if service is still needed
+            if [ -f "$GAURANGA_DATA/.stop" ]; then
+                log "Stop signal received, exiting daemon"
+                break
+            fi
+            
+            # Keep service alive
+            if ! pgrep -f "com.gaurangga.alpha" > /dev/null; then
+                log "GAURANGA app not running, restarting..."
+                am start -n "$GAURANGA_PKG/.ui.MainActivity" 2>/dev/null
+            fi
+            
+            sleep 60
+        done
+        
+        log "GAURANGA Daemon stopped"
+        ;;
+        
+    stop)
+        log "=== GAURANGA Service Stopping ==="
+        setprop gauranga.service.running 0
+        log "GAURANGA Service Stopped"
+        ;;
+        
+    status)
+        echo "GAURANGA System Status:"
+        echo "Service: $(getprop gauranga.service.running 0)"
+        echo "Enabled: $(getprop gauranga.enabled 0)"
+        echo "Boot Phase: $(getprop gauranga.boot.phase 0)"
+        echo "Biometric: $(getprop gauranga.biometric.available 0)"
+        ;;
+        
+    enable)
+        log "Enabling GAURANGA..."
+        rm -f "$GAURANGA_DATA/.disabled"
+        setprop gauranga.enabled 1
+        log "GAURANGA Enabled!"
+        ;;
+        
+    disable)
+        log "Disabling GAURANGA..."
+        touch "$GAURANGA_DATA/.disabled"
+        setprop gauranga.enabled 0
+        log "GAURANGA Disabled!"
+        ;;
+        
+    *)
+        echo "GAURANGA Service"
+        echo "Usage: gaurangga-service [start|start-biometric|daemon|stop|status|enable|disable]"
+        exit 1
+        ;;
+esac
+
+exit 0

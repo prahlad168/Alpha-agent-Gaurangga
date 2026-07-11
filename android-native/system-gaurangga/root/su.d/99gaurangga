@@ -1,0 +1,46 @@
+#!/system/bin/sh
+# GAURANGA SYSTEM - SU Boot Script (su.d)
+# Executes with root privileges at boot
+# Requires: SU (Superuser) access
+
+GAURANGA_LOG="/data/gaurangga/logs/boot.log"
+GAURANGA_DATA="/data/gaurangga"
+
+log() {
+    echo "[$(date)] GAURANGA-SU: $1" >> $GAURANGA_LOG 2>/dev/null
+}
+
+log "=== GAURANGA SU SCRIPT STARTED ==="
+
+# Ensure directories exist
+mkdir -p $GAURANGA_DATA
+mkdir -p $GAURANGA_DATA/logs
+mkdir -p $GAURANGA_DATA/data
+
+# Wait for boot completed
+while [ "$(getprop sys.boot_completed)" != "1" ]; do
+    sleep 1
+done
+
+log "System boot completed"
+
+# Set GAURANGA system properties
+setprop gauranga.system.active 1
+setprop gauranga.service.ready 1
+
+# Make init script executable
+chmod 0755 /system/etc/init.d/99gaurangga 2>/dev/null
+
+# Start GAURANGA biometric authentication
+log "Starting GAURANGA biometric authentication..."
+
+# Launch biometric activity
+am start -n com.gaurangga.alpha/.ui.SecurityActivity \
+    -a android.intent.action.MAIN \
+    -c android.intent.category.LAUNCHER \
+    --ez from_boot true \
+    --ez fullscreen true 2>/dev/null
+
+log "=== GAURANGA SU SCRIPT COMPLETE ==="
+
+exit 0

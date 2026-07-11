@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<permissions>
+    <!-- GAURANGA System Permissions -->
+    
+    <!-- Biometric Authentication -->
+    <permission name="com.gaurangga.permission.BIOMETRIC_AUTH">
+        <gid name="system" />
+    </permission>
+    
+    <!-- System Control -->
+    <permission name="com.gaurangga.permission.SYSTEM_CONTROL">
+        <gid name="system" />
+    </permission>
+    
+    <!-- Boot Manipulation -->
+    <permission name="com.gaurangga.permission.BOOT_CONTROL">
+        <gid name="root" />
+    </permission>
+    
+    <!-- Network Control -->
+    <permission name="com.gaurangga.permission.NETWORK_CONTROL">
+        <gid name="inet" />
+        <gid name="network" />
+    </permission>
+    
+    <!-- Audio Control -->
+    <permission name="com.gaurangga.permission.AUDIO_CONTROL">
+        <gid name="audio" />
+    </permission>
+    
+    <!-- Storage Access -->
+    <permission name="com.gaurangga.permission.STORAGE_ACCESS">
+        <gid name="sdcard_r" />
+        <gid name="sdcard_rw" />
+    </permission>
+    
+    <!-- Process Control -->
+    <permission name="com.gaurangga.permission.PROCESS_CONTROL">
+        <gid name="system" />
+    </permission>
+    
+    <!-- Package Management -->
+    <permission name="com.gaurangga.permission.PACKAGE_MANAGEMENT">
+        <gid name="system" />
+    </permission>
+    
+    <!-- User Management -->
+    <permission name="com.gaurangga.permission.USER_MANAGEMENT">
+        <gid name="system" />
+    </permission>
+    
+    <!-- Device Admin -->
+    <permission name="com.gaurangga.permission.DEVICE_ADMIN">
+        <gid name="system" />
+    </permission>
+    
+</permissions>
