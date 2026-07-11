@@ -287,10 +287,11 @@ Chat:    POST http://localhost:5000/api/chat
 |---|-------|--------|---------|
 | 1 | Daily Briefing | ✅ ACTIVE | "laporan pagi" |
 | 2 | Knowledge | ✅ ACTIVE | "company", "harga" |
+| 3 | HR Agent | ✅ ACTIVE | "hire", "lowongan", "tim" |
 
 ---
 
-**Version:** 1.1.1
+**Version:** 1.2.0
 **Created:** 2026-07-05
 **Updated:** 2026-07-11
 **Status:** 🚀 ACTIVE
