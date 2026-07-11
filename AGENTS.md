@@ -190,3 +190,31 @@ Alpha-agent-Gaurangga/
 **Version:** 1.0.0
 **Created:** 2026-07-05
 **Status:** 🚀 ACTIVE
+
+---
+
+## 🔐 Biometric Authentication (NEW! v1.1.0)
+
+GAURANGA Android App dilengkapi dengan **autentikasi biometrik**:
+
+### Fitur:
+- ✅ Fingerprint / Face Recognition verification
+- ✅ Auto-start setelah restart HP
+- ✅ Session trusted 5 menit
+- ✅ Lockout setelah 5x gagal
+
+### Security Flow:
+```
+HP Restart → Lock Screen → Verify Biometric → GAURANGA Active
+```
+
+### Dokumentasi:
+- `android-native/BIOMETRIC-SETUP.md` - Panduan lengkap
+- `android-native/install-biometric.sh` - Quick install script
+
+---
+
+**Version:** 1.1.0
+**Created:** 2026-07-05
+**Updated:** 2026-07-11
+**Status:** 🚀 ACTIVE

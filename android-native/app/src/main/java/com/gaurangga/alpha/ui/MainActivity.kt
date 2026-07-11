@@ -16,6 +16,7 @@ import com.gaurangga.alpha.databinding.ActivityMainBinding
 import com.gaurangga.alpha.service.GaurangaVoiceService
 import com.gaurangga.alpha.stt.OfflineSpeechRecognizer
 import com.gaurangga.alpha.tts.OfflineTextToSpeech
+import com.gaurangga.alpha.security.BiometricAuthManager
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -28,7 +29,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var binding: ActivityMainBinding
     private lateinit var offlineSTT: OfflineSpeechRecognizer
     private lateinit var offlineTTS: OfflineTextToSpeech
+    private lateinit var biometricManager: BiometricAuthManager
     private var isServiceRunning = false
+    private var fromBoot = false
     
     // Permission launcher
     private val permissionLauncher = registerForActivityResult(
@@ -44,11 +47,31 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        biometricManager = BiometricAuthManager(this)
+        
+        // Check if launched from boot
+        fromBoot = intent.getBooleanExtra(SecurityActivity.EXTRA_FROM_BOOT, false)
+        
+        // Security check - if not from boot and requires auth, redirect to security
+        if (!fromBoot && biometricManager.requiresAuthentication()) {
+            redirectToSecurity()
+            return
+        }
+        
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         
         setupUI()
         checkPermissions()
+    }
+    
+    private fun redirectToSecurity() {
+        val intent = Intent(this, SecurityActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        }
+        startActivity(intent)
+        finish()
     }
     
     private fun setupUI() {
