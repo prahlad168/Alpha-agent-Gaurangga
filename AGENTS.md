@@ -247,7 +247,50 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 
 ---
 
-**Version:** 1.1.0
+## 🚀 Auto-Deploy & Server Management (NEW! v1.1.1)
+
+### Quick Commands
+```bash
+# Start server
+bash deploy/start.sh
+
+# Stop server
+bash deploy/stop.sh
+
+# Restart server
+bash deploy/restart.sh
+
+# Check status
+bash deploy/status.sh
+
+# Full auto-deploy
+bash deploy/auto-deploy.sh
+```
+
+### Server Endpoints
+```
+Health:  http://localhost:5000/api/health
+Status:  http://localhost:5000/api/status
+Chat:    POST http://localhost:5000/api/chat
+```
+
+### CI/CD Pipeline
+- ✅ Push to main → Auto deploy
+- ✅ PR → Run tests
+- ✅ Manual → workflow_dispatch
+
+---
+
+## 📋 MVP Agents List
+
+| # | Agent | Status | Trigger |
+|---|-------|--------|---------|
+| 1 | Daily Briefing | ✅ ACTIVE | "laporan pagi" |
+| 2 | Knowledge | ✅ ACTIVE | "company", "harga" |
+
+---
+
+**Version:** 1.1.1
 **Created:** 2026-07-05
 **Updated:** 2026-07-11
 **Status:** 🚀 ACTIVE
