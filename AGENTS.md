@@ -218,3 +218,36 @@ HP Restart → Lock Screen → Verify Biometric → GAURANGA Active
 **Created:** 2026-07-05
 **Updated:** 2026-07-11
 **Status:** 🚀 ACTIVE
+
+---
+
+## 🚀 Auto-Deploy & Auto-Run (v1.1.0)
+
+Sistem **Auto-Deploy** dan **Auto-Run** yang lengkap untuk GAURANGA Android App.
+
+### Fitur:
+- ✅ Auto-start dengan lock screen biometric
+- ✅ Auto-deploy voice service 24/7
+- ✅ Multiple launch modes
+- ✅ Manufacturer-specific auto-start detection
+- ✅ Trusted session (5 min timeout)
+
+### Cara Setup:
+```bash
+cd android-native
+./gradlew assembleDebug
+adb install app/build/outputs/apk/debug/app-debug.apk
+# Enable auto-start di Settings HP
+# Restart HP → GAURANGA aktif!
+```
+
+### Dokumentasi:
+- `android-native/AUTO-DEPLOY-GUIDE.md` - Panduan lengkap
+- `android-native/BIOMETRIC-SETUP.md` - Setup biometric
+
+---
+
+**Version:** 1.1.0
+**Created:** 2026-07-05
+**Updated:** 2026-07-11
+**Status:** 🚀 ACTIVE
