@@ -571,6 +571,7 @@
     <!-- GAURANGA Agents -->
     <script src="js/daily-briefing.js"></script>
     <script src="js/knowledge-agent.js"></script>
+    <script src="js/hr-agent.js"></script>
 
     <script>
         // ==================== LOCK SCREEN ====================
@@ -802,18 +803,25 @@ Mau buat task baru, Pak Pur? Ketik aja! ✨`;
 Mau saya mulai kampanyenya, Pak Pur? 🎯`;
             }
             
+            // HR Agent Integration
+            if (msg.includes('hire') || msg.includes('rekrut') || msg.includes('hiring') || msg.includes('lowongan')) {
+                return HRAgent.getHiringStatus();
+            }
+            
+            if (msg.includes('posisi') || msg.includes('jobs')) {
+                return HRAgent.getOpenPositions();
+            }
+            
+            if (msg.includes('interview') || msg.includes('tips interview')) {
+                return HRAgent.getInterviewTips();
+            }
+            
+            if (msg.includes('onboard') || msg.includes('checklist')) {
+                return HRAgent.getOnboardingChecklist();
+            }
+            
             if (msg.includes('tim') || msg.includes('team') || msg.includes('orang')) {
-                return `👥 <b>HR & Team Building</b><br><br>
-<b>Target:</b> 10 people dalam 6 bulan<br><br>
-<b>Pipeline:</b><br>
-1. Job Posting → Resume Screening<br>
-2. Initial Interview → Technical<br>
-3. Final Interview → Onboarding<br><br>
-<b>Jobs Needed:</b><br>
-• Sales Agents<br>
-• Content Writers<br>
-• Developers<br><br>
-Mau saya buka rekrutmen baru, Pak Pur? 🤝`;
+                return HRAgent.getTeamStructure();
             }
             
             if (msg.includes('help') || msg.includes('bantu') || msg.includes('cara')) {
