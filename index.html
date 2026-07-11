@@ -559,7 +559,8 @@
             <div class="voice-wave"></div>
             <div class="voice-wave"></div>
         </div>
-        <div class="voice-text" id="voiceText">Mendengarkan...</div>
+        <div class="voice-text" id="voiceStatus">Mendengarkan... 🎤</div>
+        <div style="font-size:12px;color:#888;margin-top:10px;">Klik Batal untuk cancel</div>
         <button class="voice-cancel" onclick="cancelVoice()">Batal</button>
     </div>
 
@@ -641,7 +642,7 @@
             }, 500);
         }
         
-        function addMessage(sender, text) {
+        function addMessage(sender, text, autoSpeak = true) {
             const container = document.getElementById('chatMessages');
             const time = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
             
@@ -657,6 +658,14 @@
             
             container.appendChild(msg);
             document.getElementById('chatContainer').scrollTop = container.scrollHeight;
+            
+            // Auto-speak GAURANGA responses
+            if (sender === 'gauranga' && autoSpeak) {
+                // Strip HTML tags for speech
+                const plainText = text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+                // Speak after a short delay
+                setTimeout(() => speak(plainText), 500);
+            }
         }
         
         async function sendMessage() {
@@ -1001,54 +1010,194 @@ Ada yang lebih spesifik yang Pak Pur mau? 😊`;
             speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
         }
         
-        // Voice Recording
+        // ================================================
+        // 🎤 VOICE CONVERSATION - GAURANGA
+        // ================================================
         let isRecording = false;
         let mediaRecorder = null;
+        let recognition = null;
+        let silenceTimer = null;
+        
+        // Initialize Speech Recognition
+        function initSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window) {
+                recognition = new webkitSpeechRecognition();
+            } else if ('SpeechRecognition' in window) {
+                recognition = new SpeechRecognition();
+            } else {
+                console.log('Speech recognition not supported');
+                return false;
+            }
+            
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'id-ID'; // Indonesian
+            
+            recognition.onstart = () => {
+                console.log('Speech recognition started');
+            };
+            
+            recognition.onresult = (event) => {
+                let finalTranscript = '';
+                let interimTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                
+                // Show interim results
+                if (interimTranscript) {
+                    document.getElementById('voiceStatus').textContent = interimTranscript;
+                }
+                
+                // Process final transcript
+                if (finalTranscript) {
+                    clearTimeout(silenceTimer);
+                    document.getElementById('voiceStatus').textContent = finalTranscript;
+                    
+                    // Send message
+                    const input = document.getElementById('messageInput');
+                    input.value = finalTranscript;
+                    
+                    // Stop recording and send
+                    setTimeout(() => {
+                        toggleVoice();
+                        sendMessage();
+                    }, 500);
+                }
+            };
+            
+            recognition.onerror = (event) => {
+                console.log('Speech recognition error:', event.error);
+                if (event.error !== 'no-speech') {
+                    showToast('Error: ' + event.error);
+                }
+            };
+            
+            recognition.onend = () => {
+                if (isRecording) {
+                    recognition.start(); // Restart if still recording
+                }
+            };
+            
+            return true;
+        }
         
         async function toggleVoice() {
             const overlay = document.getElementById('voiceOverlay');
             const voiceBtn = document.getElementById('voiceBtn');
+            const voiceStatus = document.getElementById('voiceStatus');
             
             if (isRecording) {
                 // Stop recording
+                if (recognition) {
+                    recognition.stop();
+                }
                 if (mediaRecorder && mediaRecorder.state === 'recording') {
                     mediaRecorder.stop();
                 }
+                clearTimeout(silenceTimer);
+                
                 overlay.classList.add('hidden');
                 voiceBtn.classList.remove('recording');
                 isRecording = false;
             } else {
                 // Start recording
                 try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
+                    // Initialize speech recognition if not already
+                    if (!recognition) {
+                        if (!initSpeechRecognition()) {
+                            showToast('Speech recognition tidak tersedia di browser ini');
+                            return;
+                        }
+                    }
                     
                     overlay.classList.remove('hidden');
                     voiceBtn.classList.add('recording');
+                    voiceStatus.textContent = 'Mendengarkan... 🎤';
                     isRecording = true;
                     
-                    mediaRecorder.start();
+                    // Start speech recognition
+                    recognition.start();
                     
-                    // Auto-stop after 5 seconds
-                    setTimeout(() => {
+                    // Auto-stop after 10 seconds of silence
+                    silenceTimer = setTimeout(() => {
                         if (isRecording) {
+                            showToast('Waktu habis, mengirim...');
                             toggleVoice();
                         }
-                    }, 5000);
+                    }, 10000);
                     
                 } catch (err) {
-                    showToast('Mikrofon tidak tersedia');
+                    console.error('Microphone error:', err);
+                    showToast('Mikrofon tidak tersedia atau tidak diizinkan');
+                    overlay.classList.add('hidden');
+                    voiceBtn.classList.remove('recording');
+                    isRecording = false;
                 }
             }
         }
         
         function cancelVoice() {
-            if (mediaRecorder && mediaRecorder.state === 'recording') {
-                mediaRecorder.stop();
+            if (recognition && isRecording) {
+                recognition.stop();
             }
+            clearTimeout(silenceTimer);
             document.getElementById('voiceOverlay').classList.add('hidden');
             document.getElementById('voiceBtn').classList.remove('recording');
             isRecording = false;
+        }
+        
+        // Text-to-Speech: Speak response
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                // Cancel any ongoing speech
+                speechSynthesis.cancel();
+                
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'id-ID';
+                utterance.rate = 1.0;
+                utterance.pitch = 1.0;
+                
+                // Try to get Indonesian voice
+                const voices = speechSynthesis.getVoices();
+                const indonesianVoice = voices.find(v => v.lang.includes('id'));
+                if (indonesianVoice) {
+                    utterance.voice = indonesianVoice;
+                }
+                
+                // Visual feedback
+                const voiceBtn = document.getElementById('voiceBtn');
+                voiceBtn.textContent = '🔊';
+                voiceBtn.classList.add('speaking');
+                
+                utterance.onend = () => {
+                    voiceBtn.textContent = '🎤';
+                    voiceBtn.classList.remove('speaking');
+                };
+                
+                utterance.onerror = () => {
+                    voiceBtn.textContent = '🎤';
+                    voiceBtn.classList.remove('speaking');
+                };
+                
+                speechSynthesis.speak(utterance);
+            }
+        }
+        
+        // Stop speaking
+        function stopSpeaking() {
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+                const voiceBtn = document.getElementById('voiceBtn');
+                voiceBtn.textContent = '🎤';
+                voiceBtn.classList.remove('speaking');
+            }
         }
         
         // Utilities
