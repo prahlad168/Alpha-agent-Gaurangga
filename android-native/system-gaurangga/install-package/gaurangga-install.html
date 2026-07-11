@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>👑 GAURANGA - One Click Install</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: white;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            padding: 30px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .header .subtitle {
+            color: #00d4ff;
+            font-size: 1.2em;
+        }
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .card h2 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+        }
+        .step-number {
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        .step-content {
+            flex: 1;
+        }
+        .step-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .step-desc {
+            color: #aaa;
+            font-size: 0.9em;
+        }
+        .code-block {
+            background: #000;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #0f0;
+        }
+        .warning {
+            background: rgba(255,193,7,0.2);
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .warning strong {
+            color: #ffc107;
+        }
+        .success {
+            background: rgba(40,167,69,0.2);
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .success strong {
+            color: #28a745;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 1.1em;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            width: 100%;
+            margin: 10px 0;
+        }
+        .btn:hover {
+            background: linear-gradient(135deg, #00b8e6, #0077aa);
+            transform: scale(1.02);
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        .footer a {
+            color: #00d4ff;
+        }
+        .emoji {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            .step {
+                flex-direction: column;
+            }
+            .step-number {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👑 GAURANGA</h1>
+            <p class="subtitle">Alpha Agent - System-Level Solution</p>
+            <p style="margin-top: 15px; color: #aaa;">Auto-start dengan Biometric Authentication</p>
+        </div>
+
+        <div class="card">
+            <h2>📋 Panduan Instalasi</h2>
+            
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <div class="step-title">🔓 Enable ROOT Access</div>
+                    <div class="step-desc">HP harus sudah di-root (Magisk/TWRP)</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <div class="step-title">📱 Buka Termux atau ADB Shell</div>
+                    <div class="step-desc">Buka aplikasi Termux di HP, atau connect HP ke komputer dengan ADB</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <div class="step-title">💻 Jalankan Perintah Berikut:</div>
+                    <div class="code-block">
+su
+mount -o rw,remount /system
+mkdir -p /data/gaurangga/logs
+mkdir -p /system/etc/init.d
+mkdir -p /data/su.d
+cat > /system/etc/init.d/99gaurangga << 'EOF'
+#!/system/bin/sh
+LOG="/data/gaurangga/logs/boot.log"
+mkdir -p /data/gaurangga/logs
+echo "[$(date)] GAURANGA BOOT" >> $LOG
+while [ "$(getprop sys.boot_completed)" != "1" ]; do sleep 2; done
+sleep 5
+am start -n com.gaurangga.alpha/.ui.SecurityActivity --ez from_boot true 2>/dev/null
+echo "[$(date)] GAURANGA STARTED" >> $LOG
+EOF
+chmod 0755 /system/etc/init.d/99gaurangga
+cat > /data/su.d/99gaurangga << 'EOF'
+#!/system/bin/sh
+while [ "$(getprop sys.boot_completed)" != "1" ]; do sleep 2; done
+am start -n com.gaurangga.alpha/.ui.SecurityActivity --ez from_boot true 2>/dev/null
+EOF
+chmod 0755 /data/su.d/99gaurangga
+setprop gauranga.installed 1
+reboot
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <div class="step-title">🔄 Reboot HP</div>
+                    <div class="step-desc">Setelah install, ketik "reboot" atau restart HP manual</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <div class="step-title">👑 GAURANGA AKTIF!</div>
+                    <div class="step-desc">Setelah boot, Lock Screen GAURANGA akan muncul. Scan fingerprint/face untuk unlock!</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ PERHATIAN:</strong><br>
+            • HP harus sudah di-ROOT<br>
+            • Backup data sebelum install<br>
+            • Pastikan GAURANGA APK sudah terinstall
+        </div>
+
+        <div class="success">
+            <strong>✅ HASIL:</strong><br>
+            • GAURANGA auto-start saat boot<br>
+            • Biometric lock screen<br>
+            • System-level service<br>
+            • 24/7 availability
+        </div>
+
+        <div class="card">
+            <h2>🔧 Cara Paling Mudah (Copy-Paste)</h2>
+            <p style="color: #aaa; margin-bottom: 15px;">Copy semua kode di bawah ini ke Termux:</p>
+            <div class="code-block">
+su && mount -o rw,remount /system && mkdir -p /data/gaurangga/logs /system/etc/init.d /data/su.d && cat > /system/etc/init.d/99gaurangga << 'EOF'
+#!/system/bin/sh
+LOG="/data/gaurangga/logs/boot.log"
+mkdir -p /data/gaurangga/logs
+echo "[$(date)] GAURANGA BOOT" >> $LOG
+while [ "$(getprop sys.boot_completed)" != "1" ]; do sleep 2; done
+sleep 5
+am start -n com.gaurangga.alpha/.ui.SecurityActivity --ez from_boot true 2>/dev/null
+echo "[$(date)] GAURANGA STARTED" >> $LOG
+EOF
+chmod 0755 /system/etc/init.d/99gaurangga
+cat > /data/su.d/99gaurangga << 'EOF'
+#!/system/bin/sh
+while [ "$(getprop sys.boot_completed)" != "1" ]; do sleep 2; done
+am start -n com.gaurangga.alpha/.ui.SecurityActivity --ez from_boot true 2>/dev/null
+EOF
+chmod 0755 /data/su.d/99gaurangga
+setprop gauranga.installed 1
+echo "✅ INSTALLED! Ketik reboot"
+            </div>
+            <button class="btn" onclick="copyCode()">📋 COPY SEMUA KODE</button>
+        </div>
+
+        <div class="footer">
+            <p>👑 GAURANGA ALPHA v1.1.0</p>
+            <p>Alpha Agent Master</p>
+            <p style="margin-top: 10px;">WhatsApp: 081337558787 (Pak Pur)</p>
+        </div>
+    </div>
+
+    <script>
+        function copyCode() {
+            const code = `su && mount -o rw,remount /system && mkdir -p /data/gaurangga/logs /system/etc/init.d /data/su.d && cat > /system/etc/init.d/99gaurangga << 'EOF'
+#!/system/bin/sh
+LOG="/data/gaurangga/logs/boot.log"
+mkdir -p /data/gaurangga/logs
+echo "[$(date)] GAURANGA BOOT" >> $LOG
+while [ "$(getprop sys.boot_completed)" != "1" ]; do sleep 2; done
+sleep 5
+am start -n com.gaurangga.alpha/.ui.SecurityActivity --ez from_boot true 2>/dev/null
+echo "[$(date)] GAURANGA STARTED" >> $LOG
+EOF
+chmod 0755 /system/etc/init.d/99gaurangga
+cat > /data/su.d/99gaurangga << 'EOF'
+#!/system/bin/sh
+while [ "$(getprop sys.boot_completed)" != "1" ]; do sleep 2; done
+am start -n com.gaurangga.alpha/.ui.SecurityActivity --ez from_boot true 2>/dev/null
+EOF
+chmod 0755 /data/su.d/99gaurangga
+setprop gauranga.installed 1
+echo "✅ INSTALLED! Ketik reboot"`;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                alert('✅ KODE DICOPY! Paste ke Termux dan jalankan!');
+            }).catch(() => {
+                // Fallback
+                const textarea = document.createElement('textarea');
+                textarea.value = code;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert('✅ KODE DICOPY! Paste ke Termux dan jalankan!');
+            });
+        }
+    </script>
+</body>
+</html>
