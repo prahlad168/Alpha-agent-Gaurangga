@@ -568,6 +568,9 @@
         <span id="toastMessage"></span>
     </div>
 
+    <!-- GAURANGA Agents -->
+    <script src="js/daily-briefing.js"></script>
+
     <script>
         // ==================== LOCK SCREEN ====================
         let isLocked = true;
@@ -708,18 +711,12 @@
             // Simulated AI response based on keywords
             const msg = userMessage.toLowerCase();
             
-            if (msg.includes('laporan') || msg.includes('report')) {
-                return `📊 <b>Laporan GAURANGA</b><br><br>
-<b>📈 Sales Agents:</b><br>
-• SaaS Sales: Rp 0 / Rp 30jt<br>
-• Freelance: Rp 0 / Rp 25jt<br>
-• Digital Products: Rp 0 / Rp 20jt<br><br>
-<b>📢 Marketing Agents:</b><br>
-• Content: 0 / 30 pieces<br>
-• Social: 0 / 500K reach<br><br>
-<b>🏭 Operations:</b><br>
-• Team: 0 / 10 people<br><br>
-Mau saya generate laporan lengkap, Pak Pur? 📋`;
+            // Daily Briefing Agent Integration
+            if (msg.includes('laporan') || msg.includes('pagi') || msg.includes('briefing') || msg.includes('report') || msg.includes('pagi')) {
+                const report = DailyBriefingAgent.generateReport();
+                return `<pre style="font-family: monospace; white-space: pre-wrap; background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #27272a;">${report}</pre>
+                
+<i>Mau saya generate laporan lengkap, Pak Pur? 📋</i>`;
             }
             
             if (msg.includes('siapa') && (msg.includes('kamu') || msg.includes('anda'))) {
