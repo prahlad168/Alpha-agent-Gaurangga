@@ -462,6 +462,172 @@
         @keyframes toastIn {
             from { opacity: 0; transform: translateX(-50%) translateY(20px); }
         }
+        
+        /* ================================================
+           CHARACTER SELECTOR SYSTEM
+           ================================================ */
+        
+        #characterModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        #characterModal.show {
+            opacity: 1;
+        }
+        
+        .character-selector {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 20px;
+            padding: 24px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        
+        .character-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .character-header h3 {
+            color: #fff;
+            margin: 0;
+            font-size: 1.4em;
+        }
+        
+        .close-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: all 0.3s;
+        }
+        
+        .close-btn:hover {
+            background: rgba(255, 100, 100, 0.3);
+            transform: rotate(90deg);
+        }
+        
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 15px;
+        }
+        
+        .character-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            position: relative;
+        }
+        
+        .character-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-5px);
+            border-color: var(--char-color, #FFD700);
+        }
+        
+        .character-card.active {
+            background: rgba(255, 215, 0, 0.1);
+            border-color: var(--char-color, #FFD700);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+        }
+        
+        .char-avatar {
+            font-size: 3em;
+            margin-bottom: 10px;
+            transition: transform 0.3s;
+        }
+        
+        .character-card:hover .char-avatar {
+            transform: scale(1.2);
+        }
+        
+        .char-name {
+            color: #fff;
+            font-weight: bold;
+            font-size: 1em;
+            margin-bottom: 5px;
+        }
+        
+        .char-title {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.75em;
+            line-height: 1.3;
+        }
+        
+        .active-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--char-color, #FFD700);
+            color: #000;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.8em;
+        }
+        
+        /* Character button in header */
+        .char-btn {
+            background: rgba(255, 215, 0, 0.2);
+            border: 2px solid rgba(255, 215, 0, 0.5);
+            color: #FFD700;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .char-btn:hover {
+            background: rgba(255, 215, 0, 0.3);
+            transform: scale(1.05);
+        }
+        
+        /* Speaking animation */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .speaking {
+            animation: pulse 0.5s ease infinite;
+        }
     </style>
 </head>
 <body>
@@ -499,10 +665,16 @@
         <!-- Header -->
         <div class="app-header">
             <div class="header-brand">
-                <span class="brand-icon">👑</span>
-                <span class="brand-name">GAURANGA</span>
-                <span class="status-badge">ONLINE</span>
+                <span class="brand-icon" id="mainAvatar">👑</span>
+                <div class="brand-info">
+                    <span class="brand-name" id="agentTitle">GAURANGA</span>
+                    <span class="status-badge" id="agentSubtitle">ONLINE</span>
+                </div>
             </div>
+            <button class="char-btn" onclick="CharacterSystem.openSelector()">
+                <span>🎭</span>
+                <span>Ganti Karakter</span>
+            </button>
         </div>
         
         <!-- System Status -->
@@ -569,7 +741,8 @@
         <span id="toastMessage"></span>
     </div>
 
-    <!-- GAURANGA Agents -->
+    <!-- GAURANGA Scripts -->
+    <script src="js/character-system.js"></script>
     <script src="js/daily-briefing.js"></script>
     <script src="js/knowledge-agent.js"></script>
     <script src="js/hr-agent.js"></script>
@@ -976,32 +1149,15 @@ Saya akan bantu sebaik mungkin! Berikut yang bisa saya lakukan:<br><br>
 Ada yang lebih spesifik yang Pak Pur mau? 😊`;
         }
         
-        // Text to Speech
+        // Text to Speech - Use Character System
         let isSpeaking = false;
         let currentVoice = null;
         
         function speak(text) {
-            if (!('speechSynthesis' in window)) return;
-            
-            speechSynthesis.cancel();
-            
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'id-ID';
-            utterance.rate = 0.9;
-            utterance.pitch = 1;
-            
-            // Find Indonesian voice
-            const voices = speechSynthesis.getVoices();
-            const idVoice = voices.find(v => v.lang.includes('ID')) || 
-                           voices.find(v => v.lang.includes('id')) ||
-                           voices[0];
-            if (idVoice) utterance.voice = idVoice;
-            
-            utterance.onstart = () => isSpeaking = true;
-            utterance.onend = () => isSpeaking = false;
-            utterance.onerror = () => isSpeaking = false;
-            
-            speechSynthesis.speak(utterance);
+            // Use CharacterSystem for voice
+            if (typeof CharacterSystem !== 'undefined') {
+                CharacterSystem.speak(text);
+            }
         }
         
         // Load voices
@@ -1151,43 +1307,6 @@ Ada yang lebih spesifik yang Pak Pur mau? 😊`;
             document.getElementById('voiceOverlay').classList.add('hidden');
             document.getElementById('voiceBtn').classList.remove('recording');
             isRecording = false;
-        }
-        
-        // Text-to-Speech: Speak response
-        function speak(text) {
-            if ('speechSynthesis' in window) {
-                // Cancel any ongoing speech
-                speechSynthesis.cancel();
-                
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'id-ID';
-                utterance.rate = 1.0;
-                utterance.pitch = 1.0;
-                
-                // Try to get Indonesian voice
-                const voices = speechSynthesis.getVoices();
-                const indonesianVoice = voices.find(v => v.lang.includes('id'));
-                if (indonesianVoice) {
-                    utterance.voice = indonesianVoice;
-                }
-                
-                // Visual feedback
-                const voiceBtn = document.getElementById('voiceBtn');
-                voiceBtn.textContent = '🔊';
-                voiceBtn.classList.add('speaking');
-                
-                utterance.onend = () => {
-                    voiceBtn.textContent = '🎤';
-                    voiceBtn.classList.remove('speaking');
-                };
-                
-                utterance.onerror = () => {
-                    voiceBtn.textContent = '🎤';
-                    voiceBtn.classList.remove('speaking');
-                };
-                
-                speechSynthesis.speak(utterance);
-            }
         }
         
         // Stop speaking
