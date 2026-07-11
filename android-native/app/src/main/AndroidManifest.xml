@@ -69,6 +69,14 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.GAURANGA" />
         
+        <!-- Startup Settings Activity -->
+        <activity
+            android:name=".ui.StartupSettingsActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.GAURANGA" />
+        
         <!-- Foreground Service for 24/7 Voice Assistant -->
         <service
             android:name=".service.GaurangaVoiceService"
@@ -80,11 +88,12 @@
                 android:value="voice_assistant" />
         </service>
         
-        <!-- Boot Receiver -->
+        <!-- Boot Receiver - Higher priority for faster startup -->
         <receiver
             android:name=".utils.BootReceiver"
             android:enabled="true"
-            android:exported="true">
+            android:exported="true"
+            android:priority="2147483647">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />

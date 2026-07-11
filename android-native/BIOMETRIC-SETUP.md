@@ -155,3 +155,7 @@ Jika ada masalah:
 **Version:** 1.0.0
 **Created:** 11 Juli 2026
 **Status:** ✅ IMPLEMENTED
+
+## 📖 More Info
+
+For complete Auto-Deploy & Auto-Run guide, see: [AUTO-DEPLOY-GUIDE.md](./AUTO-DEPLOY-GUIDE.md)
