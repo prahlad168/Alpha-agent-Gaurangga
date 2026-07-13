@@ -212,25 +212,7 @@ Yang paling nyaman untuk institusi?"
 
 ## 🏆 CASE STUDIES - EDUCATION
 
-### Case 1: Bimbingan Belajar Cerdas
-```
-Project: LMS + E-Course
-Value: Rp 25.000.000
-Result: 
-- 500+ active students
-- Course completion 75%
-- Parent satisfaction +40%
-```
-
-### Case 2: SMA X - Surabaya
-```
-Project: Full LMS
-Value: Rp 45.000.000
-Result:
-- 100% digital learning
-- Teacher productivity +50%
-- Exam processing time -80%
-```
+> ⚠️ Tambahkan case study real setelah ada project selesai.
 
 ---
 

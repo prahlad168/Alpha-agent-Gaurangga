@@ -13,55 +13,16 @@
 
 | SBU | Prospects | Pipeline Value | Priority |
 |-----|-----------|----------------|----------|
-| 🏥 Hospital | 10 | Rp 150jt+ | 🔴 HIGH |
-| 🛒 E-Commerce | 8 | Rp 80jt+ | 🔴 HIGH |
-| 🍔 Food | 8 | Rp 60jt+ | 🔴 HIGH |
-| **TOTAL** | **26** | **Rp 290jt+** | |
+| 🏥 Hospital | 0 | Rp 0 | - |
+| 🛒 E-Commerce | 0 | Rp 0 | - |
+| 🍔 Food | 0 | Rp 0 | - |
+| **TOTAL** | **0** | **Rp 0** | |
 
 ---
 
 ## 📋 MASTER PROSPECT LIST
 
-### 🏥 HOSPITAL (10 Prospects)
-
-| # | Nama | Lokasi | Tipe | Nilai | Status | Outreach | Next Action |
-|---|------|--------|------|-------|--------|----------|-------------|
-| 1 | RS Bali Medika | Denpasar | RS Tipe C | Rp 75jt | New | 07/07 | WA Outreach |
-| 2 | Klinik Agung | Jakarta Selatan | Klinik Utama | Rp 40jt | New | 07/07 | WA Outreach |
-| 3 | RS Sumber Husada | Surabaya | RS Tipe D | Rp 60jt | New | 07/07 | WA Outreach |
-| 4 | Klinik Sehat Sentosa | Bandung | Klinik Pratama | Rp 25jt | New | 07/07 | WA Outreach |
-| 5 | RS Permata Hati | Yogyakarta | RS Tipe C | Rp 75jt | New | 07/07 | WA Outreach |
-| 6 | Klinik Medika Utama | Semarang | Klinik Utama | Rp 35jt | New | 07/07 | WA Outreach |
-| 7 | RS Ibu dan Anak Sayang | Malang | RS Tipe C | Rp 65jt | New | 07/07 | WA Outreach |
-| 8 | Klinik Pratama Sejahtera | Medan | Klinik Pratama | Rp 25jt | New | 07/07 | WA Outreach |
-| 9 | RS Grahahusada | Surabaya | RS Tipe B | Rp 200jt | New | 07/07 | Email Outreach |
-| 10 | RS Kasih Ibu | Jakarta Pusat | RS Tipe B | Rp 200jt | New | 07/07 | Email Outreach |
-
-### 🛒 E-COMMERCE (8 Prospects)
-
-| # | Nama | Lokasi | Tipe | Nilai | Status | Outreach | Next Action |
-|---|------|--------|------|-------|--------|----------|-------------|
-| 1 | Soleil Indonesia | Jakarta | Fashion | Rp 25jt | New | 07/07 | IG/WA Outreach |
-| 2 | Beauty Journal ID | Jakarta | Beauty | Rp 20jt | New | 07/07 | IG/WA Outreach |
-| 3 | Batik Tulis Collection | Solo | Fashion | Rp 15jt | New | 07/07 | WA Outreach |
-| 4 | Sneakers Hub Indonesia | Bandung | Fashion | Rp 30jt | New | 07/07 | WA Outreach |
-| 5 | Wardah Kosmetik | Jakarta | Beauty | Rp 40jt | New | 07/07 | WA/Email |
-| 6 | Kopi Kenangan | Jakarta | F&B | Rp 25jt | New | 07/07 | WA/Email |
-| 7 | Dapur Umami | Surabaya | Food | Rp 15jt | New | 07/07 | WA Outreach |
-| 8 | Seblak Mang Ojan | Bandung | Food | Rp 10jt | New | 07/07 | WA/IG Outreach |
-
-### 🍔 FOOD (8 Prospects)
-
-| # | Nama | Lokasi | Tipe | Nilai | Status | Outreach | Next Action |
-|---|------|--------|------|-------|--------|----------|-------------|
-| 1 | Warung Bebek Ny Suharti | Jakarta | Restaurant | Rp 25jt | New | 07/07 | WA Outreach |
-| 2 | Cafe Git Senja | Bandung | Cafe | Rp 10jt | New | 07/07 | IG Outreach |
-| 3 | RM Padepokan | Surabaya | Restaurant | Rp 25jt | New | 07/07 | WA Outreach |
-| 4 | D'Cost Restaurant | Jakarta | Restaurant | Rp 30jt | New | 07/07 | WA Outreach |
-| 5 | Whisk & Co Patisserie | Bali | Cake Shop | Rp 10jt | New | 07/07 | IG Outreach |
-| 6 | Eat Happy Indonesia | Jakarta | Cloud Kitchen | Rp 40jt | New | 07/07 | WA Outreach |
-| 7 | Por House | Medan | Restaurant | Rp 20jt | New | 07/07 | WA Outreach |
-| 8 | Tanamera Coffee | Jakarta | Cafe | Rp 15jt | New | 07/07 | IG/WA Outreach |
+> ⚠️ Tidak ada prospects. Tambahkan data real saat ada prospects baru.
 
 ---
 

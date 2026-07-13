@@ -205,25 +205,7 @@ Boleh saya buatkan proposal resmi untuk besok?"
 
 ## 🏆 CASE STUDIES - E-COMMERCE
 
-### Case 1: Toko Grosir Bali
-```
-Project: Online Store Premium
-Value: Rp 25.000.000
-Result: 
-- Sales increase 300% in 3 months
-- 1000+ orders/month
-- Return customer 45%
-```
-
-### Case 2: Fashion Brand X
-```
-Project: E-Commerce + Mobile App
-Value: Rp 45.000.000
-Result:
-- Mobile orders 60% of total
-- Conversion rate 4.5%
-- Average order value +25%
-```
+> ⚠️ Tambahkan case study real setelah ada project selesai.
 
 ---
 

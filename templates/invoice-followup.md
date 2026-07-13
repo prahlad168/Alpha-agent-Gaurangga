@@ -11,11 +11,7 @@
 
 ## 📋 PENDING INVOICES
 
-| Invoice | Client | Amount | Due Date | Status |
-|---------|--------|--------|----------|--------|
-| INV-2026-001 | PT Sehat Sentosa | Rp 15.000.000 | - | ⏳ Pending |
-| INV-2026-003 | Bimbingan Belajar Cerdas | Rp 5.000.000 | - | ⏳ Pending |
-| **TOTAL** | | **Rp 20.000.000** | | |
+> ⚠️ Tidak ada invoice pending. Tambahkan data real saat ada invoice baru.
 
 ---
 
@@ -235,10 +231,7 @@ DON'T:
 
 ## 📊 COLLECTION TRACKER
 
-| Invoice | Client | Amount | Sent | Reminder 1 | Reminder 2 | Reminder 3 | Status |
-|---------|--------|--------|------|------------|------------|------------|--------|
-| INV-2026-001 | PT Sehat Sentosa | Rp 15jt | ✓ | ✓ | | | Pending |
-| INV-2026-003 | Bimbel Cerdas | Rp 5jt | ✓ | | | | Pending |
+> ⚠️ Tidak ada invoice. Tambahkan data real saat ada invoice baru.
 
 ---
 
