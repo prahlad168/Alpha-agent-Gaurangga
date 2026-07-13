@@ -3,8 +3,9 @@
  * FINANCE AGENT - GAURANGA
  * ================================================
  * Agent ID: finance-agent-v1
- * Version: 1.0.0
+ * Version: 2.0.0 (CEO Bitcoin Transfer)
  * Created: 2026-07-11
+ * Updated: 2026-07-13
  * ================================================
  */
 
@@ -17,6 +18,13 @@ const FinanceAgent = {
         revenue: 0,
         expenses: 0,
         profit: 0
+    },
+    
+    // CEO Bitcoin Wallet Info
+    CEO_WALLET: {
+        btcAddress: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+        btcRate: 1500000000, // 1 BTC = Rp 1.5 Miliar
+        totalBtc: 0
     },
     
     // Expense categories
@@ -36,6 +44,21 @@ const FinanceAgent = {
     },
     
     /**
+     * Format BTC
+     */
+    formatBtc(satoshi) {
+        const btc = satoshi / 100000000;
+        return '₿ ' + btc.toFixed(8);
+    },
+    
+    /**
+     * Convert IDR to Satoshi
+     */
+    idrToSatoshi(idr) {
+        return Math.floor((idr / this.CEO_WALLET.btcRate) * 100000000);
+    },
+    
+    /**
      * Get dashboard
      */
     getDashboard() {
@@ -43,6 +66,8 @@ const FinanceAgent = {
         const expenses = this.MONTHLY.expenses;
         const profit = revenue - expenses;
         const margin = revenue > 0 ? Math.round((profit / revenue) * 100) : 0;
+        const totalBtc = this.CEO_WALLET.totalBtc;
+        const totalIdr = (totalBtc / 100000000) * this.CEO_WALLET.btcRate;
         
         let dashboard = `
 💵 <b>Finance Dashboard</b>
@@ -53,6 +78,11 @@ const FinanceAgent = {
 ├── Profit: ${this.formatRupiah(profit)}
 └── Margin: ${margin}%
 
+<b>👑 CEO Bitcoin Wallet:</b>
+├── Balance: ${this.formatBtc(totalBtc)}
+├── Est. Value: ${this.formatRupiah(Math.floor(totalIdr))}
+└── Address: ${this.CEO_WALLET.btcAddress.substring(0, 20)}...
+
 <b>📈 Revenue Targets:</b>
 ├── Month 1: ${this.formatRupiah(5000000)}
 ├── Month 3: ${this.formatRupiah(25000000)}
@@ -60,10 +90,45 @@ const FinanceAgent = {
 
 <b>🎯 Accuracy Target: ${this.ACCURACY_TARGET}%</b>
 
-<b>Mau lihat expense breakdown?</b>
-Ketik: "expenses"
+<b>Commands:</b>
+• "transfer" - Transfer ke CEO wallet
+• "expenses" - Expense breakdown
+• "invoice" - Invoice template
+• "profit" - P&L report
 `;
         return dashboard;
+    },
+    
+    /**
+     * Get CEO Transfer info
+     */
+    getCeoTransfer() {
+        const totalBtc = this.CEO_WALLET.totalBtc;
+        const totalIdr = (totalBtc / 100000000) * this.CEO_WALLET.btcRate;
+        
+        return `
+👑 <b>CEO Bitcoin Transfer</b>
+
+<b>💰 Wallet Balance:</b>
+├── BTC: ${this.formatBtc(totalBtc)}
+└── IDR: ${this.formatRupiah(Math.floor(totalIdr))}
+
+<b>📋 Transfer Info:</b>
+├── BTC Rate: 1 BTC = ${this.formatRupiah(this.CEO_WALLET.btcRate)}
+└── Wallet: ${this.CEO_WALLET.btcAddress}
+
+<b>🔄 Cara Transfer:</b>
+1. Buka Finance Dashboard
+2. Pilih tab "CEO Transfer"
+3. Pilih SBU sumber
+4. Masukkan jumlah (IDR)
+5. Klik "Konfirmasi Transfer ke CEO"
+
+<b>⚡ Quick Actions:</b>
+• "transfer 10%" - 10% profit ke CEO
+• "transfer 25%" - 25% profit ke CEO
+• "transfer 50%" - 50% profit ke CEO
+`;
     },
     
     /**
@@ -96,7 +161,7 @@ Ketik: "expenses"
     },
     
     /**
-     * Get invoice template
+     * Get invoice template with Bitcoin option
      */
     getInvoiceTemplate() {
         return `
@@ -127,8 +192,12 @@ PPN (11%):        Rp XXX,XXX
 TOTAL:            Rp X,XXX,XXX
 
 Payment to:
-BCA: 6485086645
-a/n: Owner
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🏦 BCA: 6485086645
+   a/n: Owner/Shareholder
+
+₿ BITCOIN (Optional):
+   ${this.CEO_WALLET.btcAddress}
 
 Thank you!
 ```
@@ -139,6 +208,8 @@ Thank you!
      * Get P&L report
      */
     getProfitLoss() {
+        const profit = this.MONTHLY.revenue - this.MONTHLY.expenses;
+        
         return `
 📊 <b>Profit & Loss Statement</b>
 
@@ -156,11 +227,16 @@ Thank you!
             }
         });
         
+        const profitBtc = this.idrToSatoshi(profit);
+        
         return `
 └── Total Expenses: ${this.formatRupiah(this.MONTHLY.expenses)}
 
-<b>📈 NET PROFIT: ${this.formatRupiah(this.MONTHLY.profit)}</b>
-<b>📊 MARGIN: ${this.MONTHLY.revenue > 0 ? Math.round((this.MONTHLY.profit / this.MONTHLY.revenue) * 100) : 0}%</b>
+<b>📈 NET PROFIT: ${this.formatRupiah(profit)}</b>
+<b>📊 MARGIN: ${this.MONTHLY.revenue > 0 ? Math.round((profit / this.MONTHLY.revenue) * 100) : 0}%</b>
+
+<b>💡 Jika ditransfer ke CEO:</b>
+└── ~${this.formatBtc(profitBtc)} (BTC)
 `;
     },
     
@@ -168,16 +244,21 @@ Thank you!
      * Main query handler
      */
     query(q) {
-        if (q.includes('expense') || q.includes('biaya')) {
+        const query = q.toLowerCase();
+        
+        if (query.includes('transfer') || query.includes('ceo') || query.includes('bitcoin') || query.includes('btc')) {
+            return this.getCeoTransfer();
+        }
+        if (query.includes('expense') || query.includes('biaya')) {
             return this.getExpenses();
         }
-        if (q.includes('invoice') || q.includes('tagihan')) {
+        if (query.includes('invoice') || query.includes('tagihan')) {
             return this.getInvoiceTemplate();
         }
-        if (q.includes('profit') || q.includes('pnl')) {
+        if (query.includes('profit') || query.includes('pnl')) {
             return this.getProfitLoss();
         }
-        if (q.includes('finance') || q.includes('uang') || q.includes('keuangan')) {
+        if (query.includes('finance') || query.includes('uang') || query.includes('keuangan')) {
             return this.getDashboard();
         }
         return this.getDashboard();

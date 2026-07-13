@@ -12,6 +12,7 @@
             --danger: #ef4444;
             --warning: #f59e0b;
             --info: #3b82f6;
+            --bitcoin: #f7931a;
             --dark: #1e293b;
             --light: #f8fafc;
         }
@@ -81,6 +82,7 @@
         .stat-value.income { color: var(--success); }
         .stat-value.expense { color: var(--danger); }
         .stat-value.balance { color: var(--warning); }
+        .stat-value.bitcoin { color: var(--bitcoin); }
 
         .nav-tabs {
             display: flex;
@@ -89,10 +91,12 @@
             gap: 10px;
             border-radius: 12px;
             margin: 20px 30px;
+            flex-wrap: wrap;
         }
 
         .nav-tab {
             flex: 1;
+            min-width: 140px;
             padding: 12px 20px;
             background: transparent;
             border: none;
@@ -115,6 +119,11 @@
 
         .nav-tab.active {
             background: var(--primary);
+            color: white;
+        }
+
+        .nav-tab.bitcoin-active {
+            background: var(--bitcoin);
             color: white;
         }
 
@@ -152,6 +161,11 @@
             border: 1px solid rgba(255,255,255,0.1);
         }
 
+        .card.bitcoin-card {
+            border: 2px solid var(--bitcoin);
+            background: rgba(247, 147, 26, 0.1);
+        }
+
         .card-header {
             display: flex;
             justify-content: space-between;
@@ -174,10 +188,14 @@
             font-size: 12px;
         }
 
+        .card-badge.bitcoin {
+            background: var(--bitcoin);
+        }
+
         /* Quick Stats */
         .quick-stats {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 15px;
             margin-bottom: 20px;
         }
@@ -189,6 +207,11 @@
             text-align: center;
         }
 
+        .quick-stat.bitcoin-stat {
+            background: rgba(247, 147, 26, 0.15);
+            border: 2px solid var(--bitcoin);
+        }
+
         .quick-stat-icon {
             font-size: 32px;
             margin-bottom: 10px;
@@ -197,6 +220,10 @@
         .quick-stat-value {
             font-size: 24px;
             font-weight: 700;
+        }
+
+        .quick-stat.bitcoin-stat .quick-stat-value {
+            color: var(--bitcoin);
         }
 
         .quick-stat-label {
@@ -614,6 +641,10 @@
                 <div class="stat-value balance" id="balance">Rp 0</div>
                 <div class="stat-label">Saldo</div>
             </div>
+            <div class="stat-item">
+                <div class="stat-value bitcoin" id="ceoWallet">₿ 0.00000000</div>
+                <div class="stat-label">CEO Bitcoin Wallet</div>
+            </div>
         </div>
     </header>
 
@@ -632,6 +663,9 @@
         </button>
         <button class="nav-tab" onclick="switchTab('report')">
             📈 Laporan
+        </button>
+        <button class="nav-tab bitcoin-active" onclick="switchTab('ceo-transfer')">
+            👑 CEO Transfer
         </button>
     </nav>
 
@@ -653,6 +687,11 @@
                     <div class="quick-stat-icon">🎯</div>
                     <div class="quick-stat-value" id="targetProgress">0%</div>
                     <div class="quick-stat-label">Target Tercapai</div>
+                </div>
+                <div class="quick-stat bitcoin-stat">
+                    <div class="quick-stat-icon">₿</div>
+                    <div class="quick-stat-value" id="btcValue">₿ 0.00</div>
+                    <div class="quick-stat-label">Total ke CEO</div>
                 </div>
             </div>
 
@@ -944,6 +983,112 @@
                 </p>
             </div>
         </div>
+
+        <!-- CEO Transfer Tab -->
+        <div id="ceo-transfer" class="tab-content">
+            <div class="dashboard-grid">
+                <!-- CEO Wallet Card -->
+                <div class="card bitcoin-card">
+                    <div class="card-header">
+                        <span class="card-title">👑 CEO Bitcoin Wallet</span>
+                        <span class="card-badge bitcoin">₿ ACTIVE</span>
+                    </div>
+                    <div style="text-align: center; padding: 30px 0;">
+                        <div style="font-size: 48px; margin-bottom: 10px;">₿</div>
+                        <div style="font-size: 36px; font-weight: 700; color: var(--bitcoin);" id="ceoBtcBalance">₿ 0.00000000</div>
+                        <div style="color: #94a3b8; margin-top: 10px;">Total Receive dari SBU</div>
+                        <div style="font-size: 20px; font-weight: 600; margin-top: 15px; color: var(--warning);" id="ceoIdrValue">≈ Rp 0</div>
+                    </div>
+                    <div style="margin-top: 20px; padding: 15px; background: rgba(247, 147, 26, 0.1); border-radius: 10px;">
+                        <div style="font-size: 12px; color: #94a3b8; margin-bottom: 5px;">Bitcoin Address (Wallet Pak Pur)</div>
+                        <div style="font-family: monospace; font-size: 14px; word-break: break-all; color: var(--bitcoin);" id="ceoBtcAddress">bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh</div>
+                        <button class="btn btn-primary" style="margin-top: 10px; width: 100%;" onclick="copyBtcAddress()">
+                            📋 Copy Address
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Transfer Form -->
+                <div class="card bitcoin-card">
+                    <div class="card-header">
+                        <span class="card-title">💸 Transfer ke CEO Wallet</span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Dari SBU</label>
+                        <select class="form-input form-select" id="transferFrom" onchange="updateTransferMax()">
+                            <option value="">-- Pilih SBU --</option>
+                            <option value="hospital">🏥 Rumah Sakit</option>
+                            <option value="ecommerce">🛒 E-Commerce</option>
+                            <option value="edutech">🎓 Education Tech</option>
+                            <option value="travel">✈️ Travel Tech</option>
+                            <option value="property">🏠 Property Tech</option>
+                            <option value="food">🍔 Food Tech</option>
+                            <option value="general">📦 Umum (Kantor)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Jumlah Transfer (Rp)</label>
+                        <input type="number" class="form-input" id="transferAmount" placeholder="0" min="0" oninput="calculateBtcEquivalent()">
+                        <div style="font-size: 12px; color: #94a3b8; margin-top: 5px;">
+                            Saldo tersedia: <span id="availableBalance" style="color: var(--success);">Rp 0</span>
+                        </div>
+                        <button class="btn btn-primary" style="margin-top: 10px; width: 100%; background: var(--bitcoin);" onclick="setMaxTransfer()">
+                            💰 Transfer Max
+                        </button>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Konversi BTC</label>
+                        <div style="padding: 15px; background: rgba(247, 147, 26, 0.1); border-radius: 10px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 700; color: var(--bitcoin);" id="btcEquivalent">₿ 0.00000000</div>
+                            <div style="font-size: 12px; color: #94a3b8; margin-top: 5px;">(Rate: 1 BTC = Rp <span id="btcRate">1,500,000,000</span>)</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Catatan (Optional)</label>
+                        <input type="text" class="form-input" id="transferNote" placeholder="Catatan transfer...">
+                    </div>
+                    <button class="btn btn-success" style="width: 100%; background: var(--bitcoin); border: none;" onclick="executeTransfer()">
+                        ✅ Konfirmasi Transfer ke CEO
+                    </button>
+                </div>
+            </div>
+
+            <!-- Transfer History -->
+            <div class="card" style="margin-top: 20px;">
+                <div class="card-header">
+                    <span class="card-title">📜 Riwayat Transfer ke CEO</span>
+                    <span class="card-badge bitcoin">Total: ₿ <span id="totalBtcTransferred">0.00000000</span></span>
+                </div>
+                <div class="transaction-list" id="ceoTransferHistory">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">₿</div>
+                        <p>Belum ada transfer ke CEO</p>
+                        <p style="font-size: 12px; margin-top: 10px;">Transfer pertama Anda akan muncul di sini</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card" style="margin-top: 20px;">
+                <div class="card-header">
+                    <span class="card-title">⚡ Quick Actions</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+                    <button class="btn btn-primary" style="background: var(--bitcoin); border: none;" onclick="quickTransfer(10)">
+                        💸 Transfer 10% Profit
+                    </button>
+                    <button class="btn btn-primary" style="background: var(--bitcoin); border: none;" onclick="quickTransfer(25)">
+                        💸 Transfer 25% Profit
+                    </button>
+                    <button class="btn btn-primary" style="background: var(--bitcoin); border: none;" onclick="quickTransfer(50)">
+                        💸 Transfer 50% Profit
+                    </button>
+                    <button class="btn btn-danger" onclick="exportCeoHistory()">
+                        📥 Export History
+                    </button>
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- Transaction Modal -->
@@ -1026,6 +1171,13 @@
                 monthly: 5000000, // Rp 5 juta/bulan
                 quarterly: 25000000, // Rp 25 juta/quarter
                 yearly: 100000000 // Rp 100 juta/tahun
+            },
+            // CEO Bitcoin Transfer Data
+            ceoTransfer: {
+                btcAddress: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh', // Wallet Pak Pur
+                btcRate: 1500000000, // 1 BTC = Rp 1.5 Miliar (contoh rate)
+                transfers: [],
+                totalBtc: 0
             }
         };
 
@@ -1036,22 +1188,43 @@
                 const data = JSON.parse(saved);
                 FinanceData.transactions = data.transactions || [];
                 FinanceData.invoices = data.invoices || [];
+                if (data.ceoTransfer) {
+                    FinanceData.ceoTransfer = data.ceoTransfer;
+                }
                 updateAllStats();
             }
             generateInvoiceNumber();
+            updateCeoWallet();
         }
 
         // Save data to localStorage
         function saveData() {
             localStorage.setItem('mahaLakshmiFinance', JSON.stringify({
                 transactions: FinanceData.transactions,
-                invoices: FinanceData.invoices
+                invoices: FinanceData.invoices,
+                ceoTransfer: FinanceData.ceoTransfer
             }));
         }
 
         // Format currency
         function formatCurrency(amount) {
             return 'Rp ' + amount.toLocaleString('id-ID');
+        }
+
+        // Format BTC
+        function formatBtc(satoshi) {
+            const btc = satoshi / 100000000;
+            return '₿ ' + btc.toFixed(8);
+        }
+
+        // Convert IDR to Satoshi
+        function idrToSatoshi(idr) {
+            return Math.floor((idr / FinanceData.ceoTransfer.btcRate) * 100000000);
+        }
+
+        // Convert Satoshi to IDR
+        function satoshiToIdr(satoshi) {
+            return (satoshi / 100000000) * FinanceData.ceoTransfer.btcRate;
         }
 
         // Format date
@@ -1346,6 +1519,254 @@
                 general: '📦 Umum'
             };
             return names[sbu] || sbu;
+        }
+
+        // ============================================
+        // CEO TRANSFER FUNCTIONS
+        // ============================================
+        
+        // Update CEO wallet display
+        function updateCeoWallet() {
+            const totalBtc = FinanceData.ceoTransfer.totalBtc;
+            const totalIdr = satoshiToIdr(totalBtc);
+            
+            document.getElementById('ceoWallet').textContent = formatBtc(totalBtc);
+            document.getElementById('ceoBtcBalance').textContent = formatBtc(totalBtc);
+            document.getElementById('ceoIdrValue').textContent = '≈ ' + formatCurrency(Math.floor(totalIdr));
+            document.getElementById('ceoBtcAddress').textContent = FinanceData.ceoTransfer.btcAddress;
+            document.getElementById('btcRate').textContent = FinanceData.ceoTransfer.btcRate.toLocaleString('id-ID');
+            document.getElementById('totalBtcTransferred').textContent = (totalBtc / 100000000).toFixed(8);
+            
+            // Update BTC value in dashboard
+            const btcValue = document.getElementById('btcValue');
+            if (btcValue) {
+                btcValue.textContent = formatBtc(totalBtc);
+            }
+            
+            updateCeoTransferHistory();
+        }
+        
+        // Update available balance based on selected SBU
+        function updateTransferMax() {
+            const sbu = document.getElementById('transferFrom').value;
+            if (!sbu) {
+                document.getElementById('availableBalance').textContent = 'Rp 0';
+                return;
+            }
+            
+            // Calculate SBU balance (income - expense)
+            let sbuIncome = 0;
+            let sbuExpense = 0;
+            
+            FinanceData.transactions.forEach(tx => {
+                if (tx.sbu === sbu) {
+                    if (tx.type === 'income') sbuIncome += tx.amount;
+                    else sbuExpense += tx.amount;
+                }
+            });
+            
+            const available = sbuIncome - sbuExpense;
+            document.getElementById('availableBalance').textContent = formatCurrency(available);
+        }
+        
+        // Calculate BTC equivalent
+        function calculateBtcEquivalent() {
+            const amount = parseInt(document.getElementById('transferAmount').value) || 0;
+            const satoshi = idrToSatoshi(amount);
+            document.getElementById('btcEquivalent').textContent = formatBtc(satoshi);
+        }
+        
+        // Set max transfer
+        function setMaxTransfer() {
+            const sbu = document.getElementById('transferFrom').value;
+            if (!sbu) {
+                showNotification('Pilih SBU terlebih dahulu!');
+                return;
+            }
+            
+            let sbuIncome = 0;
+            let sbuExpense = 0;
+            
+            FinanceData.transactions.forEach(tx => {
+                if (tx.sbu === sbu) {
+                    if (tx.type === 'income') sbuIncome += tx.amount;
+                    else sbuExpense += tx.amount;
+                }
+            });
+            
+            const available = sbuIncome - sbuExpense;
+            document.getElementById('transferAmount').value = Math.max(0, available);
+            calculateBtcEquivalent();
+        }
+        
+        // Execute transfer to CEO
+        function executeTransfer() {
+            const sbu = document.getElementById('transferFrom').value;
+            const amount = parseInt(document.getElementById('transferAmount').value) || 0;
+            const note = document.getElementById('transferNote').value;
+            
+            if (!sbu) {
+                showNotification('Pilih SBU terlebih dahulu!');
+                return;
+            }
+            
+            if (amount <= 0) {
+                showNotification('Masukkan jumlah transfer yang valid!');
+                return;
+            }
+            
+            // Check if sufficient balance
+            let sbuIncome = 0;
+            let sbuExpense = 0;
+            
+            FinanceData.transactions.forEach(tx => {
+                if (tx.sbu === sbu) {
+                    if (tx.type === 'income') sbuIncome += tx.amount;
+                    else sbuExpense += tx.amount;
+                }
+            });
+            
+            const available = sbuIncome - sbuExpense;
+            if (amount > available) {
+                showNotification('Saldo tidak mencukupi!');
+                return;
+            }
+            
+            // Calculate BTC
+            const satoshi = idrToSatoshi(amount);
+            
+            // Add expense transaction (transfer out)
+            const transferTx = {
+                id: Date.now(),
+                type: 'expense',
+                sbu: sbu,
+                desc: `Transfer ke CEO Wallet ${note ? '- ' + note : ''}`,
+                amount: amount,
+                date: new Date().toISOString().split('T')[0]
+            };
+            FinanceData.transactions.push(transferTx);
+            
+            // Add CEO transfer record
+            const ceoTransfer = {
+                id: Date.now(),
+                fromSbu: sbu,
+                amountIdr: amount,
+                amountBtc: satoshi,
+                note: note,
+                date: new Date().toISOString().split('T')[0],
+                btcAddress: FinanceData.ceoTransfer.btcAddress,
+                status: 'completed'
+            };
+            FinanceData.ceoTransfer.transfers.push(ceoTransfer);
+            FinanceData.ceoTransfer.totalBtc += satoshi;
+            
+            saveData();
+            updateAllStats();
+            updateCeoWallet();
+            
+            // Reset form
+            document.getElementById('transferFrom').value = '';
+            document.getElementById('transferAmount').value = '';
+            document.getElementById('transferNote').value = '';
+            document.getElementById('btcEquivalent').textContent = '₿ 0.00000000';
+            document.getElementById('availableBalance').textContent = 'Rp 0';
+            
+            showNotification(`Transfer ${formatCurrency(amount)} ke CEO berhasil!`);
+        }
+        
+        // Quick transfer percentage of profit
+        function quickTransfer(percentage) {
+            // Calculate total profit
+            let totalIncome = 0;
+            let totalExpense = 0;
+            
+            FinanceData.transactions.forEach(tx => {
+                if (tx.type === 'income') totalIncome += tx.amount;
+                else totalExpense += tx.amount;
+            });
+            
+            const profit = totalIncome - totalExpense;
+            if (profit <= 0) {
+                showNotification('Tidak ada profit untuk ditransfer!');
+                return;
+            }
+            
+            const transferAmount = Math.floor(profit * (percentage / 100));
+            
+            // Set to general SBU and execute
+            document.getElementById('transferFrom').value = 'general';
+            document.getElementById('transferAmount').value = transferAmount;
+            document.getElementById('transferNote').value = `Quick transfer ${percentage}% profit`;
+            calculateBtcEquivalent();
+            
+            // Execute
+            executeTransfer();
+        }
+        
+        // Update CEO transfer history
+        function updateCeoTransferHistory() {
+            const list = document.getElementById('ceoTransferHistory');
+            if (!list) return;
+            
+            const transfers = FinanceData.ceoTransfer.transfers;
+            
+            if (transfers.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">₿</div>
+                        <p>Belum ada transfer ke CEO</p>
+                        <p style="font-size: 12px; margin-top: 10px;">Transfer pertama Anda akan muncul di sini</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            list.innerHTML = transfers.map(tx => `
+                <div class="transaction-item">
+                    <div class="transaction-left">
+                        <div class="transaction-icon" style="background: rgba(247, 147, 26, 0.2);">₿</div>
+                        <div class="transaction-info">
+                            <h4>Transfer dari ${getSBUName(tx.fromSbu)}</h4>
+                            <span>${tx.note || 'Tanpa catatan'}</span>
+                        </div>
+                    </div>
+                    <div class="transaction-amount">
+                        <div class="amount" style="color: var(--bitcoin);">${formatBtc(tx.amountBtc)}</div>
+                        <div class="date">${formatCurrency(tx.amountIdr)} • ${formatDate(tx.date)}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Copy BTC address
+        function copyBtcAddress() {
+            navigator.clipboard.writeText(FinanceData.ceoTransfer.btcAddress).then(() => {
+                showNotification('Bitcoin address berhasil disalin!');
+            }).catch(() => {
+                showNotification('Gagal menyalin address');
+            });
+        }
+        
+        // Export CEO history
+        function exportCeoHistory() {
+            const data = {
+                ceoWallet: {
+                    btcAddress: FinanceData.ceoTransfer.btcAddress,
+                    totalBtc: FinanceData.ceoTransfer.totalBtc,
+                    totalIdr: satoshiToIdr(FinanceData.ceoTransfer.totalBtc),
+                    btcRate: FinanceData.ceoTransfer.btcRate
+                },
+                transfers: FinanceData.ceoTransfer.transfers,
+                exportedAt: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ceo-bitcoin-transfer-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            showNotification('History berhasil diunduh!');
         }
 
         // ============================================

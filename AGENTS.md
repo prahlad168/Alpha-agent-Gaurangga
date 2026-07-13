@@ -82,9 +82,15 @@
 - **Target:** Build team 10 people
 - **Fokus:** Recruitment, onboarding
 
-### 💵 Finance Agent
+### 💵 Finance Agent ⭐ NEW! CEO Bitcoin Transfer
 - **Target:** 99.9% accuracy
-- **Fokus:** Accounting, payments
+- **Fokus:** Accounting, payments, **CEO Revenue Transfer**
+- **🔥 NEW:** Transfer revenue langsung ke Bitcoin wallet Pak Pur!
+  - Dashboard dengan Bitcoin wallet
+  - Transfer dari SBU apapun
+  - Konversi IDR → BTC otomatis
+  - Quick transfer 10%, 25%, 50% profit
+  - Riwayat transfer lengkap
 
 ### 📋 Project Manager Agent
 - **Target:** 95% on-time delivery
@@ -173,9 +179,13 @@ Alpha-agent-Gaurangga/
 
 ## 🏦 Bank Info
 
-| Bank | Account Number | Recipient |
-|------|---------------|-----------|
-| BCA | 6485086645 | Owner/Shareholder |
+| Method | Account/Address | Recipient |
+|-------|----------------|-----------|
+| 🏦 BCA | 6485086645 | Owner/Shareholder |
+| 💼 PayPal | [email] | Owner/Shareholder |
+| **₿ Bitcoin** | bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh | **Pak Pur (PREFERRED)** |
+
+> ⚡ **BITCOIN PREFERRED!** - Accepts payments from anywhere in the world instantly!
 
 ---
 
@@ -187,13 +197,14 @@ Alpha-agent-Gaurangga/
 
 ---
 
-**Version:** 1.0.0
+**Version:** 2.0.0
 **Created:** 2026-07-05
-**Status:** 🚀 ACTIVE
+**Updated:** 2026-07-13
+**Status:** 🚀 ACTIVE | 🔥 CEO BITCOIN TRANSFER READY!
 
 ---
 
-## 🔐 Biometric Authentication (NEW! v1.1.0)
+## 🔐 Biometric Authentication (v1.1.0)
 
 GAURANGA Android App dilengkapi dengan **autentikasi biometrik**:
 
@@ -214,10 +225,10 @@ HP Restart → Lock Screen → Verify Biometric → GAURANGA Active
 
 ---
 
-**Version:** 1.1.0
+**Version:** 2.0.0 - CEO BITCOIN TRANSFER!
 **Created:** 2026-07-05
-**Updated:** 2026-07-11
-**Status:** 🚀 ACTIVE
+**Updated:** 2026-07-13
+**Status:** 🚀 ACTIVE | 💰 Revenue bisa langsung ke Bitcoin Wallet!
 
 ---
 

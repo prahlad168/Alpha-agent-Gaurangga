@@ -245,16 +245,34 @@ DON'T:
 ## 🏦 PAYMENT INFO
 
 ```
-Bank Transfer Details:
-────────────────────────
-Bank: BCA
-Account Number: 6485086645
-Account Name: Owner/Shareholder
-────────────────────────
-
-After transfer, please send proof to:
-📱 WhatsApp: 081337558787
-📧 Email: [email]
+╔═══════════════════════════════════════════════════════════════════╗
+║                    PAYMENT OPTIONS                                ║
+╠═══════════════════════════════════════════════════════════════════╣
+║                                                                   ║
+║  🏦 BANK TRANSFER (Indonesia):                                    ║
+║  ─────────────────────────────────────                            ║
+║  Bank: BCA                                                        ║
+║  Account Number: 6485086645                                        ║
+║  Account Name: Owner/Shareholder                                   ║
+║                                                                   ║
+║  ─────────────────────────────────────                            ║
+║  💼 PAYPAL (International):                                       ║
+║  ─────────────────────────────────────                            ║
+║  Email: [pakpur@email.com]                                        ║
+║                                                                   ║
+║  ─────────────────────────────────────                            ║
+║  ₿ BITCOIN (Worldwide - Preferred!):                              ║
+║  ─────────────────────────────────────                            ║
+║  Address: bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh              ║
+║  Network: Bitcoin (BTC)                                           ║
+║                                                                   ║
+╠═══════════════════════════════════════════════════════════════════╣
+║                                                                   ║
+║  📱 After transfer, please send proof to:                          ║
+║     WhatsApp: 081337558787                                        ║
+║     Email: [email]                                                 ║
+║                                                                   ║
+╚═══════════════════════════════════════════════════════════════════╝
 ```
 
 ---
