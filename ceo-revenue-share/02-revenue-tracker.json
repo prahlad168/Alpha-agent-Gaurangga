@@ -1,0 +1,17 @@
+{
+  "company": "MAHA LAKSHMI",
+  "last_updated": "2026-07-14T13:49:00+07:00",
+  "currency": "IDR",
+  "digital_products": {
+    "status": "RECONCILED",
+    "total_transactions": 523,
+    "gross_revenue": 417900145
+  },
+  "revenue_allocation": {
+    "ceo_share_pct": 60,
+    "ceo_share_value": 250740087,
+    "operational_reserve_pct": 40,
+    "operational_reserve_value": 167160058
+  },
+  "system_status": "Awaiting Flip Verification"
+}
