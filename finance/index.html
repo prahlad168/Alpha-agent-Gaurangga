@@ -1152,10 +1152,12 @@
         // ============================================
         const FinanceData = {
             transactions: [
-                // Data transaksi real akan diinput manual
+                // ===== DATA REAL - 13 Juli 2026 =====
+                { id: 1, type: 'income', sbu: 'travel', desc: 'Bali Travel - WhatsApp Sales', amount: 1000000, date: '2026-07-13' }
             ],
             invoices: [
-                // Data invoice real akan diinput manual
+                // ===== INVOICE REAL =====
+                { id: 1, client: 'Bali Travel Customer', invNumber: 'INV-2026-0713-001', desc: 'Travel Service', amount: 1000000, date: '2026-07-13', status: 'paid' }
             ],
             sbus: ['hospital', 'ecommerce', 'edutech', 'travel', 'property', 'food'],
             targets: {
