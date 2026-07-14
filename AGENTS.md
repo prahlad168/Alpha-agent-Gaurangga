@@ -177,6 +177,38 @@ Alpha-agent-Gaurangga/
 
 ---
 
+## ⚖️ REVENUE POLICY - CEO SHARE 60%
+
+### Universal Rule:
+**SEMUA revenue dari SEMUA usaha dan SBU wajib membagikan 60% ke CEO.**
+
+### Distribution Formula:
+```
+TOTAL REVENUE (100%)
+├── 🔴 CEO SHARE: 60% → BCA 6485086645
+├── 📦 Reinvestment: 25% → Usaha
+├── 👥 Team Bonus: 10% → Tim
+└── 💚 CSR: 5% → Charity
+```
+
+### SBU Coverage:
+| SBU | Target/Bulan | CEO Share (60%) |
+|-----|--------------|-----------------|
+| Hospital | Rp 50.000.000 | Rp 30.000.000 |
+| E-Commerce | Rp 30.000.000 | Rp 18.000.000 |
+| Education | Rp 25.000.000 | Rp 15.000.000 |
+| Travel | Rp 20.000.000 | Rp 12.000.000 |
+| Property | Rp 25.000.000 | Rp 15.000.000 |
+| Food | Rp 20.000.000 | Rp 12.000.000 |
+
+**Total Target CEO Share: Rp 102.000.000/bulan**
+
+### Transfer:
+- Primary: BCA 6485086645
+- Fallback: USDT TNFs1SP2C8HxGSZkSH3hJamf8ukgtnW7U6
+
+---
+
 ## 🏦 Bank Info
 
 | Method | Account/Address | Recipient |
