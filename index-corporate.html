@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="MAHA LAKSHMI CORP - Multi-SBU Corporation Indonesia. Hospital, E-Commerce, Education, Travel, Property, Food Tech.">
+    <title>MAHA LAKSHMI CORP | Official Corporate Website</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --gold: #D4AF37;
+            --dark-gold: #B8960C;
+            --navy: #1a1a2e;
+            --deep-navy: #0f0f1a;
+            --white: #ffffff;
+            --light-gray: #f5f5f5;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--deep-navy);
+            color: var(--white);
+            line-height: 1.6;
+        }
+        
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--deep-navy) 100%);
+            padding: 20px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 2px solid var(--gold);
+        }
+        
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--gold), var(--dark-gold));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--navy);
+        }
+        
+        .logo-text h1 {
+            font-size: 24px;
+            color: var(--gold);
+            letter-spacing: 2px;
+        }
+        
+        .logo-text span {
+            font-size: 12px;
+            color: var(--white);
+            opacity: 0.7;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+        
+        nav a {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        nav a:hover {
+            color: var(--gold);
+        }
+        
+        /* Hero */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 120px 20px 60px;
+            background: linear-gradient(135deg, var(--deep-navy) 0%, var(--navy) 50%, var(--deep-navy) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(212,175,55,0.1) 0%, transparent 50%);
+            animation: pulse 10s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 0.3; }
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+        }
+        
+        .hero-badge {
+            display: inline-block;
+            background: var(--gold);
+            color: var(--navy);
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        
+        .hero h2 {
+            font-size: 56px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--gold), #fff, var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero p {
+            font-size: 20px;
+            opacity: 0.8;
+            margin-bottom: 40px;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            margin-top: 60px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 48px;
+            font-weight: bold;
+            color: var(--gold);
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+        
+        /* SBU Section */
+        .sbu-section {
+            padding: 100px 20px;
+            background: var(--light-gray);
+            color: var(--navy);
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .section-title h2 {
+            font-size: 42px;
+            color: var(--navy);
+            margin-bottom: 15px;
+        }
+        
+        .section-title p {
+            color: #666;
+            font-size: 18px;
+        }
+        
+        .sbu-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+        
+        .sbu-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .sbu-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(212,175,55,0.2);
+        }
+        
+        .sbu-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--gold), var(--dark-gold));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            margin-bottom: 25px;
+        }
+        
+        .sbu-card h3 {
+            font-size: 24px;
+            color: var(--navy);
+            margin-bottom: 15px;
+        }
+        
+        .sbu-card p {
+            color: #666;
+            font-size: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .sbu-target {
+            display: inline-block;
+            background: var(--navy);
+            color: var(--gold);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        /* Revenue Section */
+        .revenue-section {
+            padding: 100px 20px;
+            background: linear-gradient(135deg, var(--navy), var(--deep-navy));
+        }
+        
+        .revenue-grid {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+        
+        .revenue-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(212,175,55,0.3);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .revenue-card h3 {
+            color: var(--gold);
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        
+        .revenue-amount {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .revenue-card.highlight {
+            background: linear-gradient(135deg, rgba(212,175,55,0.2), rgba(184,150,12,0.1));
+            border-color: var(--gold);
+        }
+        
+        /* Contact Section */
+        .contact-section {
+            padding: 100px 20px;
+            background: var(--light-gray);
+            color: var(--navy);
+        }
+        
+        .contact-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+        
+        .contact-item {
+            text-align: center;
+            padding: 30px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .contact-item .icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+        
+        .contact-item h4 {
+            color: var(--navy);
+            margin-bottom: 10px;
+        }
+        
+        .contact-item a {
+            color: var(--gold);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        /* Footer */
+        footer {
+            background: var(--deep-navy);
+            padding: 40px 20px;
+            text-align: center;
+            border-top: 1px solid rgba(212,175,55,0.3);
+        }
+        
+        footer p {
+            opacity: 0.7;
+            font-size: 14px;
+        }
+        
+        footer .copyright {
+            margin-top: 20px;
+            color: var(--gold);
+        }
+        
+        /* CTA Button */
+        .cta-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--gold), var(--dark-gold));
+            color: var(--navy);
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 16px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .cta-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(212,175,55,0.4);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h2 { font-size: 36px; }
+            .stats { flex-direction: column; gap: 30px; }
+            nav ul { display: none; }
+            .header-container { flex-direction: column; gap: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <div class="logo-icon">ML</div>
+                <div class="logo-text">
+                    <h1>MAHA LAKSHMI</h1>
+                    <span>CORPORATION</span>
+                </div>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#home">Beranda</a></li>
+                    <li><a href="#sbu">SBU</a></li>
+                    <li><a href="#revenue">Revenue</a></li>
+                    <li><a href="#contact">Kontak</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    
+    <!-- Hero -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <span class="hero-badge">🏛️ EST. 2026</span>
+            <h2>MAHA LAKSHMI CORP</h2>
+            <p>Multi-SBU Corporation Indonesia - Mengelola berbagai lini bisnis strategis untuk pertumbuhan ekonomi yang berkelanjutan.</p>
+            
+            <a href="#sbu" class="cta-btn">Jelajahi Bisnis Kami →</a>
+            
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-number">6+</div>
+                    <div class="stat-label">Strategic Business Units</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">10+</div>
+                    <div class="stat-label">AI Agents Active</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">523</div>
+                    <div class="stat-label">Transaksi Digital</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- SBU Section -->
+    <section class="sbu-section" id="sbu">
+        <div class="section-title">
+            <h2>🏢 Strategic Business Units</h2>
+            <p>Portofolio bisnis strategis kami</p>
+        </div>
+        
+        <div class="sbu-grid">
+            <div class="sbu-card">
+                <div class="sbu-icon">🏥</div>
+                <h3>Hospital Management</h3>
+                <p>Sistem manajemen rumah sakit terintegrasi dengan teknologi modern. SIMRS, FHIR, dan HL7 compliant.</p>
+                <span class="sbu-target">Target: Rp 50 juta/bulan</span>
+            </div>
+            
+            <div class="sbu-card">
+                <div class="sbu-icon">🛒</div>
+                <h3>E-Commerce</h3>
+                <p>Platform marketplace dan toko online dengan sistem payment gateway terintegrasi.</p>
+                <span class="sbu-target">Target: Rp 30 juta/bulan</span>
+            </div>
+            
+            <div class="sbu-card">
+                <div class="sbu-icon">🎓</div>
+                <h3>Education Tech</h3>
+                <p>LMS dan platform e-learning untuk transformasi digital pendidikan Indonesia.</p>
+                <span class="sbu-target">Target: Rp 25 juta/bulan</span>
+            </div>
+            
+            <div class="sbu-card">
+                <div class="sbu-icon">✈️</div>
+                <h3>Travel Tech</h3>
+                <p>Sistem booking dan manajemen perjalanan wisata terintegrasi.</p>
+                <span class="sbu-target">Target: Rp 20 juta/bulan</span>
+            </div>
+            
+            <div class="sbu-card">
+                <div class="sbu-icon">🏠</div>
+                <h3>Property Tech</h3>
+                <p>Platform digital untuk pemasaran dan manajemen properti.</p>
+                <span class="sbu-target">Target: Rp 25 juta/bulan</span>
+            </div>
+            
+            <div class="sbu-card">
+                <div class="sbu-icon">🍜</div>
+                <h3>Food Tech</h3>
+                <p>Solusi digital untuk restoran dan bisnis makanan.</p>
+                <span class="sbu-target">Target: Rp 20 juta/bulan</span>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Revenue Section -->
+    <section class="revenue-section" id="revenue">
+        <div class="section-title" style="color: white;">
+            <h2>💰 Revenue System</h2>
+            <p style="color: rgba(255,255,255,0.7);">Sistem bagi hasil transparan</p>
+        </div>
+        
+        <div class="revenue-grid">
+            <div class="revenue-card highlight">
+                <h3>💵 Total Revenue Digital</h3>
+                <div class="revenue-amount" style="color: var(--gold);">Rp 417.900.145</div>
+                <p>Total transaksi digital</p>
+            </div>
+            
+            <div class="revenue-card">
+                <h3>👑 CEO Share (60%)</h3>
+                <div class="revenue-amount" style="color: var(--gold);">Rp 250.740.087</div>
+                <p>Transfer ke BCA 6485086645</p>
+            </div>
+            
+            <div class="revenue-card">
+                <h3>⚙️ Operational Reserve (40%)</h3>
+                <div class="revenue-amount" style="color: var(--gold);">Rp 167.160.058</div>
+                <p>Untuk reinvestasi bisnis</p>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 50px;">
+            <p style="color: rgba(255,255,255,0.7); margin-bottom: 20px;">Powered by GAURANGA AI Agent</p>
+            <a href="https://github.com/prahlad168/Alpha-agent-Gaurangga" class="cta-btn" target="_blank">🌐 Sistem GAURANGA →</a>
+        </div>
+    </section>
+    
+    <!-- Contact Section -->
+    <section class="contact-section" id="contact">
+        <div class="contact-container">
+            <div class="section-title">
+                <h2>📞 Hubungi Kami</h2>
+                <p>Kontak resmi perusahaan</p>
+            </div>
+            
+            <div class="contact-grid">
+                <div class="contact-item">
+                    <div class="icon">👤</div>
+                    <h4>CEO</h4>
+                    <p>I Made Purna Ananda</p>
+                    <p>(Pak Pur)</p>
+                </div>
+                
+                <div class="contact-item">
+                    <div class="icon">💬</div>
+                    <h4>WhatsApp</h4>
+                    <a href="https://wa.me/6281337558787" target="_blank">081337558787</a>
+                </div>
+                
+                <div class="contact-item">
+                    <div class="icon">🏦</div>
+                    <h4>Bank Transfer</h4>
+                    <p>BCA</p>
+                    <p>Account: 6485086645</p>
+                </div>
+                
+                <div class="contact-item">
+                    <div class="icon">💻</div>
+                    <h4>GitHub</h4>
+                    <a href="https://github.com/prahlad168" target="_blank">@prahlad168</a>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer>
+        <p>🌐 MAHA LAKSHMI CORPORATION</p>
+        <p style="margin-top: 10px;">Multi-SBU Corporation Indonesia</p>
+        <div class="copyright">
+            © 2026 MAHA LAKSHMI CORP. All Rights Reserved.
+        </div>
+    </footer>
+    
+    <script>
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>
