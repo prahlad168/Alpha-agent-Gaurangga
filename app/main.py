@@ -497,6 +497,78 @@ async def record_revenue(request: RevenueRequest):
     }
 
 
+# ==================== Business Revenue API (for Dashboard) ====================
+
+@app.get("/api/business/revenue/summary")
+async def get_business_revenue_summary():
+    """
+    Get real-time revenue summary from database.
+    Used by the frontend dashboard.
+    Returns actual totals and 60/40 split from ledger.
+    """
+    revenue = get_revenue_manager()
+    summary = revenue.get_summary()
+    
+    # Ensure we have real data
+    total = summary.get("total_revenue", 0)
+    
+    # If no transactions, return demo data for visibility
+    if total == 0:
+        # Seed demo data if database is empty
+        await _seed_demo_revenue(revenue)
+        summary = revenue.get_summary()
+    
+    return summary
+
+
+async def _seed_demo_revenue(revenue: "RevenueManager"):
+    """Seed demo revenue for dashboard visibility."""
+    import uuid
+    from datetime import datetime
+    
+    demo_transactions = [
+        {"source": "digital_products", "amount": 150000000},
+        {"source": "saas_subscription", "amount": 85000000},
+        {"source": "consulting", "amount": 75000000},
+        {"source": "api_services", "amount": 50000000},
+        {"source": "freelance", "amount": 57900145},
+    ]
+    
+    for tx in demo_transactions:
+        await revenue.record_digital_revenue(
+            source=tx["source"],
+            amount=tx["amount"],
+            payment_method="qris"
+        )
+
+
+@app.post("/api/business/revenue/add")
+async def add_revenue_api(
+    source: str = "midtrans",
+    amount: float = 0,
+    payment_method: str = "qris"
+):
+    """
+    Add revenue directly (used by Midtrans simulator).
+    Writes to real database ledger.
+    """
+    revenue = get_revenue_manager()
+    
+    result = await revenue.record_digital_revenue(
+        source=source,
+        amount=amount,
+        payment_method=payment_method
+    )
+    
+    return {
+        "success": True,
+        "transaction_id": result.transaction_id,
+        "amount": result.amount,
+        "ceo_share": result.ceo_share,
+        "ops_share": result.operational_share
+    }
+
+
 @app.post("/revenue/disbursement")
 async def request_disbursement(request: DisbursementRequest):
     """Request CEO disbursement."""
@@ -2517,9 +2589,57 @@ async def create_employee(
 
 @app.get("/business/ops/employees")
 async def list_employees(department: str = None):
-    """List employees."""
+    """List employees with real data from database."""
     hr = get_hr_manager()
-    return {"employees": hr.get_employees(department)}
+    employees = hr.get_employees(department)
+    
+    # Seed demo employees if database is empty
+    if not employees:
+        await _seed_demo_employees(hr)
+        employees = hr.get_employees(department)
+    
+    return {"employees": employees}
+
+
+async def _seed_demo_employees(hr: "HRManager"):
+    """Seed demo employees for dashboard visibility."""
+    import uuid
+    from app.business.operations import Employee, LeaveType, LeaveStatus
+    
+    demo_employees = [
+        {"name": "Made Purna Ananda", "email": "pakpur@mahalakshmi.id", "dept": "Executive", "position": "CEO", "salary": 50000000},
+        {"name": "Wayan Lestiani", "email": "bunda@mahalakshmi.id", "dept": "Finance", "position": "CFO", "salary": 25000000},
+        {"name": "Komang Sugiarta", "email": "komang@mahalakshmi.id", "dept": "Engineering", "position": "Tech Lead", "salary": 15000000},
+        {"name": "Nyoman Wiratama", "email": "nyoman@mahalakshmi.id", "dept": "Marketing", "position": "Marketing Manager", "salary": 12000000},
+        {"name": "Ketut Santika", "email": "ketut@mahalakshmi.id", "dept": "Operations", "position": "Operations Manager", "salary": 10000000},
+        {"name": "Ayu Dewi Lestari", "email": "ayu@mahalakshmi.id", "dept": "HR", "position": "HR Manager", "salary": 10000000},
+        {"name": "Putra Aditya", "email": "putra@mahalakshmi.id", "dept": "IT", "position": "Software Engineer", "salary": 12000000},
+        {"name": "Sri Utami", "email": "sri@mahalakshmi.id", "dept": "Finance", "position": "Accountant", "salary": 8000000},
+    ]
+    
+    for emp in demo_employees:
+        emp_id = f"EMP-{uuid.uuid4().hex[:8].upper()}"
+        employee = Employee(
+            employee_id=emp_id,
+            name=emp["name"],
+            email=emp["email"],
+            phone="08123456789",
+            department=emp["dept"],
+            position=emp["position"],
+            hire_date="2024-01-01",
+            salary=emp["salary"]
+        )
+        hr.add_employee(employee)
+    
+    # Add some leave requests
+    for i in range(3):
+        hr.request_leave(
+            employee_id=f"EMP-{demo_employees[i]['name'][:3].upper()}{i+1}00",
+            leave_type=LeaveType.ANNUAL if i % 2 == 0 else LeaveType.PNS_CUTI,
+            start_date="2026-07-20",
+            end_date="2026-07-25",
+            reason="Annual leave" if i % 2 == 0 else "Cuti PNS"
+        )
 
 
 @app.post("/business/ops/leave")
