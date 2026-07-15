@@ -32,6 +32,8 @@ from app.intelligence.gateway import get_gateway
 from app.intelligence.memory import get_memory
 from app.intelligence.knowledge_graph import get_knowledge_graph, NodeType, RelationType
 from app.intelligence.prompt_orchestrator import get_prompt_orchestrator
+from app.intelligence.planning_engine import get_planning_engine, PlanStatus
+from app.intelligence.learning_engine import get_learning_engine, FeedbackType
 from app.development.openhands_connector import get_connector
 from app.development.testing_center import get_testing_center
 from app.development.github_center import get_github_center, BranchType
@@ -1187,6 +1189,122 @@ async def get_quick_health():
     """Quick health check without full test run."""
     tc = get_testing_center()
     return tc.run_quick_health()
+
+
+# ==================== AI Planning Engine Endpoints ====================
+
+@app.post("/ai/planning/generate-plan")
+async def generate_plan(
+    goal_description: str,
+    goal_conditions: str = "{}"
+):
+    """Generate action plan from goal."""
+    import json
+    conditions = json.loads(goal_conditions) if isinstance(goal_conditions, str) else goal_conditions
+    
+    planning = get_planning_engine()
+    plan = planning.generate_plan(goal_description, conditions)
+    
+    return {
+        "plan_id": plan.plan_id,
+        "goal_description": plan.goal_description,
+        "status": plan.status.value,
+        "steps": [
+            {
+                "id": s.step_id,
+                "action": s.action.name,
+                "description": s.action.description,
+                "cost": s.action.cost,
+                "status": s.status.value
+            }
+            for s in plan.steps
+        ],
+        "total_cost": plan.total_cost,
+        "estimated_duration": plan.estimated_duration_minutes
+    }
+
+
+@app.get("/ai/planning/plans")
+async def get_plans(status: str = None):
+    """Get all plans."""
+    planning = get_planning_engine()
+    
+    pstatus = None
+    if status:
+        try:
+            pstatus = PlanStatus(status)
+        except:
+            pass
+    
+    return {"plans": planning.get_plans(pstatus)}
+
+
+@app.post("/ai/planning/evaluate-feasibility")
+async def evaluate_feasibility(goal_conditions: str = "{}"):
+    """Evaluate goal feasibility."""
+    import json
+    conditions = json.loads(goal_conditions) if isinstance(goal_conditions, str) else goal_conditions
+    
+    planning = get_planning_engine()
+    return planning.evaluate_feasibility(conditions)
+
+
+# ==================== AI Learning Engine Endpoints ====================
+
+@app.post("/ai/learning/feedback")
+async def submit_feedback(
+    action_id: str,
+    plan_id: str,
+    feedback_type: str,
+    score: float,
+    outcome: str,
+    context: str = "{}"
+):
+    """Submit feedback for an action."""
+    import json
+    ctx = json.loads(context) if isinstance(context, str) else context
+    
+    ftype = FeedbackType(feedback_type)
+    learning = get_learning_engine()
+    
+    result = learning.submit_feedback(
+        action_id=action_id,
+        plan_id=plan_id,
+        feedback_type=ftype,
+        score=score,
+        outcome=outcome,
+        context=ctx
+    )
+    
+    return result
+
+
+@app.get("/ai/learning/insights")
+async def get_learning_insights(insight_type: str = None):
+    """Get learned insights."""
+    learning = get_learning_engine()
+    return {"insights": learning.get_insights(insight_type)}
+
+
+@app.post("/ai/learning/optimize-weights")
+async def optimize_weights():
+    """Optimize action weights."""
+    learning = get_learning_engine()
+    return learning.optimize_weights()
+
+
+@app.get("/ai/learning/summary")
+async def get_learning_summary():
+    """Get learning summary."""
+    learning = get_learning_engine()
+    return learning.get_learning_summary()
+
+
+@app.get("/ai/learning/performance")
+async def get_action_performance(action_id: str = None):
+    """Get action performance data."""
+    learning = get_learning_engine()
+    return {"performance": learning.get_action_performance(action_id)}
 
 
 # ==================== OpenHands Connector Endpoints (continued) ====================
