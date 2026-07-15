@@ -27,9 +27,11 @@ from app.core.security_ext import (
     get_license_generator
 )
 from app.core.digital_twin import get_company_brain
+from app.core.workflow_engine import get_workflow_engine, WorkflowType
 from app.intelligence.gateway import get_gateway
 from app.intelligence.memory import get_memory
 from app.intelligence.knowledge_graph import get_knowledge_graph, NodeType, RelationType
+from app.intelligence.prompt_orchestrator import get_prompt_orchestrator
 from app.development.openhands_connector import get_connector
 from app.development.testing_center import get_testing_center
 from app.development.github_center import get_github_center, BranchType
@@ -754,6 +756,65 @@ async def send_immediate_notification(
     }
 
 
+# ==================== Prompt Orchestrator Endpoints ====================
+
+@app.get("/ai/prompt/templates")
+async def get_prompt_templates(template_type: str = None):
+    """Get all prompt templates."""
+    from app.intelligence.prompt_orchestrator import TemplateType
+    
+    ttype = None
+    if template_type:
+        try:
+            ttype = TemplateType(template_type)
+        except:
+            pass
+    
+    orchestrator = get_prompt_orchestrator()
+    templates = orchestrator.get_templates(ttype)
+    
+    return {"templates": templates, "total": len(templates)}
+
+
+@app.post("/ai/prompt/render")
+async def render_prompt(
+    template_id: str,
+    variables: str = "{}"
+):
+    """Render a prompt with dynamic context injection."""
+    orchestrator = get_prompt_orchestrator()
+    
+    import json
+    vars_dict = json.loads(variables) if isinstance(variables, str) else variables
+    
+    result = orchestrator.render(template_id, vars_dict)
+    
+    return {
+        "template_id": template_id,
+        "system_prompt": result.system_prompt,
+        "total_tokens": result.total_tokens,
+        "context_used": result.context_used,
+        "trimmed_items": result.trimmed_items
+    }
+
+
+@app.post("/ai/prompt/optimize")
+async def optimize_prompt(
+    prompt: str,
+    goal: str,
+    constraints: str = "[]"
+):
+    """Optimize a prompt for better results."""
+    orchestrator = get_prompt_orchestrator()
+    
+    import json
+    constraints_list = json.loads(constraints) if isinstance(constraints, str) else constraints
+    
+    result = orchestrator.optimize(prompt, goal, constraints_list)
+    
+    return result
+
+
 # ==================== Knowledge Graph Endpoints ====================
 
 @app.get("/ai/graph/nodes")
@@ -955,6 +1016,130 @@ async def get_github_history(limit: int = 20):
     """Get git operation history."""
     gh = get_github_center()
     return {"operations": gh.get_operation_history(limit)}
+
+
+# ==================== Workflow Engine Endpoints ====================
+
+@app.post("/workflow/create")
+async def create_workflow(
+    name: str,
+    description: str = "",
+    workflow_type: str = "sequential",
+    mission_id: str = ""
+):
+    """Create a new workflow."""
+    engine = get_workflow_engine()
+    
+    wf_type = WorkflowType(workflow_type)
+    workflow = engine.create_workflow(name, description, wf_type, mission_id)
+    
+    return {
+        "workflow_id": workflow.workflow_id,
+        "name": workflow.name,
+        "state": workflow.state.value
+    }
+
+
+@app.get("/workflow/{workflow_id}")
+async def get_workflow_status(workflow_id: str):
+    """Get workflow status."""
+    engine = get_workflow_engine()
+    return engine.get_workflow_status(workflow_id)
+
+
+@app.post("/workflow/{workflow_id}/step")
+async def add_workflow_step(
+    workflow_id: str,
+    name: str,
+    action: str,
+    action_params: str = "{}",
+    depends_on: str = "[]",
+    rollback_action: str = "",
+    rollback_params: str = "{}",
+    max_retries: int = 3,
+    timeout_seconds: int = 60
+):
+    """Add a step to workflow."""
+    engine = get_workflow_engine()
+    
+    import json
+    params = json.loads(action_params) if isinstance(action_params, str) else action_params
+    deps = json.loads(depends_on) if isinstance(depends_on, str) else depends_on
+    rollback_params_dict = json.loads(rollback_params) if isinstance(rollback_params, str) else rollback_params
+    
+    step = engine.add_step(
+        workflow_id=workflow_id,
+        name=name,
+        action=action,
+        action_params=params,
+        depends_on=deps,
+        rollback_action=rollback_action,
+        rollback_params=rollback_params_dict,
+        max_retries=max_retries,
+        timeout_seconds=timeout_seconds
+    )
+    
+    return {
+        "step_id": step.step_id,
+        "name": step.name,
+        "action": step.action
+    }
+
+
+@app.post("/workflow/{workflow_id}/execute")
+async def execute_workflow(workflow_id: str):
+    """Execute a workflow."""
+    engine = get_workflow_engine()
+    
+    try:
+        workflow = await engine.execute_workflow(workflow_id)
+        return {
+            "workflow_id": workflow.workflow_id,
+            "state": workflow.state.value,
+            "result": workflow.result,
+            "error": workflow.error
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@app.post("/workflow/{workflow_id}/spawn-from-mission")
+async def spawn_workflow_from_mission(workflow_id: str):
+    """Create workflow from mission."""
+    engine = get_workflow_engine()
+    
+    workflow = engine.db.get_workflow(workflow_id)
+    if not workflow:
+        return {"error": "Workflow not found"}
+    
+    new_workflow = engine.spawn_from_mission(workflow.mission_id, workflow.name)
+    
+    return {
+        "workflow_id": new_workflow.workflow_id,
+        "name": new_workflow.name,
+        "steps": len(new_workflow.steps)
+    }
+
+
+@app.get("/workflow/list")
+async def list_workflows():
+    """List all workflows."""
+    engine = get_workflow_engine()
+    workflows = engine.db.get_all_workflows()
+    
+    return {
+        "workflows": [
+            {
+                "id": w.workflow_id,
+                "name": w.name,
+                "state": w.state.value,
+                "type": w.workflow_type.value,
+                "steps": len(w.steps)
+            }
+            for w in workflows
+        ],
+        "total": len(workflows)
+    }
 
 
 # ==================== Testing Center Endpoints ====================
