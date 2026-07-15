@@ -29,8 +29,10 @@ from app.core.security_ext import (
 from app.core.digital_twin import get_company_brain
 from app.intelligence.gateway import get_gateway
 from app.intelligence.memory import get_memory
+from app.intelligence.knowledge_graph import get_knowledge_graph, NodeType, RelationType
 from app.development.openhands_connector import get_connector
 from app.development.testing_center import get_testing_center
+from app.development.github_center import get_github_center, BranchType
 from app.business.revenue import get_revenue_manager
 from app.business.finance import get_finance_ledger, TransactionType, Category
 from app.business.analytics import get_analytics
@@ -750,6 +752,209 @@ async def send_immediate_notification(
         "success": success,
         "channel": channel
     }
+
+
+# ==================== Knowledge Graph Endpoints ====================
+
+@app.get("/ai/graph/nodes")
+async def get_graph_nodes(node_type: str = None, search: str = None):
+    """Get all nodes in the knowledge graph."""
+    kg = get_knowledge_graph()
+    
+    ntype = None
+    if node_type:
+        try:
+            ntype = NodeType(node_type)
+        except:
+            pass
+    
+    return {
+        "nodes": kg.get_nodes(node_type=ntype, search=search),
+        "total": len(kg.get_nodes(node_type=ntype, search=search))
+    }
+
+
+@app.get("/ai/graph/edges")
+async def get_graph_edges(
+    source_id: str = None,
+    target_id: str = None,
+    relation_type: str = None
+):
+    """Get all edges in the knowledge graph."""
+    kg = get_knowledge_graph()
+    
+    rtype = None
+    if relation_type:
+        try:
+            rtype = RelationType(relation_type)
+        except:
+            pass
+    
+    return {
+        "edges": kg.get_edges(source_id=source_id, target_id=target_id, relation_type=rtype),
+        "total": len(kg.get_edges(source_id=source_id, target_id=target_id, relation_type=rtype))
+    }
+
+
+@app.post("/ai/graph/query")
+async def query_graph(
+    start_node_id: str = None,
+    end_node_id: str = None,
+    relation_type: str = None,
+    max_hops: int = 3
+):
+    """Query the knowledge graph for multi-hop relationships."""
+    kg = get_knowledge_graph()
+    
+    rtype = None
+    if relation_type:
+        try:
+            rtype = RelationType(relation_type)
+        except:
+            pass
+    
+    results = kg.query(
+        start_node_id=start_node_id,
+        end_node_id=end_node_id,
+        relation_type=rtype,
+        max_hops=max_hops
+    )
+    
+    return {
+        "query": {
+            "start": start_node_id,
+            "end": end_node_id,
+            "relation": relation_type,
+            "max_hops": max_hops
+        },
+        "results": results
+    }
+
+
+@app.get("/ai/graph/stats")
+async def get_graph_stats():
+    """Get knowledge graph statistics."""
+    kg = get_knowledge_graph()
+    return kg.get_graph_stats()
+
+
+# ==================== GitHub Center Endpoints ====================
+
+@app.get("/dev/github/status")
+async def get_github_status():
+    """Get git repository sync status."""
+    gh = get_github_center()
+    status = gh.get_status()
+    
+    return {
+        "is_clean": status.is_clean,
+        "current_branch": status.current_branch,
+        "ahead": status.ahead,
+        "behind": status.behind,
+        "untracked": status.untracked,
+        "modified": status.modified,
+        "staged": status.staged,
+        "conflicts": status.conflicts
+    }
+
+
+@app.get("/dev/github/branches")
+async def get_github_branches(remote: bool = False):
+    """Get list of branches."""
+    gh = get_github_center()
+    branches = gh.get_branches(remote=remote)
+    
+    return {
+        "branches": [
+            {
+                "name": b.name,
+                "is_current": b.is_current,
+                "is_remote": b.is_remote,
+                "last_commit": b.last_commit,
+                "last_commit_message": b.last_commit_message
+            }
+            for b in branches
+        ],
+        "total": len(branches)
+    }
+
+
+@app.post("/dev/github/branch")
+async def create_github_branch(
+    branch_name: str,
+    from_branch: str = None,
+    branch_type: str = "feature"
+):
+    """Create a new branch."""
+    gh = get_github_center()
+    result = gh.create_branch(branch_name, from_branch, BranchType(branch_type))
+    return result
+
+
+@app.post("/dev/github/switch")
+async def switch_github_branch(branch_name: str):
+    """Switch to a branch."""
+    gh = get_github_center()
+    result = gh.switch_branch(branch_name)
+    return result
+
+
+@app.post("/dev/github/commit")
+async def github_commit(message: str, files: str = None):
+    """Commit changes."""
+    gh = get_github_center()
+    file_list = files.split(",") if files else None
+    result = gh.commit_changes(message, file_list)
+    return result
+
+
+@app.post("/dev/github/push")
+async def github_push(remote: str = "origin", branch: str = None):
+    """Push to remote."""
+    gh = get_github_center()
+    result = gh.push(remote, branch)
+    return result
+
+
+@app.post("/dev/github/pull")
+async def github_pull(remote: str = "origin", branch: str = None):
+    """Pull from remote."""
+    gh = get_github_center()
+    result = gh.pull(remote, branch)
+    return result
+
+
+@app.get("/dev/github/conflicts")
+async def detect_github_conflicts():
+    """Detect merge conflicts."""
+    gh = get_github_center()
+    conflicts = gh.detect_conflicts()
+    return {
+        "has_conflicts": len(conflicts) > 0,
+        "conflicts": [{"file": c.file, "count": len(c.conflicts)} for c in conflicts]
+    }
+
+
+@app.post("/dev/github/sync")
+async def sync_github():
+    """Full sync with remote."""
+    gh = get_github_center()
+    result = gh.sync_with_remote()
+    return result
+
+
+@app.get("/dev/github/remote")
+async def get_github_remote():
+    """Get remote repository info."""
+    gh = get_github_center()
+    return gh.get_remote_info()
+
+
+@app.get("/dev/github/history")
+async def get_github_history(limit: int = 20):
+    """Get git operation history."""
+    gh = get_github_center()
+    return {"operations": gh.get_operation_history(limit)}
 
 
 # ==================== Testing Center Endpoints ====================
