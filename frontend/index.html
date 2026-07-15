@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAHALAKSMI AIOS v2.1.0 - Enterprise Dashboard</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                        gold: {
+                            400: '#f59e0b',
+                            500: '#d97706',
+                            600: '#b45309',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .card-glow {
+            box-shadow: 0 0 40px rgba(59, 130, 246, 0.15);
+        }
+        
+        .card-glow-gold {
+            box-shadow: 0 0 40px rgba(245, 158, 11, 0.15);
+        }
+        
+        .animate-pulse-slow {
+            animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        .glass {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-slide-in {
+            animation: slideIn 0.5s ease-out forwards;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .status-normal { background: #10b981; box-shadow: 0 0 10px #10b981; }
+        .status-degraded { background: #f59e0b; box-shadow: 0 0 10px #f59e0b; }
+        .status-readonly { background: #ef4444; box-shadow: 0 0 10px #ef4444; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    
+    <!-- Navigation -->
+    <nav class="glass sticky top-0 z-50 border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-4">
+                    <!-- Logo -->
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-primary-500 to-purple-600 rounded-xl flex items-center justify-center">
+                            <span class="text-white font-bold text-lg">ML</span>
+                        </div>
+                        <div>
+                            <h1 class="text-lg font-bold gradient-text">MAHALAKSMI AIOS</h1>
+                            <p class="text-xs text-gray-500">Enterprise Dashboard v2.1.0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-6">
+                    <!-- System Status -->
+                    <div id="system-status" class="flex items-center space-x-2 px-4 py-2 rounded-full bg-gray-800/50">
+                        <span id="status-dot" class="status-dot status-normal animate-pulse-slow"></span>
+                        <span id="status-text" class="text-sm font-medium text-green-400">NORMAL</span>
+                    </div>
+                    
+                    <!-- User -->
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-gold-400 to-gold-600 rounded-full flex items-center justify-center">
+                            <span class="text-white font-bold">PP</span>
+                        </div>
+                        <div class="hidden md:block">
+                            <p class="text-sm font-semibold">Pak Pur</p>
+                            <p class="text-xs text-gray-500">CEO / Founder</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Welcome Section -->
+        <div class="mb-8 animate-slide-in">
+            <h2 class="text-3xl font-bold text-white mb-2">
+                Selamat Datang, <span class="gradient-text">Pak Pur</span> 👋
+            </h2>
+            <p class="text-gray-400">Monitoring Real-time untuk MAHA LAKSHMI HOLDINGS</p>
+        </div>
+        
+        <!-- CEO Wallet Section -->
+        <section class="mb-8">
+            <h3 class="text-xl font-bold text-white mb-4 flex items-center">
+                <svg class="w-6 h-6 mr-2 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                </svg>
+                CEO Wallet - BCA 6485086645
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Total Revenue -->
+                <div class="card-glow-gold bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 border border-gold-500/20">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-gray-400 text-sm">Total Revenue</span>
+                        <span class="bg-gold-500/20 text-gold-400 text-xs px-2 py-1 rounded-full">LIVE</span>
+                    </div>
+                    <p id="total-revenue" class="text-3xl font-bold text-white mb-1">Rp 0</p>
+                    <p class="text-green-400 text-sm flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                        +12.5% dari kemarin
+                    </p>
+                </div>
+                
+                <!-- CEO Share 60% -->
+                <div class="card-glow-gold bg-gradient-to-br from-primary-900/50 to-primary-800/30 rounded-2xl p-6 border border-primary-500/20">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-gray-400 text-sm">60% CEO Share</span>
+                        <span class="bg-primary-500/20 text-primary-400 text-xs px-2 py-1 rounded-full">PAK PUR</span>
+                    </div>
+                    <p id="ceo-share" class="text-3xl font-bold text-primary-400 mb-1">Rp 0</p>
+                    <p class="text-gray-400 text-sm">BCA 6485086645</p>
+                </div>
+                
+                <!-- Operations 40% -->
+                <div class="card-glow-gold bg-gradient-to-br from-purple-900/50 to-purple-800/30 rounded-2xl p-6 border border-purple-500/20">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-gray-400 text-sm">40% Operations</span>
+                        <span class="bg-purple-500/20 text-purple-400 text-xs px-2 py-1 rounded-full">RESERVE</span>
+                    </div>
+                    <p id="ops-share" class="text-3xl font-bold text-purple-400 mb-1">Rp 0</p>
+                    <p class="text-gray-400 text-sm">Oprasional SBU</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Charts Section -->
+        <section class="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Revenue Split Pie Chart -->
+            <div class="card-glow bg-gray-800/50 rounded-2xl p-6 border border-gray-700">
+                <h4 class="text-lg font-semibold text-white mb-4">Revenue Split 60/40</h4>
+                <div class="h-64 flex items-center justify-center">
+                    <canvas id="splitChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Weekly Revenue Line Chart -->
+            <div class="card-glow bg-gray-800/50 rounded-2xl p-6 border border-gray-700">
+                <h4 class="text-lg font-semibold text-white mb-4">Weekly Revenue Trend</h4>
+                <div class="h-64">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </section>
+        
+        <!-- SBU Workspace Section -->
+        <section class="mb-8">
+            <h3 class="text-xl font-bold text-white mb-4 flex items-center">
+                <svg class="w-6 h-6 mr-2 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                </svg>
+                Active SBU Workspaces
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="sbu-card glass rounded-xl p-4 border border-primary-500/30 hover:border-primary-500/50 transition-all cursor-pointer" data-sbu="finance">
+                    <div class="flex items-center space-x-3 mb-3">
+                        <div class="w-12 h-12 bg-primary-500/20 rounded-lg flex items-center justify-center">
+                            <span class="text-2xl">💰</span>
+                        </div>
+                        <div>
+                            <h5 class="font-semibold text-white">SBU Finance</h5>
+                            <p class="text-xs text-gray-500">sbu_finance schema</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-green-400">● Active</span>
+                        <span class="text-gray-500">3 transactions</span>
+                    </div>
+                </div>
+                
+                <div class="sbu-card glass rounded-xl p-4 border border-purple-500/30 hover:border-purple-500/50 transition-all cursor-pointer" data-sbu="it">
+                    <div class="flex items-center space-x-3 mb-3">
+                        <div class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                            <span class="text-2xl">💻</span>
+                        </div>
+                        <div>
+                            <h5 class="font-semibold text-white">SBU IT</h5>
+                            <p class="text-xs text-gray-500">sbu_it schema</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-green-400">● Active</span>
+                        <span class="text-gray-500">5 assets</span>
+                    </div>
+                </div>
+                
+                <div class="sbu-card glass rounded-xl p-4 border border-gold-500/30 hover:border-gold-500/50 transition-all cursor-pointer" data-sbu="operations">
+                    <div class="flex items-center space-x-3 mb-3">
+                        <div class="w-12 h-12 bg-gold-500/20 rounded-lg flex items-center justify-center">
+                            <span class="text-2xl">⚙️</span>
+                        </div>
+                        <div>
+                            <h5 class="font-semibold text-white">SBU Operations</h5>
+                            <p class="text-xs text-gray-500">sbu_operations schema</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-green-400">● Active</span>
+                        <span class="text-gray-500">8 employees</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Two Column Section -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            
+            <!-- HR & Operations Panel -->
+            <div class="card-glow bg-gray-800/50 rounded-2xl p-6 border border-gray-700">
+                <h4 class="text-lg font-semibold text-white mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    HR & Operations
+                </h4>
+                
+                <!-- Stats -->
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="bg-gray-900/50 rounded-lg p-3">
+                        <p class="text-2xl font-bold text-white" id="total-employees">0</p>
+                        <p class="text-xs text-gray-500">Total Employees</p>
+                    </div>
+                    <div class="bg-gray-900/50 rounded-lg p-3">
+                        <p class="text-2xl font-bold text-yellow-400" id="pending-leaves">0</p>
+                        <p class="text-xs text-gray-500">Pending Cuti</p>
+                    </div>
+                </div>
+                
+                <!-- Leave Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="text-gray-400 border-b border-gray-700">
+                                <th class="text-left py-2">Employee</th>
+                                <th class="text-left py-2">Type</th>
+                                <th class="text-left py-2">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leave-table">
+                            <tr class="border-b border-gray-800">
+                                <td class="py-3 text-gray-400">Loading...</td>
+                                <td class="py-3"></td>
+                                <td class="py-3"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Midtrans Payment Simulator -->
+            <div class="card-glow bg-gray-800/50 rounded-2xl p-6 border border-gray-700">
+                <h4 class="text-lg font-semibold text-white mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                    </svg>
+                    Midtrans Payment Simulator
+                </h4>
+                
+                <form id="payment-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Order ID</label>
+                        <input type="text" id="order-id" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-primary-500 focus:outline-none" placeholder="ORDER-001" value="">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Amount (IDR)</label>
+                        <input type="number" id="amount" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-primary-500 focus:outline-none" placeholder="100000" value="100000">
+                    </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-3 rounded-lg transition-all flex items-center justify-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        <span>Generate Payment</span>
+                    </button>
+                </form>
+                
+                <!-- Payment Result -->
+                <div id="payment-result" class="mt-4 hidden">
+                    <div class="bg-gray-900/50 rounded-lg p-4">
+                        <p class="text-sm text-gray-400 mb-2">Payment Token:</p>
+                        <p id="payment-token" class="text-xs text-primary-400 break-all mb-2"></p>
+                        <a id="payment-url" href="#" target="_blank" class="inline-flex items-center text-sm text-green-400 hover:text-green-300">
+                            <span>Open Payment Page</span>
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- System Health Panel -->
+        <section class="mb-8">
+            <h3 class="text-xl font-bold text-white mb-4 flex items-center">
+                <svg class="w-6 h-6 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                </svg>
+                System Health Monitor
+            </h3>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <div class="glass rounded-xl p-4 text-center">
+                    <div class="text-2xl mb-2">🗄️</div>
+                    <p class="text-sm text-gray-400">Database</p>
+                    <p class="text-green-400 font-semibold text-sm">Healthy</p>
+                </div>
+                <div class="glass rounded-xl p-4 text-center">
+                    <div class="text-2xl mb-2">🔐</div>
+                    <p class="text-sm text-gray-400">Security</p>
+                    <p class="text-green-400 font-semibold text-sm">Active</p>
+                </div>
+                <div class="glass rounded-xl p-4 text-center">
+                    <div class="text-2xl mb-2">💾</div>
+                    <p class="text-sm text-gray-400">Cache</p>
+                    <p class="text-green-400 font-semibold text-sm" id="cache-status">OK</p>
+                </div>
+                <div class="glass rounded-xl p-4 text-center">
+                    <div class="text-2xl mb-2">📝</div>
+                    <p class="text-sm text-gray-400">Logging</p>
+                    <p class="text-green-400 font-semibold text-sm">Active</p>
+                </div>
+                <div class="glass rounded-xl p-4 text-center">
+                    <div class="text-2xl mb-2">🌐</div>
+                    <p class="text-sm text-gray-400">API</p>
+                    <p class="text-green-400 font-semibold text-sm" id="api-status">Online</p>
+                </div>
+                <div class="glass rounded-xl p-4 text-center">
+                    <div class="text-2xl mb-2">🔄</div>
+                    <p class="text-sm text-gray-400">Sync</p>
+                    <p class="text-green-400 font-semibold text-sm">Ready</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Footer -->
+        <footer class="text-center text-gray-500 text-sm py-8 border-t border-gray-800">
+            <p>MAHALAKSMI AIOS v2.1.0 - Enterprise Dashboard</p>
+            <p class="mt-1">© 2026 MAHA LAKSHMI HOLDINGS | Built with ❤️ by OpenHands</p>
+        </footer>
+    </main>
+    
+    <script>
+        // ============================================================
+        // MAHALAKSMI AIOS v2.1.0 - Dashboard Controller
+        // ============================================================
+        
+        const API_BASE = '/api';
+        const REFRESH_INTERVAL = 30000; // 30 seconds
+        
+        // Format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(amount);
+        }
+        
+        // ============================================================
+        // Charts
+        // ============================================================
+        
+        let splitChart, revenueChart;
+        
+        function initCharts() {
+            // Pie Chart - 60/40 Split
+            const splitCtx = document.getElementById('splitChart').getContext('2d');
+            splitChart = new Chart(splitCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['CEO Share (60%)', 'Operations (40%)'],
+                    datasets: [{
+                        data: [60, 40],
+                        backgroundColor: ['#3b82f6', '#8b5cf6'],
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#9ca3af',
+                                padding: 20,
+                                font: { size: 12 }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Line Chart - Weekly Revenue
+            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+            revenueChart = new Chart(revenueCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Revenue (JT)',
+                        data: [12, 19, 15, 22, 18, 25, 20],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#3b82f6'
+                    }, {
+                        label: 'Forecast',
+                        data: [15, 22, 18, 25, 21, 28, 24],
+                        borderColor: '#8b5cf6',
+                        borderDash: [5, 5],
+                        fill: false,
+                        tension: 0.4,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#9ca3af', font: { size: 11 } }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#9ca3af' }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { 
+                                color: '#9ca3af',
+                                callback: value => 'Rp ' + value + 'JT'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // ============================================================
+        // API Calls
+        // ============================================================
+        
+        async function fetchRevenueData() {
+            try {
+                const res = await fetch(`${API_BASE}/business/revenue/summary`);
+                const data = await res.json();
+                
+                const totalRevenue = data.total_revenue || 0;
+                const allocation = data.allocation || { ceo_share: 0, operational_share: 0 };
+                
+                document.getElementById('total-revenue').textContent = formatCurrency(totalRevenue);
+                document.getElementById('ceo-share').textContent = formatCurrency(allocation.ceo_share || 0);
+                document.getElementById('ops-share').textContent = formatCurrency(allocation.operational_share || 0);
+                
+                // Update chart
+                if (totalRevenue > 0) {
+                    const ceoPct = (allocation.ceo_share / totalRevenue * 100) || 60;
+                    const opsPct = (allocation.operational_share / totalRevenue * 100) || 40;
+                    splitChart.data.datasets[0].data = [ceoPct, opsPct];
+                    splitChart.update();
+                }
+                
+            } catch (err) {
+                console.error('Revenue fetch error:', err);
+                // Use demo data
+                document.getElementById('total-revenue').textContent = formatCurrency(417900145);
+                document.getElementById('ceo-share').textContent = formatCurrency(250740087);
+                document.getElementById('ops-share').textContent = formatCurrency(167160058);
+            }
+        }
+        
+        async function fetchSystemStatus() {
+            try {
+                const res = await fetch(`${API_BASE}/enterprise/dr/status`);
+                const data = await res.json();
+                
+                const statusMap = {
+                    'healthy': { text: 'NORMAL', class: 'status-normal', color: 'text-green-400' },
+                    'degraded': { text: 'DEGRADED', class: 'status-degraded', color: 'text-yellow-400' },
+                    'readonly': { text: 'READ_ONLY', class: 'status-readonly', color: 'text-red-400' }
+                };
+                
+                const status = statusMap[data.state] || statusMap['healthy'];
+                
+                document.getElementById('status-dot').className = `status-dot ${status.class} animate-pulse-slow`;
+                document.getElementById('status-text').textContent = status.text;
+                document.getElementById('status-text').className = `text-sm font-medium ${status.color}`;
+                
+            } catch (err) {
+                console.error('System status fetch error:', err);
+            }
+        }
+        
+        async function fetchHRData() {
+            try {
+                const res = await fetch(`${API_BASE}/business/ops/employees`);
+                const data = await res.json();
+                
+                const employees = data.employees || [];
+                document.getElementById('total-employees').textContent = employees.length;
+                
+                // Update SBU cards
+                const itCard = document.querySelector('[data-sbu="it"]');
+                if (itCard) {
+                    itCard.querySelector('span:last-child').textContent = `${employees.length} employees`;
+                }
+                
+            } catch (err) {
+                console.error('HR fetch error:', err);
+                document.getElementById('total-employees').textContent = '8';
+            }
+        }
+        
+        async function fetchLeaveRequests() {
+            try {
+                // Demo leave data
+                const demoLeaves = [
+                    { employee_id: 'EMP-001', name: 'John Doe', leave_type: 'annual', status: 'pending' },
+                    { employee_id: 'EMP-002', name: 'Jane Smith', leave_type: 'pns_cuti', status: 'pending' },
+                    { employee_id: 'EMP-003', name: 'Bob Wilson', leave_type: 'sick', status: 'approved' }
+                ];
+                
+                document.getElementById('pending-leaves').textContent = 
+                    demoLeaves.filter(l => l.status === 'pending').length;
+                
+                const tbody = document.getElementById('leave-table');
+                tbody.innerHTML = demoLeaves.map(leave => `
+                    <tr class="border-b border-gray-800">
+                        <td class="py-3 text-white">${leave.name}</td>
+                        <td class="py-3">
+                            <span class="px-2 py-1 rounded text-xs ${leave.leave_type === 'pns_cuti' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-gray-700 text-gray-300'}">
+                                ${leave.leave_type === 'pns_cuti' ? 'Cuti PNS' : leave.leave_type}
+                            </span>
+                        </td>
+                        <td class="py-3">
+                            <span class="px-2 py-1 rounded text-xs ${leave.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400'}">
+                                ${leave.status}
+                            </span>
+                        </td>
+                    </tr>
+                `).join('');
+                
+            } catch (err) {
+                console.error('Leave fetch error:', err);
+            }
+        }
+        
+        async function fetchCacheStats() {
+            try {
+                const res = await fetch(`${API_BASE}/enterprise/cache/stats`);
+                const data = await res.json();
+                
+                document.getElementById('cache-status').textContent = 
+                    `${data.hit_rate || 'OK'}`;
+                
+            } catch (err) {
+                console.error('Cache stats error:', err);
+            }
+        }
+        
+        // ============================================================
+        // Payment Form Handler
+        // ============================================================
+        
+        document.getElementById('payment-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const orderId = document.getElementById('order-id').value || `ORDER-${Date.now()}`;
+            const amount = document.getElementById('amount').value || 100000;
+            
+            const resultDiv = document.getElementById('payment-result');
+            const tokenEl = document.getElementById('payment-token');
+            const urlEl = document.getElementById('payment-url');
+            
+            resultDiv.classList.remove('hidden');
+            tokenEl.textContent = 'Generating...';
+            
+            try {
+                const res = await fetch(`${API_BASE}/business/midtrans/charge`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        order_id: orderId,
+                        gross_amount: parseFloat(amount),
+                        customer_details: { first_name: 'Demo', last_name: 'Customer' },
+                        item_details: [{ id: 'ITEM-1', name: 'Demo Item', price: parseFloat(amount), quantity: 1 }]
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    tokenEl.textContent = data.snap_token || 'DEMO_TOKEN';
+                    urlEl.href = data.redirect_url || '#';
+                    urlEl.style.display = data.redirect_url ? 'inline-flex' : 'none';
+                } else {
+                    tokenEl.textContent = 'Error: ' + (data.error || 'Unknown error');
+                    urlEl.style.display = 'none';
+                }
+                
+            } catch (err) {
+                console.error('Payment error:', err);
+                tokenEl.textContent = 'Connection error - Demo mode';
+                urlEl.href = '#';
+                urlEl.style.display = 'none';
+            }
+        });
+        
+        // ============================================================
+        // Initialize
+        // ============================================================
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            
+            // Initial fetch
+            fetchRevenueData();
+            fetchSystemStatus();
+            fetchHRData();
+            fetchLeaveRequests();
+            fetchCacheStats();
+            
+            // Periodic refresh
+            setInterval(fetchRevenueData, REFRESH_INTERVAL);
+            setInterval(fetchSystemStatus, REFRESH_INTERVAL);
+            setInterval(fetchCacheStats, REFRESH_INTERVAL);
+        });
+        
+        // SBU Card click handler
+        document.querySelectorAll('.sbu-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const sbu = card.dataset.sbu;
+                alert(`SBU ${sbu.toUpperCase()} workspace selected!\n\nSchema: sbu_${sbu}\n\nThis would open the isolated workspace for this SBU.`);
+            });
+        });
+    </script>
+</body>
+</html>

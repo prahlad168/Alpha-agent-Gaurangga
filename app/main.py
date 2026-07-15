@@ -7,7 +7,8 @@ import logging
 from contextlib import asynccontextmanager
 from typing import Dict, Any, Optional
 
-from fastapi import FastAPI, HTTPException, Depends, Header
+from fastapi import FastAPI, HTTPException, Depends, Header, Request
+from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -180,18 +181,60 @@ app.add_middleware(
 app.add_middleware(SecurityMiddleware)
 
 
-# ==================== Health & Status Endpoints ====================
+# ==================== Dashboard Endpoint ====================
 
-@app.get("/", response_model=Dict)
+@app.get("/", response_class=HTMLResponse)
 async def root():
-    """Root endpoint."""
-    return {
-        "name": "MAHALAKSMI AIOS",
-        "version": "1.0.0",
-        "status": "running",
-        "docs": "/docs"
-    }
+    """Redirect root to dashboard."""
+    return await dashboard()
 
+
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard():
+    """Serve the MAHALAKSMI AIOS Dashboard."""
+    import os
+    
+    # Try multiple possible paths
+    possible_paths = [
+        os.path.join(os.getcwd(), "frontend", "index.html"),
+        os.path.join(os.getcwd(), "..", "frontend", "index.html"),
+        "/workspace/project/Alpha-agent-Gaurangga/frontend/index.html",
+    ]
+    
+    frontend_path = None
+    for path in possible_paths:
+        if os.path.exists(path):
+            frontend_path = path
+            break
+    
+    if frontend_path:
+        with open(frontend_path, "r", encoding="utf-8") as f:
+            return f.read()
+    else:
+        return """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>MAHALAKSMI AIOS Dashboard</title>
+            <style>
+                body { font-family: Arial; background: #1a1a2e; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+                .card { background: #16213e; padding: 40px; border-radius: 20px; text-align: center; }
+                h1 { color: #0f3460; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+                p { color: #888; }
+            </style>
+        </head>
+        <body>
+            <div class="card">
+                <h1>MAHALAKSMI AIOS v2.1.0</h1>
+                <p>Enterprise Dashboard</p>
+                <p>Frontend not found</p>
+            </div>
+        </body>
+        </html>
+        """
+
+
+# ==================== Health & Status Endpoints ====================
 
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
