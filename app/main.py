@@ -57,6 +57,7 @@ from app.enterprise.backup import get_backup_center
 from app.enterprise.disaster_recovery import get_disaster_recovery_engine, SystemState
 from app.enterprise.hub import get_enterprise_hub, EventType
 from app.business.customer import get_customer_center, CustomerStatus, TicketPriority, TicketStatus
+from app.business.midtrans_client import get_midtrans_client, get_payment_queue
 from app.core.rbac import get_rbac_engine, Role, Permission, Resource
 from app.development.repository_center import get_repository_center
 
@@ -1909,6 +1910,180 @@ async def get_customer_analytics(customer_id: str):
 async def get_customer_overview():
     """Get overall customer analytics."""
     return get_customer_center().get_overall_analytics()
+
+
+# ==================== Midtrans Payment Gateway Endpoints ====================
+
+@app.post("/business/midtrans/charge")
+async def create_payment_charge(
+    order_id: str,
+    gross_amount: float,
+    customer_details: str = "{}",
+    item_details: str = "[]",
+    source: str = "midtrans"
+):
+    """
+    Create a Midtrans Snap payment.
+    
+    This endpoint:
+    1. Creates a Snap token from Midtrans
+    2. Returns redirect URL for payment page
+    3. Creates a pending transaction in the Revenue Engine
+    """
+    import json
+    
+    # Parse JSON strings
+    try:
+        customer = json.loads(customer_details) if isinstance(customer_details, str) else customer_details
+        items = json.loads(item_details) if isinstance(item_details, str) else item_details
+    except json.JSONDecodeError:
+        return {"error": "Invalid JSON format for customer_details or item_details"}
+    
+    # Create payment order
+    revenue = get_revenue_manager()
+    result = await revenue.create_payment_order(
+        order_id=order_id,
+        gross_amount=gross_amount,
+        customer_details=customer,
+        item_details=items,
+        source=source
+    )
+    
+    return result
+
+
+@app.post("/business/midtrans/webhook")
+async def midtrans_webhook(request: Request):
+    """
+    Midtrans webhook handler.
+    
+    This endpoint:
+    1. Receives payment notifications from Midtrans
+    2. Verifies the signature key
+    3. Updates transaction status based on payment result
+    4. Triggers 60/40 split on successful settlement
+    
+    Note: This endpoint should be publicly accessible but rate-limited.
+    """
+    try:
+        # Get raw payload
+        payload = await request.json()
+        
+        logger.info(f"Midtrans webhook received: {payload.get('order_id', 'unknown')}")
+        
+        # Get Midtrans client
+        midtrans = get_midtrans_client()
+        
+        # Verify and parse notification
+        try:
+            notification = midtrans.handle_notification(payload)
+        except ValueError as e:
+            logger.warning(f"Invalid webhook signature: {e}")
+            return {"error": "Invalid signature"}, 403
+        
+        # Get revenue manager
+        revenue = get_revenue_manager()
+        
+        # Handle based on transaction status
+        if notification.transaction_status.value in ["settlement", "capture"]:
+            # Payment successful - trigger 60/40 split
+            transaction = await revenue.handle_payment_settlement(
+                order_id=notification.order_id,
+                gross_amount=notification.gross_amount,
+                transaction_id=notification.transaction_id,
+                payment_type=notification.payment_type,
+                transaction_time=notification.transaction_time
+            )
+            
+            logger.info(
+                f"Settlement processed: {notification.order_id} - "
+                f"CEO: Rp {transaction.ceo_share:,.0f} / "
+                f"Ops: Rp {transaction.operational_share:,.0f}"
+            )
+            
+            return {
+                "status": "success",
+                "order_id": notification.order_id,
+                "gross_amount": notification.gross_amount,
+                "ceo_share": transaction.ceo_share,
+                "operational_share": transaction.operational_share,
+                "transaction_status": notification.transaction_status.value
+            }
+        
+        elif notification.transaction_status.value == "pending":
+            # Payment is pending - no action needed
+            return {
+                "status": "pending",
+                "order_id": notification.order_id
+            }
+        
+        elif notification.transaction_status.value in ["deny", "expire", "cancel"]:
+            # Payment failed - cancel pending order
+            revenue.cancel_pending_payment(notification.order_id)
+            
+            return {
+                "status": "cancelled",
+                "order_id": notification.order_id,
+                "transaction_status": notification.transaction_status.value
+            }
+        
+        else:
+            # Other status - log and acknowledge
+            logger.info(f"Unhandled transaction status: {notification.transaction_status.value}")
+            return {
+                "status": "acknowledged",
+                "order_id": notification.order_id,
+                "transaction_status": notification.transaction_status.value
+            }
+    
+    except Exception as e:
+        logger.error(f"Webhook processing error: {e}")
+        import traceback
+        traceback.print_exc()
+        return {"error": str(e)}, 500
+
+
+@app.get("/business/midtrans/status/{order_id}")
+async def get_payment_status(order_id: str):
+    """Get payment status by order ID."""
+    revenue = get_revenue_manager()
+    transaction = revenue.get_transaction_by_order_id(order_id)
+    
+    if not transaction:
+        return {"error": "Order not found"}
+    
+    return {
+        "order_id": order_id,
+        "transaction_id": transaction.transaction_id,
+        "amount": transaction.amount,
+        "status": transaction.status.value,
+        "ceo_share": transaction.ceo_share,
+        "operational_share": transaction.operational_share,
+        "payment_method": transaction.payment_method.value
+    }
+
+
+@app.get("/business/midtrans/payment-methods")
+async def get_payment_methods():
+    """Get available Midtrans payment methods."""
+    return {
+        "payment_methods": [
+            {"code": "credit_card", "name": "Credit Card"},
+            {"code": "bca_va", "name": "BCA Virtual Account"},
+            {"code": "permata_va", "name": "Permata Virtual Account"},
+            {"code": "other_va", "name": "Other Bank Virtual Account"},
+            {"code": "qris", "name": "QRIS"},
+            {"code": "gopay", "name": "GoPay"},
+            {"code": "shopeepay", "name": "ShopeePay"},
+            {"code": "indomaret", "name": "Indomaret"},
+            {"code": "alfamart", "name": "Alfamart"}
+        ],
+        "features": {
+            "recurring": True,
+            "installment": True,
+            "tokenization": True
+        }
+    }
 
 
 # ==================== Debug Endpoints ====================
