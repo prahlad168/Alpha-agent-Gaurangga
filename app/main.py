@@ -26,6 +26,7 @@ from app.core.security_ext import (
     get_jwt_manager, 
     get_license_generator
 )
+from app.core.digital_twin import get_company_brain
 from app.intelligence.gateway import get_gateway
 from app.intelligence.memory import get_memory
 from app.development.openhands_connector import get_connector
@@ -40,6 +41,13 @@ from app.enterprise.notification import (
     NotificationChannel,
     RevenueNotifier
 )
+from app.enterprise.mission_control import (
+    get_mission_control,
+    MissionStatus,
+    Priority
+)
+from app.enterprise.monitoring import get_monitoring_center
+from app.enterprise.backup import get_backup_center
 from app.enterprise.hub import get_enterprise_hub, EventType
 
 # Configure logging
@@ -814,6 +822,237 @@ async def get_connector_status():
     """Get connector status."""
     connector = get_connector()
     return connector.get_status()
+
+
+# ==================== Company Brain (Digital Twin) Endpoints ====================
+
+@app.get("/company/profile")
+async def get_company_profile():
+    """Get MAHA LAKSHMI CORP company profile."""
+    brain = get_company_brain()
+    profile = brain.get_profile()
+    return profile.__dict__
+
+
+@app.get("/company/kpis")
+async def get_company_kpis():
+    """Get company KPIs and metrics."""
+    brain = get_company_brain()
+    return brain.get_kpis()
+
+
+@app.get("/company/entities")
+async def list_company_entities(entity_type: str = None):
+    """List company entities."""
+    from app.core.digital_twin import EntityType
+    brain = get_company_brain()
+    
+    etype = None
+    if entity_type:
+        try:
+            etype = EntityType(entity_type)
+        except:
+            pass
+    
+    entities = brain.list_entities(etype)
+    return {
+        "entities": [
+            {
+                "id": e.entity_id,
+                "type": e.entity_type.value,
+                "name": e.name,
+                "description": e.description,
+                "metadata": e.metadata
+            }
+            for e in entities
+        ]
+    }
+
+
+@app.get("/company/entity/{entity_id}")
+async def get_company_entity(entity_id: str):
+    """Get specific company entity."""
+    brain = get_company_brain()
+    entity = brain.get_entity(entity_id)
+    
+    if not entity:
+        raise HTTPException(status_code=404, detail="Entity not found")
+    
+    return {
+        "id": entity.entity_id,
+        "type": entity.entity_type.value,
+        "name": entity.name,
+        "description": entity.description,
+        "metadata": entity.metadata,
+        "relationships": entity.relationships
+    }
+
+
+# ==================== Mission Control Endpoints ====================
+
+@app.get("/mission/dashboard")
+async def get_mission_dashboard():
+    """Get mission control dashboard."""
+    mc = get_mission_control()
+    return mc.get_dashboard()
+
+
+@app.get("/mission/missions")
+async def list_missions(status: str = None):
+    """List all missions."""
+    mc = get_mission_control()
+    
+    mstatus = None
+    if status:
+        try:
+            mstatus = MissionStatus(status)
+        except:
+            pass
+    
+    return {"missions": mc.get_missions(mstatus)}
+
+
+@app.post("/mission/missions")
+async def create_mission(
+    title: str,
+    description: str,
+    priority: str = "normal",
+    assigned_to: str = "",
+    due_date: str = ""
+):
+    """Create new mission."""
+    mc = get_mission_control()
+    
+    p = Priority.NORMAL
+    if priority == "critical":
+        p = Priority.CRITICAL
+    elif priority == "high":
+        p = Priority.HIGH
+    elif priority == "low":
+        p = Priority.LOW
+    
+    mission = mc.create_mission(title, description, p, assigned_to, due_date)
+    
+    return {
+        "mission_id": mission.mission_id,
+        "title": mission.title,
+        "status": mission.status.value
+    }
+
+
+@app.patch("/mission/missions/{mission_id}")
+async def update_mission(mission_id: str, status: str, progress: float = None):
+    """Update mission status."""
+    mc = get_mission_control()
+    
+    mstatus = MissionStatus(status)
+    success = mc.update_mission_status(mission_id, mstatus, progress)
+    
+    return {"success": success, "mission_id": mission_id}
+
+
+@app.get("/mission/alerts")
+async def list_alerts(level: str = None, unacknowledged: bool = False):
+    """Get system alerts."""
+    mc = get_mission_control()
+    return {"alerts": mc.get_alerts(level, unacknowledged)}
+
+
+@app.post("/mission/alerts/{alert_id}/acknowledge")
+async def acknowledge_alert(alert_id: str):
+    """Acknowledge an alert."""
+    mc = get_mission_control()
+    success = mc.acknowledge_alert(alert_id)
+    return {"success": success}
+
+
+# ==================== Monitoring Center Endpoints ====================
+
+@app.get("/monitoring/dashboard")
+async def get_monitoring_dashboard():
+    """Get complete monitoring dashboard."""
+    mc = get_monitoring_center()
+    return mc.get_monitoring_dashboard()
+
+
+@app.get("/monitoring/metrics")
+async def get_current_metrics():
+    """Get current system metrics."""
+    mc = get_monitoring_center()
+    return mc.get_current_metrics()
+
+
+@app.get("/monitoring/api-health")
+async def get_api_health():
+    """Check API endpoints health."""
+    mc = get_monitoring_center()
+    return mc.get_api_health()
+
+
+@app.post("/monitoring/collect")
+async def force_collect_metrics():
+    """Force metrics collection."""
+    mc = get_monitoring_center()
+    metrics = mc.collect_system_metrics()
+    return {"status": "collected", "timestamp": metrics.timestamp}
+
+
+# ==================== Backup Center Endpoints ====================
+
+@app.post("/backup/database/{db_name}")
+async def backup_database(db_name: str):
+    """Create backup of a database."""
+    bc = get_backup_center()
+    backup = bc.backup_database(db_name)
+    
+    return {
+        "backup_id": backup.backup_id,
+        "status": backup.status.value,
+        "size_bytes": backup.size_bytes,
+        "checksum": backup.checksum,
+        "created_at": backup.created_at
+    }
+
+
+@app.post("/backup/all")
+async def backup_all_databases():
+    """Backup all databases."""
+    bc = get_backup_center()
+    backups = bc.backup_all_databases()
+    
+    return {
+        "backups": [
+            {
+                "backup_id": b.backup_id,
+                "status": b.status.value,
+                "source": b.source_path,
+                "size_bytes": b.size_bytes
+            }
+            for b in backups
+        ]
+    }
+
+
+@app.get("/backup/list")
+async def list_backups(db_name: str = None):
+    """List available backups."""
+    bc = get_backup_center()
+    return {"backups": bc.list_backups(db_name)}
+
+
+@app.get("/backup/stats")
+async def get_backup_stats():
+    """Get backup statistics."""
+    bc = get_backup_center()
+    return bc.get_backup_stats()
+
+
+@app.post("/backup/restore/{backup_id}")
+async def restore_database(backup_id: str, target_db: str = None):
+    """Restore database from backup."""
+    bc = get_backup_center()
+    success = bc.restore_database(backup_id, target_db)
+    return {"success": success, "backup_id": backup_id}
 
 
 # ==================== Enterprise Hub Endpoints ====================
