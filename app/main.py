@@ -61,6 +61,22 @@ from app.business.midtrans_client import get_midtrans_client, get_payment_queue
 from app.core.rbac import get_rbac_engine, Role, Permission, Resource
 from app.core.i18n import get_i18n_engine, detect_locale_from_request, localized_response, localized_error, t as translate
 from app.development.repository_center import get_repository_center
+from app.development.devops_suite import (
+    get_auto_test_runner, get_logging_system, get_deployment_center,
+    get_ai_coding_assistant, get_performance_profiler,
+    Environment, DeploymentStatus, LogLevel
+)
+from app.intelligence.multimodal import (
+    get_vision_engine, get_voice_engine, get_nlp_engine
+)
+from app.business.operations import (
+    get_asset_manager, get_legal_engine, get_hr_manager, get_supply_chain,
+    AssetType, LeaveType, LeaveStatus, VendorStatus, ProcurementStatus
+)
+from app.enterprise.architecture import (
+    get_erp_sync, get_business_intelligence, get_audit_trail,
+    get_security_shield, get_multi_tenant, get_cache
+)
 
 # Configure logging
 logging.basicConfig(
@@ -2182,6 +2198,528 @@ async def get_payment_methods():
             "tokenization": True
         }
     }
+
+
+# ==================== AI Intelligence Endpoints (Vol II) ====================
+
+@app.post("/ai/vision/analyze")
+async def analyze_image(
+    image_data: str = None,
+    image_url: str = None,
+    prompt: str = "Describe this image"
+):
+    """Analyze image using Vision Engine."""
+    vision = get_vision_engine()
+    result = vision.analyze_image(image_data, image_url, prompt)
+    
+    return {
+        "success": result.success,
+        "description": result.description,
+        "labels": result.labels,
+        "text_extracted": result.text_extracted,
+        "confidence": result.confidence,
+        "objects": result.objects_detected
+    }
+
+
+@app.post("/ai/voice/process")
+async def process_voice(
+    audio_data: str = None,
+    language: str = "id-ID"
+):
+    """Process voice command."""
+    voice = get_voice_engine()
+    result = voice.process_voice_command(audio_data, language)
+    
+    return {
+        "success": result.success,
+        "transcript": result.transcript,
+        "command": result.command,
+        "intent": result.intent,
+        "confidence": result.confidence
+    }
+
+
+@app.post("/ai/nlp/extract")
+async def extract_nlp(
+    text: str = None
+):
+    """Extract NLP analysis from text."""
+    nlp = get_nlp_engine()
+    result = nlp.full_analysis(text)
+    
+    return {
+        "success": result.success,
+        "sentiment": result.sentiment.value,
+        "sentiment_score": result.sentiment_score,
+        "entities": result.entities,
+        "categories": result.categories,
+        "keywords": result.keywords,
+        "summary": result.summary
+    }
+
+
+# ==================== DevOps Endpoints (Vol III) ====================
+
+@app.post("/dev/tests/run")
+async def run_tests():
+    """Run automated test suite."""
+    runner = get_auto_test_runner()
+    results = runner.run_all_tests()
+    return results
+
+
+@app.get("/dev/logs")
+async def get_logs(
+    level: str = None,
+    source: str = None,
+    since: str = None,
+    limit: int = 100
+):
+    """Get system logs."""
+    logs = get_logging_system()
+    return {"logs": logs.get_logs(level, source, since, limit)}
+
+
+@app.get("/dev/logs/security")
+async def get_security_logs():
+    """Get security logs."""
+    logs = get_logging_system()
+    return {"logs": logs.get_security_logs()}
+
+
+@app.post("/dev/deploy")
+async def create_deployment(
+    environment: str,
+    version: str,
+    notes: str = ""
+):
+    """Create new deployment."""
+    deploy = get_deployment_center()
+    env = Environment(environment)
+    record = deploy.create_deployment(env, version, notes)
+    
+    return {
+        "deployment_id": record.deployment_id,
+        "environment": record.environment.value,
+        "version": record.version,
+        "status": record.status.value
+    }
+
+
+@app.get("/dev/deploy/{deployment_id}")
+async def get_deployment_status(deployment_id: str):
+    """Get deployment status."""
+    deploy = get_deployment_center()
+    status = deploy.get_deployment_status(deployment_id)
+    
+    if not status:
+        return {"error": "Deployment not found"}
+    
+    return status
+
+
+@app.post("/dev/deploy/{deployment_id}/rollback")
+async def rollback_deployment(deployment_id: str, reason: str = ""):
+    """Rollback a deployment."""
+    deploy = get_deployment_center()
+    rollback_id = deploy.rollback_deployment(deployment_id, reason)
+    return {"rollback_id": rollback_id}
+
+
+@app.post("/dev/code/analyze")
+async def analyze_code(code: str, filename: str = "script.py"):
+    """Analyze code for issues."""
+    ai = get_ai_coding_assistant()
+    result = ai.analyze_code(code, filename)
+    return result
+
+
+@app.get("/dev/performance")
+async def get_performance_stats():
+    """Get performance statistics."""
+    profiler = get_performance_profiler()
+    return {
+        "endpoints": profiler.get_all_stats(),
+        "memory": profiler.get_memory_trend()
+    }
+
+
+@app.post("/dev/performance/snapshot")
+async def record_performance_snapshot():
+    """Record memory snapshot."""
+    profiler = get_performance_profiler()
+    return profiler.record_memory_snapshot()
+
+
+# ==================== Business Operations Endpoints (Vol IV) ====================
+
+@app.post("/business/ops/assets")
+async def create_asset(
+    name: str,
+    asset_type: str,
+    purchase_date: str,
+    purchase_cost: float,
+    depreciation_rate: float = 10.0,
+    useful_life_years: int = 5,
+    location: str = ""
+):
+    """Create new asset."""
+    from app.business.operations import Asset
+    
+    asset_manager = get_asset_manager()
+    
+    asset_id = f"ASSET-{uuid.uuid4().hex[:8].upper()}"
+    
+    asset = Asset(
+        asset_id=asset_id,
+        name=name,
+        asset_type=AssetType(asset_type),
+        purchase_date=purchase_date,
+        purchase_cost=purchase_cost,
+        current_value=purchase_cost,
+        depreciation_rate=depreciation_rate,
+        useful_life_years=useful_life_years,
+        location=location
+    )
+    
+    asset_manager.add_asset(asset)
+    
+    return {"asset_id": asset_id, "status": "created"}
+
+
+@app.get("/business/ops/assets")
+async def list_assets(asset_type: str = None):
+    """List all assets."""
+    asset_manager = get_asset_manager()
+    assets = asset_manager.get_assets(
+        AssetType(asset_type) if asset_type else None
+    )
+    return {"assets": assets}
+
+
+@app.get("/business/ops/assets/{asset_id}/depreciation")
+async def get_asset_depreciation(asset_id: str):
+    """Calculate asset depreciation."""
+    asset_manager = get_asset_manager()
+    return asset_manager.calculate_depreciation(asset_id)
+
+
+@app.post("/business/ops/contracts")
+async def generate_contract(
+    contract_type: str,
+    party_a_name: str,
+    party_b_name: str,
+    terms: str  # JSON array
+):
+    """Generate business contract."""
+    import json
+    
+    legal = get_legal_engine()
+    
+    terms_list = json.loads(terms) if isinstance(terms, str) else terms
+    
+    result = legal.generate_contract(
+        contract_type=contract_type,
+        party_a={"name": party_a_name},
+        party_b={"name": party_b_name},
+        terms=terms_list
+    )
+    
+    return result
+
+
+@app.post("/business/ops/nda")
+async def generate_nda(
+    disclosing_party: str,
+    receiving_party: str,
+    purpose: str,
+    duration_months: int = 24
+):
+    """Generate NDA."""
+    legal = get_legal_engine()
+    return legal.generate_nda(disclosing_party, receiving_party, purpose, duration_months)
+
+
+@app.post("/business/ops/employees")
+async def create_employee(
+    name: str,
+    email: str,
+    department: str,
+    position: str,
+    salary: float = 0
+):
+    """Create employee."""
+    from app.business.operations import Employee
+    
+    hr = get_hr_manager()
+    
+    employee_id = f"EMP-{uuid.uuid4().hex[:8].upper()}"
+    
+    employee = Employee(
+        employee_id=employee_id,
+        name=name,
+        email=email,
+        phone="",
+        department=department,
+        position=position,
+        hire_date=datetime.now().strftime("%Y-%m-%d"),
+        salary=salary
+    )
+    
+    hr.add_employee(employee)
+    
+    return {"employee_id": employee_id, "status": "created"}
+
+
+@app.get("/business/ops/employees")
+async def list_employees(department: str = None):
+    """List employees."""
+    hr = get_hr_manager()
+    return {"employees": hr.get_employees(department)}
+
+
+@app.post("/business/ops/leave")
+async def request_leave(
+    employee_id: str,
+    leave_type: str,
+    start_date: str,
+    end_date: str,
+    reason: str
+):
+    """Request leave."""
+    hr = get_hr_manager()
+    leave = hr.request_leave(
+        employee_id=employee_id,
+        leave_type=LeaveType(leave_type),
+        start_date=start_date,
+        end_date=end_date,
+        reason=reason
+    )
+    
+    return {"request_id": leave.request_id, "status": leave.status.value}
+
+
+@app.get("/business/ops/leave/{employee_id}")
+async def get_leave_balance(employee_id: str):
+    """Get leave balance."""
+    hr = get_hr_manager()
+    return hr.calculate_leave_balance(employee_id)
+
+
+@app.post("/business/ops/vendors")
+async def create_vendor(
+    name: str,
+    email: str,
+    category: str
+):
+    """Create vendor."""
+    from app.business.operations import Vendor
+    
+    supply = get_supply_chain()
+    
+    vendor_id = f"VD-{uuid.uuid4().hex[:8].upper()}"
+    
+    vendor = Vendor(
+        vendor_id=vendor_id,
+        name=name,
+        contact_person="",
+        email=email,
+        phone="",
+        address="",
+        category=category,
+        status=VendorStatus.ACTIVE
+    )
+    
+    supply.add_vendor(vendor)
+    
+    return {"vendor_id": vendor_id, "status": "created"}
+
+
+@app.get("/business/ops/vendors")
+async def list_vendors():
+    """List vendors."""
+    supply = get_supply_chain()
+    return {"vendors": supply.get_vendors()}
+
+
+@app.post("/business/ops/procurement")
+async def create_procurement(
+    vendor_id: str,
+    items: str,  # JSON
+    requested_by: str = "system"
+):
+    """Create procurement order."""
+    import json
+    
+    supply = get_supply_chain()
+    
+    items_list = json.loads(items) if isinstance(items, str) else items
+    
+    order = supply.create_procurement(vendor_id, items_list, requested_by)
+    
+    return {"order_id": order.order_id, "status": order.status.value}
+
+
+# ==================== Enterprise Architecture Endpoints (Vol V) ====================
+
+@app.get("/enterprise/erp/dashboard")
+async def get_erp_dashboard():
+    """Get unified ERP dashboard."""
+    erp = get_erp_sync()
+    return erp.get_unified_dashboard()
+
+
+@app.post("/enterprise/erp/sync")
+async def trigger_erp_sync(data_type: str = "all"):
+    """Trigger ERP data sync."""
+    erp = get_erp_sync()
+    return erp.trigger_sync(data_type)
+
+
+@app.get("/enterprise/bi/sales-velocity")
+async def get_sales_velocity():
+    """Get sales velocity analytics."""
+    bi = get_business_intelligence()
+    
+    # Get sample data
+    from app.business.revenue import get_revenue_manager
+    revenue = get_revenue_manager()
+    
+    transactions = [
+        {"amount": t.amount, "date": t.timestamp.isoformat()}
+        for t in list(revenue.transactions.values())[-30:]
+    ]
+    
+    return bi.calculate_sales_velocity(transactions)
+
+
+@app.get("/enterprise/bi/forecast")
+async def get_revenue_forecast(forecast_days: int = 30):
+    """Get revenue forecast."""
+    bi = get_business_intelligence()
+    
+    from app.business.revenue import get_revenue_manager
+    revenue = get_revenue_manager()
+    
+    historical = [
+        {"amount": t.amount, "date": t.timestamp.isoformat()}
+        for t in list(revenue.transactions.values())
+    ]
+    
+    return bi.forecast_revenue(historical, forecast_days)
+
+
+@app.get("/enterprise/audit/logs")
+async def get_audit_logs(
+    user_id: str = None,
+    action: str = None,
+    since: str = None,
+    limit: int = 100
+):
+    """Get audit logs."""
+    from app.enterprise.architecture import AuditAction
+    
+    audit = get_audit_trail()
+    
+    audit_action = AuditAction(action) if action else None
+    
+    return {"logs": audit.get_logs(user_id, audit_action, since, limit)}
+
+
+@app.get("/enterprise/audit/verify")
+async def verify_audit_integrity(limit: int = 100):
+    """Verify audit chain integrity."""
+    audit = get_audit_trail()
+    return audit.verify_chain_integrity(limit)
+
+
+@app.post("/enterprise/audit/log")
+async def create_audit_log(
+    user_id: str,
+    action: str,
+    resource: str,
+    resource_id: str = "",
+    ip_address: str = "",
+    details: str = "{}"
+):
+    """Create audit log entry."""
+    import json
+    from app.enterprise.architecture import AuditAction
+    
+    audit = get_audit_trail()
+    
+    details_dict = json.loads(details) if isinstance(details, str) else details
+    
+    entry = audit.log(
+        user_id=user_id,
+        action=AuditAction(action),
+        resource=resource,
+        resource_id=resource_id,
+        ip_address=ip_address,
+        details=details_dict
+    )
+    
+    return {"entry_id": entry.entry_id, "hash": entry.hash}
+
+
+@app.get("/enterprise/security/rate-limit/{ip_address}")
+async def check_rate_limit(ip_address: str):
+    """Check IP rate limit."""
+    shield = get_security_shield()
+    return shield.check_rate_limit(ip_address)
+
+
+@app.post("/enterprise/security/sanitize")
+async def sanitize_input(input_string: str):
+    """Sanitize input against injection."""
+    shield = get_security_shield()
+    return {
+        "original": input_string,
+        "sanitized": shield.sanitize_input(input_string),
+        "sql_injection_detected": shield.detect_sql_injection(input_string)
+    }
+
+
+@app.get("/enterprise/tenants")
+async def list_tenants():
+    """List all tenants."""
+    router = get_multi_tenant()
+    return {"tenants": router.get_all_tenants()}
+
+
+@app.post("/enterprise/tenants")
+async def create_tenant(
+    name: str,
+    tenant_type: str
+):
+    """Create new tenant."""
+    from app.enterprise.architecture import TenantType
+    
+    router = get_multi_tenant()
+    tenant = router.create_tenant(name, TenantType(tenant_type))
+    
+    return {
+        "tenant_id": tenant.tenant_id,
+        "name": tenant.name,
+        "schema": tenant.db_schema,
+        "api_key": tenant.api_key
+    }
+
+
+@app.get("/enterprise/cache/stats")
+async def get_cache_stats():
+    """Get cache statistics."""
+    cache = get_cache()
+    return cache.get_stats()
+
+
+@app.post("/enterprise/cache/clear")
+async def clear_cache():
+    """Clear cache."""
+    cache = get_cache()
+    cache.clear()
+    return {"status": "cleared"}
 
 
 # ==================== Debug Endpoints ====================
