@@ -57,6 +57,8 @@ from app.enterprise.backup import get_backup_center
 from app.enterprise.disaster_recovery import get_disaster_recovery_engine, SystemState
 from app.enterprise.hub import get_enterprise_hub, EventType
 from app.business.customer import get_customer_center, CustomerStatus, TicketPriority, TicketStatus
+from app.core.rbac import get_rbac_engine, Role, Permission, Resource
+from app.development.repository_center import get_repository_center
 
 # Configure logging
 logging.basicConfig(
@@ -237,6 +239,138 @@ async def get_rbac_matrix():
     """Get RBAC permission matrix."""
     security = get_security_manager()
     return {"rbac_matrix": security.get_rbac_matrix()}
+
+
+# ==================== Advanced RBAC Endpoints ====================
+
+@app.get("/auth/permissions")
+async def get_permissions(user_id: str = None, username: str = None):
+    """Get user permissions."""
+    rbac = get_rbac_engine()
+    
+    if user_id or username:
+        return rbac.get_user_permissions(user_id or "")
+    
+    users = rbac.db.get_all_users()
+    return {
+        "users": [
+            {
+                "user_id": u.user_id,
+                "username": u.username,
+                "role": u.role.value,
+                "permissions_count": len(u.permissions)
+            }
+            for u in users
+        ]
+    }
+
+
+@app.get("/auth/roles/matrix")
+async def get_role_matrix():
+    """Get complete role-permission matrix."""
+    rbac = get_rbac_engine()
+    return rbac.get_role_matrix()
+
+
+@app.post("/auth/assign-role")
+async def assign_role(
+    user_id: str,
+    role: str,
+    assigned_by: str = "system"
+):
+    """Assign role to user."""
+    rbac = get_rbac_engine()
+    
+    try:
+        target_role = Role(role)
+    except ValueError:
+        return {"error": f"Invalid role: {role}"}
+    
+    success = rbac.assign_role(user_id, target_role, assigned_by)
+    
+    if success:
+        return {"success": True, "user_id": user_id, "role": role}
+    
+    return {"error": "User not found or assignment failed"}
+
+
+@app.get("/auth/check")
+async def check_permission(
+    user_id: str = None,
+    username: str = None,
+    permission: str = None,
+    resource: str = None,
+    access_type: str = "read"
+):
+    """Check if user has permission."""
+    rbac = get_rbac_engine()
+    
+    if not user_id and not username:
+        return {"error": "user_id or username required"}
+    
+    user = rbac.db.get_user(user_id=user_id, username=username)
+    if not user:
+        return {"error": "User not found"}
+    
+    result = {"user_id": user.user_id, "username": user.username, "role": user.role.value}
+    
+    if permission:
+        try:
+            perm = Permission(permission)
+            has_perm = rbac.check_permission(user.user_id, perm)
+            result["permission"] = permission
+            result["allowed"] = has_perm
+        except ValueError:
+            result["error"] = f"Invalid permission: {permission}"
+    
+    if resource:
+        has_access = rbac.check_resource_access(user.user_id, Resource(resource), access_type)
+        result["resource"] = resource
+        result["access_type"] = access_type
+        result["allowed"] = has_access
+    
+    return result
+
+
+# ==================== Repository Center Endpoints ====================
+
+@app.get("/dev/repo/status")
+async def get_repo_status():
+    """Get repository status."""
+    repo = get_repository_center()
+    return repo.get_repository_status()
+
+
+@app.post("/dev/repo/archive")
+async def create_archive(
+    message: str = "Manual archive snapshot"
+):
+    """Create archive snapshot."""
+    repo = get_repository_center()
+    archive = repo.create_archive(message=message)
+    
+    return {
+        "archive_id": archive.archive_id,
+        "commit": archive.commit_hash,
+        "branch": archive.branch,
+        "files_count": len(archive.files_included),
+        "size_bytes": archive.total_size_bytes,
+        "status": archive.status.value
+    }
+
+
+@app.get("/dev/repo/archives/list")
+async def list_archives(limit: int = 50):
+    """List all archives."""
+    repo = get_repository_center()
+    return {"archives": repo.get_archives(limit)}
+
+
+@app.get("/dev/repo/archives/{archive_id}")
+async def get_archive_details(archive_id: str):
+    """Get archive details."""
+    repo = get_repository_center()
+    return repo.get_archive_details(archive_id)
 
 
 # ==================== AI/Intelligence Endpoints ====================
