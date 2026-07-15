@@ -59,6 +59,7 @@ from app.enterprise.hub import get_enterprise_hub, EventType
 from app.business.customer import get_customer_center, CustomerStatus, TicketPriority, TicketStatus
 from app.business.midtrans_client import get_midtrans_client, get_payment_queue
 from app.core.rbac import get_rbac_engine, Role, Permission, Resource
+from app.core.i18n import get_i18n_engine, detect_locale_from_request, localized_response, localized_error, t as translate
 from app.development.repository_center import get_repository_center
 
 # Configure logging
@@ -1774,6 +1775,103 @@ async def complete_recovery():
     dr = get_disaster_recovery_engine()
     success = dr.complete_recovery()
     return {"success": success, "state": "normal"}
+
+
+# ==================== Multilingual / i18n Endpoints ====================
+
+@app.get("/api/i18n/translate")
+async def translate_key(
+    request: Request,
+    key: str,
+    locale: str = None
+):
+    """
+    Get translated string for a key.
+    
+    Language detection priority:
+    1. Query parameter 'locale' or 'lang'
+    2. Header 'Accept-Language'
+    3. Default (English)
+    """
+    # Detect locale
+    if not locale:
+        locale = detect_locale_from_request(request)
+    
+    i18n = get_i18n_engine()
+    translation = i18n.get_translation(key, locale)
+    
+    return localized_response(
+        data={"key": key, "translation": translation},
+        message_key=None,
+        locale=locale
+    )
+
+
+@app.get("/api/i18n/locales")
+async def list_locales():
+    """List all supported languages."""
+    i18n = get_i18n_engine()
+    locales = i18n.get_locales()
+    
+    return {
+        "locales": locales,
+        "default_locale": i18n.default_locale,
+        "total_locales": len(locales)
+    }
+
+
+@app.get("/api/i18n/keys")
+async def list_translation_keys(
+    request: Request,
+    locale: str = None
+):
+    """List all available translation keys."""
+    if not locale:
+        locale = detect_locale_from_request(request)
+    
+    i18n = get_i18n_engine()
+    keys = i18n.get_all_keys(locale)
+    
+    return {
+        "locale": locale,
+        "keys": keys,
+        "total_keys": len(keys)
+    }
+
+
+@app.get("/api/i18n/batch")
+async def translate_batch(
+    request: Request,
+    keys: str,  # Comma-separated keys
+    locale: str = None
+):
+    """Get multiple translations at once."""
+    if not locale:
+        locale = detect_locale_from_request(request)
+    
+    i18n = get_i18n_engine()
+    key_list = [k.strip() for k in keys.split(",") if k.strip()]
+    translations = i18n.get_messages(key_list, locale)
+    
+    return {
+        "locale": locale,
+        "translations": translations,
+        "total": len(translations)
+    }
+
+
+@app.get("/api/i18n/detect")
+async def detect_language(request: Request):
+    """Detect language from request headers and parameters."""
+    locale = detect_locale_from_request(request)
+    i18n = get_i18n_engine()
+    locale_info = i18n.supported_locales.get(locale, {})
+    
+    return {
+        "detected_locale": locale,
+        "locale_name": locale_info.get("name", "Unknown"),
+        "native_name": locale_info.get("native_name", "Unknown")
+    }
 
 
 # ==================== Customer Center / CRM Endpoints ====================
