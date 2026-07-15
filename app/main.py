@@ -21,9 +21,11 @@ from config.settings import settings
 from app.core.engine import get_engine, initialize_system, shutdown_system, SystemState
 from app.core.security import get_security_manager, Permission
 from app.intelligence.gateway import get_gateway
+from app.intelligence.memory import get_memory
 from app.development.openhands_connector import get_connector
 from app.business.revenue import get_revenue_manager
 from app.business.finance import get_finance_ledger, TransactionType, Category
+from app.business.analytics import get_analytics
 from app.enterprise.hub import get_enterprise_hub, EventType
 
 # Configure logging
@@ -335,6 +337,137 @@ async def record_expense(
         description
     )
     return {"entry_id": entry.entry_id, "balance": entry.balance_after}
+
+
+# ==================== Analytics Endpoints ====================
+
+@app.get("/business/analytics/summary")
+async def get_analytics_summary(period_days: int = 30):
+    """
+    Get comprehensive business analytics summary.
+    Returns structured JSON for frontend visualization.
+    """
+    analytics = get_analytics()
+    return analytics.get_summary_json()
+
+
+@app.get("/business/analytics/distribution")
+async def get_distribution():
+    """Get 60/40 CEO vs Operational distribution."""
+    analytics = get_analytics()
+    distribution = analytics.calculate_distribution()
+    return {
+        "total_revenue": distribution.total_revenue,
+        "ceo_share": {
+            "amount": distribution.ceo_share,
+            "percentage": distribution.ceo_share_percentage,
+            "bank": distribution.ceo_bank,
+            "account": distribution.ceo_account,
+            "holder": distribution.ceo_holder
+        },
+        "operational_reserve": {
+            "amount": distribution.operational_reserve,
+            "percentage": distribution.operational_percentage,
+            "reinvestment": distribution.reinvestment_allocated,
+            "team_bonus": distribution.team_bonus_allocated,
+            "csr": distribution.csr_allocated
+        }
+    }
+
+
+@app.get("/business/analytics/growth")
+async def get_growth_metrics():
+    """Get growth velocity metrics."""
+    analytics = get_analytics()
+    growth = analytics.calculate_growth_metrics()
+    return {
+        "period_over_period_growth_percent": round(growth.period_over_period_growth, 2),
+        "monthly_recurring_revenue": growth.monthly_recurring_revenue,
+        "average_transaction_value": growth.average_transaction_value,
+        "projected_revenue_30d": growth.projected_revenue_30d,
+        "projected_revenue_90d": growth.projected_revenue_90d
+    }
+
+
+@app.get("/business/analytics/burn-rate")
+async def get_burn_rate():
+    """Get burn rate and runway metrics."""
+    analytics = get_analytics()
+    burn = analytics.calculate_burn_rate()
+    return {
+        "monthly_burn_rate": burn.monthly_burn_rate,
+        "monthly_revenue_run_rate": burn.monthly_revenue_run_rate,
+        "runway_months": round(burn.runway_months, 1),
+        "operational_costs": burn.operational_costs,
+        "infrastructure_costs": burn.infrastructure_costs,
+        "marketing_costs": burn.marketing_costs
+    }
+
+
+# ==================== Memory Endpoints ====================
+
+@app.post("/memory/store")
+async def store_memory(
+    content: str,
+    memory_type: str = "conversation",
+    metadata: Optional[Dict] = None
+):
+    """Store new memory entry."""
+    memory = get_memory()
+    entry = memory.store(content, memory_type, metadata)
+    return {"entry_id": entry.entry_id, "created_at": entry.created_at}
+
+
+@app.post("/memory/retrieve")
+async def retrieve_memory(
+    query: str,
+    memory_type: Optional[str] = None,
+    limit: int = 5
+):
+    """Retrieve memories similar to query."""
+    memory = get_memory()
+    entries = memory.retrieve(query, memory_type, limit)
+    return {
+        "entries": [
+            {
+                "id": e.entry_id,
+                "type": e.memory_type,
+                "content": e.content,
+                "relevance_score": round(e.relevance_score, 3),
+                "created_at": e.created_at
+            }
+            for e in entries
+        ]
+    }
+
+
+@app.get("/memory/stats")
+async def get_memory_stats():
+    """Get memory system statistics."""
+    memory = get_memory()
+    return memory.get_stats()
+
+
+@app.get("/memory/history")
+async def get_memory_history(memory_type: str = None, limit: int = 100):
+    """Get memory history."""
+    memory = get_memory()
+    if memory_type:
+        entries = memory.storage.get_entries_by_type(memory_type, limit)
+    else:
+        entries = memory.storage.get_recent_entries(limit)
+    return {
+        "entries": [
+            {
+                "id": e.entry_id,
+                "type": e.memory_type,
+                "content": e.content,
+                "access_count": e.access_count,
+                "created_at": e.created_at
+            }
+            for e in entries
+        ]
+    }
 
 
 # ==================== OpenHands Connector Endpoints ====================
