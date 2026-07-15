@@ -29,10 +29,17 @@ from app.core.security_ext import (
 from app.intelligence.gateway import get_gateway
 from app.intelligence.memory import get_memory
 from app.development.openhands_connector import get_connector
+from app.development.testing_center import get_testing_center
 from app.business.revenue import get_revenue_manager
 from app.business.finance import get_finance_ledger, TransactionType, Category
 from app.business.analytics import get_analytics
 from app.business.product import get_product_center, ProductType, PricingModel
+from app.enterprise.notification import (
+    get_notification_center, 
+    NotificationPriority, 
+    NotificationChannel,
+    RevenueNotifier
+)
 from app.enterprise.hub import get_enterprise_hub, EventType
 
 # Configure logging
@@ -627,20 +634,179 @@ async def verify_token(token: str):
 async def submit_task(request: TaskRequest):
     """Submit execution task."""
     connector = get_connector()
-    task_id = await connector.submit_task(request.command, request.args)
-    return {"task_id": task_id, "status": "queued"}
+    task = await connector.create_task(request.task_type, request.prompt, request.context)
+    return {"task_id": task.task_id, "status": task.status}
 
 
 @app.get("/connector/task/{task_id}")
 async def get_task_status(task_id: str):
     """Get task status."""
     connector = get_connector()
-    status = connector.get_task_status(task_id)
-    
-    if not status:
+    task = connector.get_task(task_id)
+    if not task:
         raise HTTPException(status_code=404, detail="Task not found")
+    return {
+        "task_id": task.task_id,
+        "status": task.status,
+        "result": task.result,
+        "created_at": task.created_at,
+        "completed_at": task.completed_at
+    }
+
+
+# ==================== Notification Center Endpoints ====================
+
+@app.post("/notifications/send")
+async def send_notification(
+    event_type: str,
+    title: str,
+    message: str,
+    priority: str = "normal",
+    channels: str = "console"
+):
+    """
+    Send a notification through specified channels.
+    Channels: console, webhook, email (comma-separated)
+    """
+    nc = get_notification_center()
     
-    return status
+    priority_enum = NotificationPriority(priority)
+    channel_list = [
+        NotificationChannel(c.strip()) 
+        for c in channels.split(",")
+    ]
+    
+    notification_id = nc.notify(
+        event_type=event_type,
+        title=title,
+        message=message,
+        priority=priority_enum,
+        channels=channel_list
+    )
+    
+    return {
+        "notification_id": notification_id,
+        "status": "queued"
+    }
+
+
+@app.post("/notifications/critical")
+async def send_critical_notification(
+    event_type: str,
+    title: str,
+    message: str
+):
+    """Send critical notification to all channels."""
+    nc = get_notification_center()
+    
+    notification_id = nc.notify_critical(
+        event_type=event_type,
+        title=title,
+        message=message
+    )
+    
+    return {
+        "notification_id": notification_id,
+        "status": "queued",
+        "priority": "critical"
+    }
+
+
+@app.get("/notifications/recent")
+async def get_recent_notifications(limit: int = 50):
+    """Get recent notifications."""
+    nc = get_notification_center()
+    return {"notifications": nc.get_recent(limit)}
+
+
+@app.get("/notifications/stats")
+async def get_notification_stats():
+    """Get notification statistics."""
+    nc = get_notification_center()
+    return nc.get_stats()
+
+
+@app.post("/notifications/immediate")
+async def send_immediate_notification(
+    title: str,
+    message: str,
+    channel: str = "console"
+):
+    """Send immediate notification (bypasses queue)."""
+    nc = get_notification_center()
+    channel_enum = NotificationChannel(channel)
+    
+    success = await nc.send_immediate(title, message, channel_enum)
+    
+    return {
+        "success": success,
+        "channel": channel
+    }
+
+
+# ==================== Testing Center Endpoints ====================
+
+@app.get("/dev/tests/discover")
+async def discover_tests():
+    """Discover all available tests."""
+    tc = get_testing_center()
+    tests = tc.discover_tests()
+    return {
+        "total_tests": len(tests),
+        "tests": [
+            {
+                "name": t.test_name,
+                "file": t.file_path,
+                "module": t.module_name
+            }
+            for t in tests
+        ]
+    }
+
+
+@app.post("/dev/diagnostics/run")
+async def run_diagnostics(include_health: bool = True):
+    """
+    Run full diagnostic suite.
+    Auto-discovers tests, runs pytest, checks health.
+    Returns JSON summary.
+    """
+    tc = get_testing_center()
+    result = await tc.run_diagnostics(include_health)
+    
+    return tc.get_summary()
+
+
+@app.get("/dev/diagnostics/summary")
+async def get_diagnostics_summary():
+    """Get last diagnostic summary."""
+    tc = get_testing_center()
+    return tc.get_summary()
+
+
+@app.get("/dev/health")
+async def get_quick_health():
+    """Quick health check without full test run."""
+    tc = get_testing_center()
+    return tc.run_quick_health()
+
+
+# ==================== OpenHands Connector Endpoints (continued) ====================
+
+@app.get("/connector/tasks")
+async def list_tasks():
+    """List all tasks."""
+    connector = get_connector()
+    tasks = connector.list_tasks()
+    return {"tasks": tasks}
+
+
+@app.delete("/connector/task/{task_id}")
+async def cancel_task(task_id: str):
+    """Cancel a task."""
+    connector = get_connector()
+    success = connector.cancel_task(task_id)
+    return {"success": success, "task_id": task_id}
 
 
 @app.get("/connector/status")
