@@ -1,0 +1,420 @@
+"""
+MAHALAKSMI AIOS v1.0 - Master Application
+FastAPI High-Performance Enterprise Application
+"""
+import asyncio
+import logging
+from contextlib import asynccontextmanager
+from typing import Dict, Any, Optional
+
+from fastapi import FastAPI, HTTPException, Depends, Header
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
+# Import configuration
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+from config.settings import settings
+
+# Import all system components
+from app.core.engine import get_engine, initialize_system, shutdown_system, SystemState
+from app.core.security import get_security_manager, Permission
+from app.intelligence.gateway import get_gateway
+from app.development.openhands_connector import get_connector
+from app.business.revenue import get_revenue_manager
+from app.business.finance import get_finance_ledger, TransactionType, Category
+from app.enterprise.hub import get_enterprise_hub, EventType
+
+# Configure logging
+logging.basicConfig(
+    level=getattr(logging, settings.log_level),
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
+
+
+# ==================== Pydantic Models ====================
+
+class HealthResponse(BaseModel):
+    status: str
+    version: str
+    system_state: str
+    uptime_seconds: float
+
+
+class ChatRequest(BaseModel):
+    message: str
+    conversation_id: Optional[str] = None
+    system_prompt: Optional[str] = None
+
+
+class ChatResponse(BaseModel):
+    response: str
+    conversation_id: str
+    provider: str
+
+
+class RevenueRequest(BaseModel):
+    source: str
+    amount: float
+    payment_method: str = "bank_transfer"
+
+
+class DisbursementRequest(BaseModel):
+    amount: float
+    method: str = "bank_transfer"
+
+
+class LoginRequest(BaseModel):
+    username: str
+    password: Optional[str] = None
+
+
+class TaskRequest(BaseModel):
+    command: str
+    args: Dict[str, Any] = {}
+
+
+# ==================== Lifespan Management ====================
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan management."""
+    logger.info("🚀 Starting MAHALAKSMI AIOS v1.0...")
+    
+    # Initialize core engine
+    await initialize_system()
+    
+    # Start enterprise hub
+    hub = get_enterprise_hub()
+    await hub.start()
+    
+    # Start OpenHands connector
+    connector = get_connector()
+    await connector.start()
+    
+    logger.info("✅ MAHALAKSMI AIOS Ready!")
+    
+    yield
+    
+    # Shutdown
+    logger.info("🛑 Shutting down MAHALAKSMI AIOS...")
+    await connector.stop()
+    await hub.stop()
+    await shutdown_system()
+    logger.info("👋 Shutdown complete")
+
+
+# ==================== FastAPI Application ====================
+
+app = FastAPI(
+    title="MAHALAKSMI AIOS v1.0",
+    description="Enterprise AI Operating System",
+    version="1.0.0",
+    lifespan=lifespan
+)
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# ==================== Health & Status Endpoints ====================
+
+@app.get("/", response_model=Dict)
+async def root():
+    """Root endpoint."""
+    return {
+        "name": "MAHALAKSMI AIOS",
+        "version": "1.0.0",
+        "status": "running",
+        "docs": "/docs"
+    }
+
+
+@app.get("/health", response_model=HealthResponse)
+async def health_check():
+    """Health check endpoint."""
+    engine = get_engine()
+    status = engine.get_status()
+    
+    return HealthResponse(
+        status="healthy" if status["system"]["state"] == "running" else "degraded",
+        version="1.0.0",
+        system_state=status["system"]["state"],
+        uptime_seconds=status["system"].get("uptime_seconds", 0)
+    )
+
+
+@app.get("/status")
+async def get_status():
+    """Get comprehensive system status."""
+    engine = get_engine()
+    gateway = get_gateway()
+    connector = get_connector()
+    revenue = get_revenue_manager()
+    finance = get_finance_ledger()
+    hub = get_enterprise_hub()
+    
+    return {
+        "system": engine.get_status(),
+        "intelligence": gateway.get_status(),
+        "connector": connector.get_status(),
+        "revenue": revenue.get_summary(),
+        "finance": finance.get_summary(),
+        "enterprise": hub.get_status()
+    }
+
+
+# ==================== Authentication Endpoints ====================
+
+@app.post("/auth/login")
+async def login(request: LoginRequest):
+    """Login and get access token."""
+    security = get_security_manager()
+    token = security.authenticate(request.username, request.password)
+    
+    if not token:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "username": request.username
+    }
+
+
+@app.get("/auth/users")
+async def list_users():
+    """List all users."""
+    security = get_security_manager()
+    return {"users": security.list_users()}
+
+
+@app.get("/auth/rbac")
+async def get_rbac_matrix():
+    """Get RBAC permission matrix."""
+    security = get_security_manager()
+    return {"rbac_matrix": security.get_rbac_matrix()}
+
+
+# ==================== AI/Intelligence Endpoints ====================
+
+@app.post("/ai/chat", response_model=ChatResponse)
+async def chat(request: ChatRequest):
+    """Chat with AI."""
+    gateway = get_gateway()
+    
+    response = await gateway.generate(
+        prompt=request.message,
+        conversation_id=request.conversation_id,
+        system_prompt=request.system_prompt
+    )
+    
+    return ChatResponse(
+        response=response.content,
+        conversation_id=request.conversation_id or gateway.conversations and list(gateway.conversations.keys())[-1] or "",
+        provider=response.provider.value
+    )
+
+
+@app.post("/ai/conversation")
+async def create_conversation():
+    """Create new conversation."""
+    gateway = get_gateway()
+    conv_id = gateway.create_conversation()
+    return {"conversation_id": conv_id}
+
+
+# ==================== Revenue Endpoints ====================
+
+@app.post("/revenue/record")
+async def record_revenue(request: RevenueRequest):
+    """Record new revenue."""
+    revenue = get_revenue_manager()
+    transaction = await revenue.record_digital_revenue(
+        source=request.source,
+        amount=request.amount,
+        payment_method=request.payment_method
+    )
+    
+    # Emit event
+    hub = get_enterprise_hub()
+    await hub.emit_event(
+        EventType.REVENUE_RECEIVED,
+        source="revenue_api",
+        data={
+            "transaction_id": transaction.transaction_id,
+            "amount": transaction.amount,
+            "ceo_share": transaction.ceo_share
+        }
+    )
+    
+    return {
+        "status": "recorded",
+        "transaction": {
+            "id": transaction.transaction_id,
+            "amount": transaction.amount,
+            "ceo_share": transaction.ceo_share,
+            "status": transaction.status.value
+        }
+    }
+
+
+@app.post("/revenue/disbursement")
+async def request_disbursement(request: DisbursementRequest):
+    """Request CEO disbursement."""
+    revenue = get_revenue_manager()
+    disbursement = await revenue.request_ceo_disbursement(
+        amount=request.amount,
+        method=request.method
+    )
+    
+    # Emit event
+    hub = get_enterprise_hub()
+    await hub.emit_event(
+        EventType.DISBURSEMENT_COMPLETED,
+        source="revenue_api",
+        data={
+            "request_id": disbursement.request_id,
+            "amount": disbursement.amount
+        }
+    )
+    
+    return {
+        "status": disbursement.status,
+        "disbursement": {
+            "id": disbursement.request_id,
+            "amount": disbursement.amount,
+            "transaction_id": disbursement.transaction_id
+        }
+    }
+
+
+@app.get("/revenue/summary")
+async def get_revenue_summary():
+    """Get revenue summary."""
+    revenue = get_revenue_manager()
+    return revenue.get_summary()
+
+
+# ==================== Finance Endpoints ====================
+
+@app.get("/finance/balance")
+async def get_balance():
+    """Get current balance."""
+    finance = get_finance_ledger()
+    return {"balance": finance.get_balance()}
+
+
+@app.get("/finance/summary")
+async def get_finance_summary(period: str = None):
+    """Get finance summary."""
+    finance = get_finance_ledger()
+    return finance.get_summary(period)
+
+
+@app.post("/finance/expense")
+async def record_expense(
+    amount: float,
+    description: str,
+    category: str = "operations"
+):
+    """Record expense."""
+    finance = get_finance_ledger()
+    entry = finance.add_entry(
+        TransactionType.EXPENSE,
+        Category(category),
+        amount,
+        description
+    )
+    return {"entry_id": entry.entry_id, "balance": entry.balance_after}
+
+
+# ==================== OpenHands Connector Endpoints ====================
+
+@app.post("/connector/task")
+async def submit_task(request: TaskRequest):
+    """Submit execution task."""
+    connector = get_connector()
+    task_id = await connector.submit_task(request.command, request.args)
+    return {"task_id": task_id, "status": "queued"}
+
+
+@app.get("/connector/task/{task_id}")
+async def get_task_status(task_id: str):
+    """Get task status."""
+    connector = get_connector()
+    status = connector.get_task_status(task_id)
+    
+    if not status:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    return status
+
+
+@app.get("/connector/status")
+async def get_connector_status():
+    """Get connector status."""
+    connector = get_connector()
+    return connector.get_status()
+
+
+# ==================== Enterprise Hub Endpoints ====================
+
+@app.get("/enterprise/events")
+async def get_events(event_type: str = None, limit: int = 100):
+    """Get event history."""
+    hub = get_enterprise_hub()
+    
+    event_enum = None
+    if event_type:
+        try:
+            event_enum = EventType(event_type)
+        except ValueError:
+            pass
+    
+    return {
+        "events": hub.pubsub.get_event_history(event_enum, limit)
+    }
+
+
+@app.get("/enterprise/subscriptions")
+async def get_subscriptions():
+    """Get active subscriptions."""
+    hub = get_enterprise_hub()
+    return {"subscriptions": hub.pubsub.get_subscriptions()}
+
+
+# ==================== Debug Endpoints ====================
+
+@app.post("/debug/seed")
+async def seed_demo_data():
+    """Seed demo data for testing."""
+    revenue = get_revenue_manager()
+    finance = get_finance_ledger()
+    
+    # Record demo revenue
+    await revenue.record_digital_revenue(
+        source="digital_products",
+        amount=417900145,
+        payment_method="qris"
+    )
+    
+    # Record some expenses
+    finance.record_cost("OpenAI API", 150000, "2026-07")
+    finance.record_cost("Vercel Hosting", 250000, "2026-07")
+    finance.add_entry(TransactionType.EXPENSE, Category.MARKETING, 500000, "Marketing campaign")
+    
+    return {"status": "Demo data seeded"}
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host=settings.host, port=settings.port)
