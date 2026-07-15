@@ -20,12 +20,19 @@ from config.settings import settings
 # Import all system components
 from app.core.engine import get_engine, initialize_system, shutdown_system, SystemState
 from app.core.security import get_security_manager, Permission
+from app.core.security_ext import (
+    SecurityMiddleware, 
+    get_crypto, 
+    get_jwt_manager, 
+    get_license_generator
+)
 from app.intelligence.gateway import get_gateway
 from app.intelligence.memory import get_memory
 from app.development.openhands_connector import get_connector
 from app.business.revenue import get_revenue_manager
 from app.business.finance import get_finance_ledger, TransactionType, Category
 from app.business.analytics import get_analytics
+from app.business.product import get_product_center, ProductType, PricingModel
 from app.enterprise.hub import get_enterprise_hub, EventType
 
 # Configure logging
@@ -125,6 +132,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Security middleware for logging and injection prevention
+app.add_middleware(SecurityMiddleware)
 
 
 # ==================== Health & Status Endpoints ====================
@@ -468,6 +478,147 @@ async def get_memory_history(memory_type: str = None, limit: int = 100):
             for e in entries
         ]
     }
+
+
+# ==================== Product Center Endpoints ====================
+
+@app.get("/products")
+async def list_products():
+    """List all available products."""
+    product_center = get_product_center()
+    return {"products": product_center.list_products()}
+
+
+@app.get("/products/{product_id}")
+async def get_product(product_id: str):
+    """Get product details."""
+    product_center = get_product_center()
+    product = product_center.get_product(product_id)
+    
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    return {
+        "product_id": product.product_id,
+        "name": product.name,
+        "description": product.description,
+        "type": product.product_type.value,
+        "pricing_model": product.pricing_model.value,
+        "price": product.price,
+        "currency": product.currency,
+        "license_duration_days": product.license_duration_days,
+        "version": product.version
+    }
+
+
+@app.post("/products/purchase")
+async def purchase_product(
+    product_id: str,
+    customer_id: str,
+    customer_name: str,
+    customer_email: str,
+    payment_amount: float
+):
+    """
+    Purchase product and automatically generate license.
+    Links payment to Revenue Engine and generates cryptographic license key.
+    """
+    product_center = get_product_center()
+    
+    try:
+        result = product_center.purchase_and_activate(
+            product_id=product_id,
+            customer_id=customer_id,
+            customer_name=customer_name,
+            customer_email=customer_email,
+            payment_amount=payment_amount
+        )
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/products/validate-license")
+async def validate_license(license_key: str):
+    """Validate a license key."""
+    product_center = get_product_center()
+    result = product_center.validate_license(license_key)
+    return result
+
+
+@app.get("/products/customer/{customer_id}")
+async def get_customer_portal(customer_id: str):
+    """Get customer dashboard with all licenses."""
+    product_center = get_product_center()
+    return product_center.get_customer_portal(customer_id)
+
+
+@app.get("/products/stats")
+async def get_product_stats():
+    """Get product catalog statistics."""
+    product_center = get_product_center()
+    return product_center.get_catalog_stats()
+
+
+# ==================== Security Endpoints ====================
+
+@app.get("/security/audit-log")
+async def get_audit_log(limit: int = 100, event_type: str = None):
+    """Get security audit log."""
+    # This would need to be accessed through the middleware
+    # For now, return placeholder
+    return {
+        "message": "Security audit log available",
+        "limit": limit,
+        "event_type": event_type
+    }
+
+
+@app.post("/security/encrypt")
+async def encrypt_data(data: str):
+    """Encrypt data using Fernet."""
+    crypto = get_crypto()
+    encrypted = crypto.encrypt(data)
+    return {"encrypted": encrypted}
+
+
+@app.post("/security/decrypt")
+async def decrypt_data(encrypted_data: str):
+    """Decrypt data using Fernet."""
+    crypto = get_crypto()
+    try:
+        decrypted = crypto.decrypt(encrypted_data)
+        return {"decrypted": decrypted}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/security/token")
+async def create_token(
+    user_id: str,
+    username: str,
+    role: str = "user"
+):
+    """Create JWT token."""
+    jwt_manager = get_jwt_manager()
+    token = jwt_manager.create_token({
+        "user_id": user_id,
+        "username": username,
+        "role": role
+    })
+    return {"access_token": token, "token_type": "bearer"}
+
+
+@app.post("/security/token/verify")
+async def verify_token(token: str):
+    """Verify JWT token."""
+    jwt_manager = get_jwt_manager()
+    payload = jwt_manager.verify_token(token)
+    
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
+    return {"valid": True, "payload": payload}
 
 
 # ==================== OpenHands Connector Endpoints ====================
