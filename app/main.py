@@ -54,7 +54,9 @@ from app.enterprise.mission_control import (
 )
 from app.enterprise.monitoring import get_monitoring_center
 from app.enterprise.backup import get_backup_center
+from app.enterprise.disaster_recovery import get_disaster_recovery_engine, SystemState
 from app.enterprise.hub import get_enterprise_hub, EventType
+from app.business.customer import get_customer_center, CustomerStatus, TicketPriority, TicketStatus
 
 # Configure logging
 logging.basicConfig(
@@ -1587,6 +1589,192 @@ async def get_subscriptions():
     """Get active subscriptions."""
     hub = get_enterprise_hub()
     return {"subscriptions": hub.pubsub.get_subscriptions()}
+
+
+# ==================== Disaster Recovery Endpoints ====================
+
+@app.get("/enterprise/dr/status")
+async def get_dr_status():
+    """Get disaster recovery status."""
+    dr = get_disaster_recovery_engine()
+    return dr.get_dr_status()
+
+
+@app.post("/enterprise/dr/health-check")
+async def run_health_check():
+    """Run health check on all components."""
+    dr = get_disaster_recovery_engine()
+    return dr.perform_health_check()
+
+
+@app.post("/enterprise/dr/failover")
+async def initiate_failover(reason: str = "Manual failover"):
+    """Initiate system failover."""
+    dr = get_disaster_recovery_engine()
+    record = dr.initiate_failover(reason)
+    return {
+        "failover_id": record.failover_id,
+        "previous_state": record.previous_state.value,
+        "new_state": record.new_state.value,
+        "components_affected": record.components_affected,
+        "status": record.status.value
+    }
+
+
+@app.post("/enterprise/dr/recover")
+async def execute_recovery():
+    """Execute recovery plan."""
+    dr = get_disaster_recovery_engine()
+    plan = dr.execute_recovery()
+    return {
+        "recovery_id": plan.recovery_id,
+        "steps": plan.steps,
+        "estimated_duration_minutes": plan.estimated_duration_minutes
+    }
+
+
+@app.post("/enterprise/dr/complete")
+async def complete_recovery():
+    """Complete recovery and return to normal state."""
+    dr = get_disaster_recovery_engine()
+    success = dr.complete_recovery()
+    return {"success": success, "state": "normal"}
+
+
+# ==================== Customer Center / CRM Endpoints ====================
+
+@app.post("/business/customer/profiles")
+async def create_customer(
+    name: str,
+    email: str,
+    phone: str = "",
+    metadata: str = "{}"
+):
+    """Create a new customer profile."""
+    import json
+    meta = json.loads(metadata) if isinstance(metadata, str) else metadata
+    
+    customer = get_customer_center().create_customer(name, email, phone, meta)
+    
+    return {
+        "customer_id": customer.customer_id,
+        "name": customer.name,
+        "email": customer.email,
+        "status": customer.status.value
+    }
+
+
+@app.get("/business/customer/profiles/{customer_id}")
+async def get_customer_profile(customer_id: str):
+    """Get customer profile."""
+    customer = get_customer_center().get_customer(customer_id)
+    if not customer:
+        return {"error": "Customer not found"}
+    
+    return {
+        "customer_id": customer.customer_id,
+        "name": customer.name,
+        "email": customer.email,
+        "phone": customer.phone,
+        "status": customer.status.value,
+        "total_purchases": customer.total_purchases,
+        "total_spent": customer.total_spent,
+        "clv_score": round(customer.clv_score, 2),
+        "churn_probability": round(customer.churn_probability * 100, 1),
+        "ticket_count": customer.ticket_count
+    }
+
+
+@app.get("/business/customer/profiles")
+async def list_customers(status: str = None):
+    """List all customers."""
+    cstatus = None
+    if status:
+        try:
+            cstatus = CustomerStatus(status)
+        except:
+            pass
+    
+    return {"customers": get_customer_center().list_customers(cstatus)}
+
+
+@app.post("/business/customer/tickets")
+async def create_ticket(
+    customer_id: str,
+    subject: str,
+    description: str,
+    priority: str = "medium"
+):
+    """Create a support ticket."""
+    p = TicketPriority(priority)
+    ticket = get_customer_center().create_ticket(customer_id, subject, description, p)
+    
+    return {
+        "ticket_id": ticket.ticket_id,
+        "customer_id": ticket.customer_id,
+        "subject": ticket.subject,
+        "priority": ticket.priority.value,
+        "status": ticket.status.value
+    }
+
+
+@app.get("/business/customer/tickets/{ticket_id}")
+async def get_ticket(ticket_id: str):
+    """Get ticket details."""
+    ticket = get_customer_center().get_ticket(ticket_id)
+    if not ticket:
+        return {"error": "Ticket not found"}
+    
+    return {
+        "ticket_id": ticket.ticket_id,
+        "customer_id": ticket.customer_id,
+        "subject": ticket.subject,
+        "description": ticket.description,
+        "priority": ticket.priority.value,
+        "status": ticket.status.value,
+        "created_at": ticket.created_at,
+        "resolved_at": ticket.resolved_at
+    }
+
+
+@app.post("/business/customer/tickets/{ticket_id}/status")
+async def update_ticket_status(ticket_id: str, status: str):
+    """Update ticket status."""
+    s = TicketStatus(status)
+    success = get_customer_center().update_ticket_status(ticket_id, s)
+    return {"success": success}
+
+
+@app.get("/business/customer/{customer_id}/tickets")
+async def get_customer_tickets(customer_id: str):
+    """Get tickets for a customer."""
+    return {"tickets": get_customer_center().get_customer_tickets(customer_id)}
+
+
+@app.post("/business/customer/purchases")
+async def record_purchase(
+    customer_id: str,
+    product_id: str,
+    product_name: str,
+    amount: float
+):
+    """Record a customer purchase."""
+    success = get_customer_center().record_purchase(
+        customer_id, product_id, product_name, amount
+    )
+    return {"success": success}
+
+
+@app.get("/business/customer/analytics")
+async def get_customer_analytics(customer_id: str):
+    """Get customer analytics."""
+    return get_customer_center().get_customer_analytics(customer_id)
+
+
+@app.get("/business/customer/overview")
+async def get_customer_overview():
+    """Get overall customer analytics."""
+    return get_customer_center().get_overall_analytics()
 
 
 # ==================== Debug Endpoints ====================
