@@ -1,6 +1,7 @@
 """
 MAHALAKSMI AIOS v1.0 - Volume II: Intelligence Gateway
 Dynamic Multi-Model AI Gateway with query routing, context tracking, and fallbacks
+PRODUCTION: Real Google GenAI SDK Integration
 """
 import asyncio
 import logging
@@ -18,6 +19,15 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from config.settings import settings
 
 logger = logging.getLogger(__name__)
+
+# Try to import Google GenAI SDK for production use
+try:
+    import google.generativeai as genai
+    GENAI_AVAILABLE = True
+    logger.info("Google GenAI SDK loaded - Production mode enabled")
+except ImportError:
+    GENAI_AVAILABLE = False
+    logger.warning("Google GenAI SDK not available - Using HTTP fallback")
 
 
 class AIProvider(Enum):
@@ -70,9 +80,11 @@ class IntelligenceGateway:
     """
     Multi-Model AI Gateway.
     Handles query routing, context tracking, and automatic fallbacks.
+    PRODUCTION: Uses Google GenAI SDK for Gemini, with HTTP fallback for others.
     """
     
     def __init__(self):
+        # Configure providers
         self.provider_configs: Dict[AIProvider, Dict[str, Any]] = {
             AIProvider.GEMINI: {
                 "name": "Google Gemini",
@@ -80,7 +92,8 @@ class IntelligenceGateway:
                 "max_tokens": 8192,
                 "enabled": bool(settings.gemini_api_key),
                 "api_key": settings.gemini_api_key,
-                "endpoint": "https://generativelanguage.googleapis.com/v1beta/models"
+                "endpoint": "https://generativelanguage.googleapis.com/v1beta/models",
+                "use_sdk": GENAI_AVAILABLE and bool(settings.gemini_api_key)
             },
             AIProvider.OPENAI: {
                 "name": "OpenAI ChatGPT",
@@ -88,7 +101,8 @@ class IntelligenceGateway:
                 "max_tokens": 4096,
                 "enabled": bool(settings.openai_api_key),
                 "api_key": settings.openai_api_key,
-                "endpoint": "https://api.openai.com/v1/chat/completions"
+                "endpoint": "https://api.openai.com/v1/chat/completions",
+                "use_sdk": False
             },
             AIProvider.ANTHROPIC: {
                 "name": "Anthropic Claude",
@@ -96,15 +110,29 @@ class IntelligenceGateway:
                 "max_tokens": 4096,
                 "enabled": bool(settings.anthropic_api_key),
                 "api_key": settings.anthropic_api_key,
-                "endpoint": "https://api.anthropic.com/v1/messages"
+                "endpoint": "https://api.anthropic.com/v1/messages",
+                "use_sdk": False
             }
         }
+        
+        # Initialize GenAI SDK if available
+        if GENAI_AVAILABLE and settings.gemini_api_key:
+            try:
+                genai.configure(api_key=settings.gemini_api_key)
+                self.genai_model = genai.GenerativeModel(self.provider_configs[AIProvider.GEMINI]["model"])
+                logger.info(f"GenAI SDK initialized with model: {self.provider_configs[AIProvider.GEMINI]['model']}")
+            except Exception as e:
+                logger.error(f"Failed to initialize GenAI SDK: {e}")
+                self.genai_model = None
+        else:
+            self.genai_model = None
         
         self.conversations: Dict[str, ConversationContext] = {}
         self.primary_provider = self._get_primary_provider()
         self.fallback_chain: List[AIProvider] = self._build_fallback_chain()
         
         logger.info(f"Intelligence Gateway initialized with primary: {self.primary_provider}")
+        logger.info(f"GenAI SDK Available: {GENAI_AVAILABLE}, Model Loaded: {self.genai_model is not None}")
     
     def _get_primary_provider(self) -> AIProvider:
         """Get primary AI provider based on settings."""
@@ -229,7 +257,87 @@ class IntelligenceGateway:
         max_tokens: Optional[int],
         start_time: float
     ) -> AIResponse:
-        """Call Google Gemini API."""
+        """Call Google Gemini API using SDK or HTTP fallback."""
+        
+        # Try SDK first if available
+        if config.get("use_sdk") and self.genai_model:
+            return await self._call_gemini_sdk(config, messages, temperature, max_tokens, start_time)
+        
+        # Fallback to HTTP
+        return await self._call_gemini_http(config, messages, temperature, max_tokens, start_time)
+    
+    async def _call_gemini_sdk(
+        self,
+        config: Dict,
+        messages: List[Dict[str, str]],
+        temperature: float,
+        max_tokens: Optional[int],
+        start_time: float
+    ) -> AIResponse:
+        """Call Google Gemini API using official GenAI SDK."""
+        try:
+            # Build prompt from messages
+            system_prompt = ""
+            user_prompt = ""
+            
+            for msg in messages:
+                if msg["role"] == "system":
+                    system_prompt = msg["content"]
+                elif msg["role"] == "user":
+                    user_prompt = msg["content"]
+            
+            # Build full prompt
+            full_prompt = user_prompt
+            if system_prompt:
+                full_prompt = f"{system_prompt}\n\n{user_prompt}"
+            
+            # Generate response using SDK
+            generation_config = {
+                "temperature": temperature,
+                "max_output_tokens": max_tokens or config["max_tokens"],
+            }
+            
+            response = self.genai_model.generate_content(
+                full_prompt,
+                generation_config=generation_config
+            )
+            
+            content = response.text
+            
+            # Estimate token count (rough: ~4 chars per token)
+            tokens_used = len(content) // 4
+            
+            logger.info(f"GenAI SDK call successful - {len(content)} chars, ~{tokens_used} tokens")
+            
+            return AIResponse(
+                content=content,
+                provider=AIProvider.GEMINI,
+                model=config["model"],
+                tokens_used=tokens_used,
+                latency_ms=(asyncio.get_event_loop().time() - start_time) * 1000,
+                success=True
+            )
+            
+        except Exception as e:
+            error_msg = str(e)
+            logger.error(f"GenAI SDK error: {error_msg}")
+            
+            # Check for quota limit - fallback to HTTP
+            if "quota" in error_msg.lower() or "rate" in error_msg.lower():
+                logger.warning("Gemini quota exceeded - falling back to HTTP")
+                return await self._call_gemini_http(config, messages, temperature, max_tokens, start_time)
+            
+            raise ValueError(f"Gemini SDK error: {error_msg}")
+    
+    async def _call_gemini_http(
+        self,
+        config: Dict,
+        messages: List[Dict[str, str]],
+        temperature: float,
+        max_tokens: Optional[int],
+        start_time: float
+    ) -> AIResponse:
+        """Call Google Gemini API via HTTP (fallback)."""
         if not config["api_key"]:
             raise ValueError("Gemini API key not configured")
         
@@ -383,11 +491,14 @@ class IntelligenceGateway:
         """Get gateway status."""
         return {
             "primary_provider": self.primary_provider.value,
+            "genai_sdk_available": GENAI_AVAILABLE,
+            "genai_model_loaded": self.genai_model is not None,
             "providers": {
                 provider.value: {
                     "name": config["name"],
                     "model": config["model"],
-                    "enabled": config["enabled"]
+                    "enabled": config["enabled"],
+                    "use_sdk": config.get("use_sdk", False)
                 }
                 for provider, config in self.provider_configs.items()
             },
