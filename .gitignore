@@ -1,32 +1,7 @@
-# Environment variables (contains secrets)
+reports/*
+!reports/sales-report-001.json
 .env
-.env.local
-.env.production
-
-# Python
+*.env
 __pycache__/
+.streamlit/
 *.pyc
-.pytest_cache/
-
-# Node
-node_modules/
-npm-debug.log
-
-# OS
-.DS_Store
-Thumbs.db
-
-# IDE
-.vscode/
-.idea/
-
-# Logs
-*.log
-logs/*.md
-
-# Temporary
-*.tmp
-*.bak
-*.db
-*.pid
-logs/
