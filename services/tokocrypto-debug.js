@@ -25,7 +25,7 @@ function testGET(path) {
         
         const options = {
             hostname: 'www.tokocrypto.com',
-            path: `/openapi/v1${path}?${queryString}&signature=${signature}`,
+            path: `/openapi${path}?${queryString}&signature=${signature}`,
             method: 'GET',
             headers: { 'X-MBX-APIKEY': API_KEY }
         };
@@ -93,6 +93,8 @@ async function testPOST(amount) {
                 'Content-Length': Buffer.byteLength(postData)
             }
         };
+        
+        console.log('Posting to:', options.path);
         
         const req = https.request(options, (res) => {
             let data = '';
