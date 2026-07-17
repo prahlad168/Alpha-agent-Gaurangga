@@ -30,3 +30,7 @@ logs/*.md
 *.db
 *.pid
 logs/
+
+# Payout API Keys
+.env.payout
+services/.env.payout

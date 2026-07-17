@@ -1,5 +1,36 @@
 [
   {
+    "timestamp": "2026-07-17T10:32:00+07:00",
+    "event": "MICRO_PAYOUT_TEST_SIMULATION",
+    "description": "Tokocrypto integration test simulation for Rp 20,000 micro-transaction.",
+    "test_details": {
+      "amount_idr": 20000,
+      "btc_price": 89300000,
+      "btc_amount": 0.00022396,
+      "destination_wallet": "1H3FZkKsX6jgTuqA23fduLVtxL7MrtgWe2,
+      "status": "SIMULATION_COMPLETE",
+      "mode": "SIMULATION",
+      "note": "API_SECRET not configured - simulation mode only. For live execution: configure TOKOCRYPTO_API_SECRET in .env.payout"
+    },
+    "txid_simulated": "SIM-TX-1784259167750",
+    "withdraw_txid_simulated": "SIM-WD-1784259167750"
+  },
+  {
+    "timestamp": "2026-07-17T10:30:00+07:00",
+    "event": "TOKOCRYPTO_INTEGRATION_BUILT",
+    "description": "Tokocrypto API integration created. Module: services/tokocrypto.js. Configuration: services/.env.payout",
+    "integration_details": {
+      "api_base_url": "https://www.tokocrypto.com/open/v1",
+      "endpoints": [
+        "GET /market/ticker - Get BTC price",
+        "POST /orders - Place market order",
+        "POST /asset/withdraw - Withdraw BTC"
+      ],
+      "btc_wallet": "1H3FZkKsX6jgTuqA23fduLVtxL7MrtgWe2",
+      "ip_whitelist_required": "34.10.175.217"
+    }
+  },
+  {
     "timestamp": "2026-07-17T02:15:00+07:00",
     "event": "CRITICAL_COMPLIANCE_DIRECTIVE",
     "description": "BTC wallet address updated from bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh to 1H3FZkKsX6jgTuqA23fduLVtxL7MrtgWe2. Native BTC network address verified and locked for production disbursement.",
@@ -23,8 +54,7 @@
       "exchange_rate_idr_per_btc": 89300000,
       "destination_wallet": "1H3FZkKsX6jgTuqA23fduLVtxL7MrtgWe2",
       "network": "BTC (native SegWit)",
-      "status": "SIMULATION_MODE",
-      "note": "Tokocrypto API connection requires live credentials. SIMULATION MODE - Awaiting manual execution or API credentials configuration."
+      "status": "SIMULATION_MODE"
     },
     "txid": null,
     "execution_receipt": "PENDING_MANUAL_EXECUTION"
