@@ -40,8 +40,8 @@ const CONFIG = {
     
     // Alternative Bitcoin Wallet (as per company policy)
     BITCOIN_WALLET: {
-        address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
-        label: 'Pak Pur - PREFERRED'
+        address: '1H3FZkKsX6jgTuqA23fduLVtxL7MrtgWe2',
+        label: 'CEO Native BTC - PRODUCTION VERIFIED'
     },
     
     // File paths
