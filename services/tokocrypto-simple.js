@@ -9,22 +9,21 @@ function createSignature(queryString) {
     return crypto.createHmac('sha256', API_SECRET).update(queryString).digest('hex');
 }
 
-function apiRequest(method, endpoint, params) {
-    return new Promise((resolve, reject) => {
+// Test GET endpoint first
+function testGET() {
+    return new Promise((resolve) => {
         const timestamp = Date.now();
-        let query = `timestamp=${timestamp}`;
-        if (params) {
-            Object.keys(params).sort().forEach(key => {
-                query += `&${key}=${params[key]}`;
-            });
-        }
+        const query = `timestamp=${timestamp}`;
         const signature = createSignature(query);
-        query += `&signature=${signature}`;
+        
+        console.log('\n--- TESTING GET /account/accountInfo ---');
+        console.log('Query: ' + query);
+        console.log('Signature: ' + signature);
         
         const options = {
             hostname: 'www.tokocrypto.com',
-            path: `/open/v1${endpoint}?${query}`,
-            method: method,
+            path: `/open/v1/account/accountInfo?${query}&signature=${signature}`,
+            method: 'GET',
             headers: { 'X-MBX-APIKEY': API_KEY }
         };
         
@@ -32,62 +31,107 @@ function apiRequest(method, endpoint, params) {
             let data = '';
             res.on('data', chunk => data += chunk);
             res.on('end', () => {
-                try { resolve(JSON.parse(data)); }
-                catch (e) { resolve(data); }
+                console.log('Status:', res.statusCode);
+                console.log('Response:', data.substring(0, 300));
+                resolve({ status: res.statusCode, data });
             });
         });
-        req.on('error', reject);
+        req.on('error', e => resolve({ error: e.message }));
+        req.end();
+    });
+}
+
+// POST order with JSON body
+function postOrder(amount) {
+    return new Promise((resolve) => {
+        const timestamp = Date.now();
+        
+        // Build params object
+        const params = {
+            symbol: 'BTC_IDR',
+            symbolType: '3',
+            side: 'BUY',
+            type: '1',
+            quoteQty: amount.toString(),
+            timestamp: timestamp.toString()
+        };
+        
+        // Create query string for signature (sorted keys)
+        const queryParts = [];
+        Object.keys(params).sort().forEach(key => {
+            queryParts.push(`${key}=${params[key]}`);
+        });
+        const queryString = queryParts.join('&');
+        const signature = createSignature(queryString);
+        
+        console.log('\n--- POST /orders ---');
+        console.log('Query string: ' + queryString);
+        console.log('Signature: ' + signature);
+        
+        // Send as JSON body
+        const body = JSON.stringify({
+            symbol: 'BTC_IDR',
+            symbolType: 3,
+            side: 'BUY',
+            type: 1,
+            quoteQty: amount.toString(),
+            timestamp: timestamp,
+            signature: signature
+        });
+        
+        const options = {
+            hostname: 'www.tokocrypto.com',
+            path: '/open/v1/orders',
+            method: 'POST',
+            headers: { 
+                'X-MBX-APIKEY': API_KEY,
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(body)
+            }
+        };
+        
+        const req = https.request(options, (res) => {
+            let data = '';
+            res.on('data', chunk => data += chunk);
+            res.on('end', () => {
+                console.log('Status:', res.statusCode);
+                console.log('Response:', data.substring(0, 500));
+                try { resolve(JSON.parse(data)); }
+                catch (e) { resolve({ raw: data }); }
+            });
+        });
+        req.on('error', e => resolve({ error: e.message }));
+        req.write(body);
         req.end();
     });
 }
 
 async function main() {
-    const amount = parseInt(process.argv[2]) || 20000;
     console.log('==========================================');
     console.log('   MAHA LAKSHMI - CEO PAYOUT');
     console.log('==========================================');
-    console.log('Amount: Rp ' + amount.toLocaleString());
+    console.log('Amount: Rp ' + (parseInt(process.argv[2]) || 20000).toLocaleString());
     console.log('Wallet: ' + BTC_WALLET);
-    console.log('----------------------------------------');
     
     try {
-        console.log('[1/2] Placing BUY order...');
-        const order = await apiRequest('POST', '/orders', {
-            symbol: 'BTC_IDR',
-            symbolType: 3,
-            side: 'BUY',
-            type: 1,
-            quoteQty: amount.toString()
-        });
+        // First test GET to verify signature
+        const getResult = await testGET();
         
-        if (order.success || order.code === 0) {
-            console.log('SUCCESS! Order ID: ' + order.data.orderId);
-            console.log('----------------------------------------');
-            console.log('[2/2] Withdrawing BTC to wallet...');
-            
-            const btcAmount = (amount / 89300000).toFixed(8);
-            const withdraw = await apiRequest('POST', '/asset/withdraw', {
-                coin: 'BTC',
-                amount: btcAmount,
-                address: BTC_WALLET,
-                network: 'BTC'
-            });
-            
-            if (withdraw.success || withdraw.code === 0) {
-                console.log('SUCCESS! Withdrawal TxID: ' + (withdraw.data.txId || withdraw.data.id));
-                console.log('==========================================');
-                console.log('   CEO PAYOUT COMPLETE!');
-                console.log('   BTC: ' + btcAmount);
-                console.log('   Wallet: ' + BTC_WALLET);
-                console.log('==========================================');
-            } else {
-                console.log('WITHDRAW FAILED: ' + JSON.stringify(withdraw));
-            }
+        // Then try POST
+        const amount = parseInt(process.argv[2]) || 20000;
+        const postResult = await postOrder(amount);
+        
+        console.log('\n==========================================');
+        if (postResult.success || postResult.code === 0) {
+            console.log('   CEO PAYOUT SUCCESS!');
+            console.log('   Order ID: ' + postResult.data?.orderId);
         } else {
-            console.log('ORDER FAILED: ' + JSON.stringify(order));
+            console.log('   CEO PAYOUT FAILED');
+            console.log('   Error: ' + JSON.stringify(postResult));
         }
+        console.log('==========================================');
     } catch (e) {
-        console.log('ERROR: ' + e.message);
+        console.log('ERROR:', e.message);
     }
 }
 
