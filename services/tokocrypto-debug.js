@@ -25,7 +25,7 @@ function testGET(path) {
         
         const options = {
             hostname: 'www.tokocrypto.com',
-            path: `/open/v1${path}?${queryString}&signature=${signature}`,
+            path: `/openapi/v1${path}?${queryString}&signature=${signature}`,
             method: 'GET',
             headers: { 'X-MBX-APIKEY': API_KEY }
         };
@@ -85,7 +85,7 @@ async function testPOST(amount) {
         
         const options = {
             hostname: 'www.tokocrypto.com',
-            path: '/open/v1/orders',
+            path: '/openapi/v1/orders',
             method: 'POST',
             headers: { 
                 'X-MBX-APIKEY': API_KEY,
