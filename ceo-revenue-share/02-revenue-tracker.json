@@ -1,17 +1,52 @@
 {
   "company": "MAHA LAKSHMI",
-  "last_updated": "2026-07-14T13:49:00+07:00",
+  "last_updated": "2026-07-17T09:10:00+07:00",
   "currency": "IDR",
   "digital_products": {
     "status": "RECONCILED",
     "total_transactions": 523,
     "gross_revenue": 417900145
   },
+  "national_sales": {
+    "status": "ACTIVE",
+    "report_date": "2026-07-17",
+    "total_revenue": 1000000,
+    "source": "WhatsApp Sales (Bali Travel)",
+    "leads_contacted": 4,
+    "deals_closed": 1,
+    "pipeline_value": 43500000
+  },
+  "global_sales": {
+    "status": "PIPELINE",
+    "total_leads": 50,
+    "total_pipeline_value": 1273500000,
+    "actual_revenue": 0,
+    "regions": {
+      "indonesia": { "leads": 10, "value": 43500000 },
+      "thailand": { "leads": 5, "value": 95000000 },
+      "singapore": { "leads": 5, "value": 125000000 },
+      "malaysia": { "leads": 5, "value": 105000000 },
+      "usa": { "leads": 5, "value": 240000000 },
+      "japan": { "leads": 5, "value": 200000000 },
+      "australia": { "leads": 5, "value": 110000000 },
+      "uk": { "leads": 5, "value": 180000000 },
+      "uae": { "leads": 5, "value": 175000000 }
+    }
+  },
   "revenue_allocation": {
     "ceo_share_pct": 60,
-    "ceo_share_value": 250740087,
-    "operational_reserve_pct": 40,
-    "operational_reserve_value": 167160058
+    "ceo_share_value": 600000,
+    "operational_reserve_pct": 25,
+    "operational_reserve_value": 250000,
+    "team_bonus_pct": 10,
+    "team_bonus_value": 100000,
+    "csr_pct": 5,
+    "csr_value": 50000
   },
-  "system_status": "Awaiting Flip Verification"
+  "bank_info": {
+    "bank": "BCA",
+    "account": "6485086645",
+    "name": "i Made Purna Ananda"
+  },
+  "system_status": "ACTIVE - Sales in Progress"
 }

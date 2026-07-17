@@ -1,5 +1,10 @@
 [
   {
+    "timestamp": "2026-07-17T09:10:00+07:00",
+    "event": "SALES_REPORT_UPDATE",
+    "description": "Updated sales report for 2026-07-17. Indonesia: Rp 1M revenue (Bali Travel), 4 leads contacted, 1 deal closed. Global pipeline: 50 leads, Rp 1.27B potential."
+  },
+  {
     "timestamp": "2026-07-14T13:49:00+07:00",
     "event": "RECONCILIATION_SUCCESS",
     "description": "Rp 417,900,145 injected from global digital sales. CEO Share (60%) calculated at Rp 250,740,087. System waiting for Flip for Business account approval."
