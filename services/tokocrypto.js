@@ -71,10 +71,11 @@ function apiRequest(method, endpoint, params = {}, signed = false) {
         let queryParams = `timestamp=${timestamp}`;
         
         // Add parameters to query string (sorted for signature consistency)
+        // IMPORTANT: Do NOT URL encode values for signature calculation
         if (Object.keys(params).length > 0) {
             const sortedKeys = Object.keys(params).sort();
             for (const key of sortedKeys) {
-                queryParams += `&${key}=${encodeURIComponent(params[key])}`;
+                queryParams += `&${key}=${params[key]}`;
             }
         }
         
