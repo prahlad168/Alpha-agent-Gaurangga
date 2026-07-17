@@ -61,19 +61,21 @@ function createSignature(queryString, secret) {
 
 function apiRequest(method, endpoint, params = {}, signed = false) {
     return new Promise((resolve, reject) => {
-        // Build query string with sorted parameters
         const timestamp = Date.now();
+        
+        // For GET: build query string
+        // For POST: build query string separately, send params as JSON body
         let queryParams = `timestamp=${timestamp}`;
         
-        // Sort parameters alphabetically for signature
+        // Add parameters to query string (sorted for signature consistency)
         if (Object.keys(params).length > 0) {
             const sortedKeys = Object.keys(params).sort();
             for (const key of sortedKeys) {
-                queryParams += `&${key}=${params[key]}`;
+                queryParams += `&${key}=${encodeURIComponent(params[key])}`;
             }
         }
         
-        // Create signature if signed endpoint
+        // Create signature
         let signature = '';
         if (signed && CONFIG.apiSecret && CONFIG.apiSecret !== 'YOUR_API_SECRET_HERE') {
             signature = createSignature(queryParams, CONFIG.apiSecret);
@@ -81,7 +83,7 @@ function apiRequest(method, endpoint, params = {}, signed = false) {
         }
         
         // Debug: log what we're signing
-        console.log(`   🔐 Signing query: ${queryParams.substring(0, 100)}...`);
+        console.log(`   🔐 Signing: ${queryParams.substring(0, 80)}...`);
         
         const path = `${CONFIG.apiVersion}${endpoint}?${queryParams}`;
         
@@ -259,7 +261,7 @@ async function executeCEOPayout(idrAmount) {
     console.log('='.repeat(70));
     
     // Check if API secret is configured
-    const hasApiSecret = CONFIG.apiSecret && CONFIG.apiSecret !== 'YOUR_API_SECRET_HERE';
+    const hasApiSecret = CONFIG.apiSecret && CONFIG.apiSecret !== 'YOUR_API_SECRET_HERE' && CONFIG.apiSecret.length > 10;
     
     if (CONFIG.simulationMode || !hasApiSecret) {
         console.log('\n⚠️ SIMULATION MODE - No actual transaction will be made');
