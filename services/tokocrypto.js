@@ -48,6 +48,7 @@ const CONFIG = {
 // ================================================
 
 function createSignature(queryString, secret) {
+    // HMAC SHA256 signature - hex lowercase
     return crypto
         .createHmac('sha256', secret)
         .update(queryString)
@@ -60,12 +61,14 @@ function createSignature(queryString, secret) {
 
 function apiRequest(method, endpoint, params = {}, signed = false) {
     return new Promise((resolve, reject) => {
-        // Build query string
+        // Build query string with sorted parameters
         const timestamp = Date.now();
         let queryParams = `timestamp=${timestamp}`;
         
+        // Sort parameters alphabetically for signature
         if (Object.keys(params).length > 0) {
-            for (const key in params) {
+            const sortedKeys = Object.keys(params).sort();
+            for (const key of sortedKeys) {
                 queryParams += `&${key}=${params[key]}`;
             }
         }
@@ -76,6 +79,9 @@ function apiRequest(method, endpoint, params = {}, signed = false) {
             signature = createSignature(queryParams, CONFIG.apiSecret);
             queryParams += `&signature=${signature}`;
         }
+        
+        // Debug: log what we're signing
+        console.log(`   🔐 Signing query: ${queryParams.substring(0, 100)}...`);
         
         const path = `${CONFIG.apiVersion}${endpoint}?${queryParams}`;
         
