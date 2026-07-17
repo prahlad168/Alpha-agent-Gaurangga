@@ -48,11 +48,14 @@ const CONFIG = {
 // ================================================
 
 function createSignature(queryString, secret) {
-    // HMAC SHA256 signature - hex lowercase
-    return crypto
+    console.log(`   🔐 Secret length: ${secret.length}`);
+    console.log(`   🔐 Query to sign: ${queryString}`);
+    const sig = crypto
         .createHmac('sha256', secret)
         .update(queryString)
         .digest('hex');
+    console.log(`   🔐 Signature: ${sig}`);
+    return sig;
 }
 
 // ================================================
