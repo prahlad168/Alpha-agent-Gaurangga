@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAURANGA - Alpha Agent | MAHA LAKSHMI CORP</title>
+    <meta name="description" content="Alpha GAURANGA - Executive AI Assistant untuk MAHA LAKSHMI CORP">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="GAURANGA - Alpha Agent">
+    <meta property="og:description" content="Executive AI Assistant untuk MAHA LAKSHMI CORP">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://gaurangga.mahalaksmi.web.id">
+    
+    <!-- Preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --gold: #D4AF37;
+            --dark-gold: #B8960C;
+            --navy: #1a1a2e;
+            --deep-navy: #0f0f1a;
+            --white: #ffffff;
+            --cyan: #00D9FF;
+            --purple: #A855F7;
+            --pink: #FF6B9D;
+            --gray: #94a3b8;
+            --gradient-gold: linear-gradient(135deg, #D4AF37 0%, #F4D03F 50%, #B8960C 100%);
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--navy) 0%, var(--deep-navy) 100%);
+            min-height: 100vh;
+            color: var(--white);
+            overflow-x: hidden;
+        }
+        
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        .glow-orb {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float 20s ease-in-out infinite;
+        }
+        
+        .glow-orb:nth-child(1) {
+            top: -200px;
+            left: -200px;
+        }
+        
+        .glow-orb:nth-child(2) {
+            bottom: -200px;
+            right: -200px;
+            animation-delay: -10s;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(50px, 50px) scale(1.1); }
+        }
+        
+        /* Container */
+        .container {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header */
+        header {
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-gold);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            background: var(--gradient-gold);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            border-radius: 50px;
+            color: #4CAF50;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #4CAF50;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        
+        /* Hero */
+        .hero {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        .hero-title {
+            font-size: clamp(64px, 15vw, 120px);
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+        
+        .hero-title .gold {
+            background: var(--gradient-gold);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero-title .outline {
+            color: transparent;
+            -webkit-text-stroke: 3px var(--gold);
+        }
+        
+        .hero-subtitle {
+            font-size: 20px;
+            color: var(--gray);
+            margin-bottom: 50px;
+            max-width: 600px;
+        }
+        
+        /* Buttons */
+        .buttons {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 18px 36px;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: var(--gradient-gold);
+            color: var(--navy);
+            box-shadow: 0 10px 40px rgba(212, 175, 55, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 50px rgba(212, 175, 55, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            color: var(--white);
+        }
+        
+        .btn-secondary:hover {
+            border-color: var(--gold);
+            background: rgba(212, 175, 55, 0.1);
+        }
+        
+        .btn-icon {
+            font-size: 20px;
+        }
+        
+        /* Quick Actions */
+        .quick-actions {
+            padding: 60px 40px;
+            background: rgba(255, 255, 255, 0.02);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .quick-title {
+            text-align: center;
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .quick-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .quick-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            text-decoration: none;
+            color: var(--white);
+            transition: all 0.3s ease;
+        }
+        
+        .quick-card:hover {
+            border-color: var(--gold);
+            transform: translateY(-3px);
+            background: rgba(212, 175, 55, 0.05);
+        }
+        
+        .quick-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+        
+        .quick-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .quick-desc {
+            font-size: 12px;
+            color: var(--gray);
+        }
+        
+        /* Footer */
+        footer {
+            padding: 30px 40px;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        footer p {
+            color: var(--gray);
+            font-size: 13px;
+        }
+        
+        footer a {
+            color: var(--gold);
+            text-decoration: none;
+        }
+        
+        footer a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Mobile */
+        @media (max-width: 768px) {
+            header {
+                padding: 15px 20px;
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .quick-actions {
+                padding: 40px 20px;
+            }
+        }
+        
+        /* Redirect Notice */
+        .redirect-notice {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 13px;
+            color: var(--gold);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 100;
+            animation: fadeInUp 0.5s ease;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translate(-50%, 20px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+        
+        .redirect-notice .timer {
+            font-weight: 700;
+            min-width: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Animation -->
+    <div class="bg-animation">
+        <div class="glow-orb"></div>
+        <div class="glow-orb"></div>
+    </div>
+    
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <div class="logo-icon">🤖</div>
+                <span class="logo-text">GAURANGA</span>
+            </div>
+            <div class="header-badge">
+                <span class="status-dot"></span>
+                <span>System Active</span>
+            </div>
+        </header>
+        
+        <!-- Hero Section -->
+        <section class="hero">
+            <h1 class="hero-title">
+                <span class="gold">GAURANGA</span><br>
+                <span class="outline">ALPHA</span>
+            </h1>
+            <p class="hero-subtitle">
+                Executive AI Assistant untuk MAHA LAKSHMI CORP
+            </p>
+            
+            <div class="buttons">
+                <a href="app/main.html" class="btn btn-primary">
+                    <i class="btn-icon">🚀</i>
+                    Buka GAURANGA
+                </a>
+                <a href="https://github.com/prahlad168/Alpha-agent-Gaurangga" target="_blank" class="btn btn-secondary">
+                    <i class="btn-icon">📂</i>
+                    GitHub
+                </a>
+            </div>
+        </section>
+        
+        <!-- Quick Actions -->
+        <section class="quick-actions">
+            <p class="quick-title">⚡ Quick Access</p>
+            <div class="quick-grid">
+                <a href="agents/daily-briefing.html" class="quick-card">
+                    <div class="quick-icon">📊</div>
+                    <div class="quick-name">Daily Briefing</div>
+                    <div class="quick-desc">Laporan Harian</div>
+                </a>
+                <a href="agents/sales-agent.html" class="quick-card">
+                    <div class="quick-icon">💰</div>
+                    <div class="quick-name">Sales Agent</div>
+                    <div class="quick-desc">Pipeline & Revenue</div>
+                </a>
+                <a href="agents/marketing-agent.html" class="quick-card">
+                    <div class="quick-icon">📢</div>
+                    <div class="quick-name">Marketing</div>
+                    <div class="quick-desc">Campaign & Content</div>
+                </a>
+                <a href="agents/finance-agent.html" class="quick-card">
+                    <div class="quick-icon">💵</div>
+                    <div class="quick-name">Finance</div>
+                    <div class="quick-desc">Revenue & Transfer</div>
+                </a>
+            </div>
+        </section>
+        
+        <!-- Footer -->
+        <footer>
+            <p>
+                MAHA LAKSHMI CORP &copy; 2026 | 
+                Powered by <a href="https://github.com/prahlad168" target="_blank">@prahlad168</a>
+            </p>
+        </footer>
+    </div>
+    
+    <!-- Redirect Notice -->
+    <div class="redirect-notice" id="redirectNotice">
+        ⏱️ Auto-redirect ke app dalam <span class="timer" id="timer">5</span> detik
+    </div>
+    
+    <script>
+        // Countdown timer
+        let seconds = 5;
+        const timer = document.getElementById('timer');
+        
+        const interval = setInterval(() => {
+            seconds--;
+            timer.textContent = seconds;
+            
+            if (seconds <= 0) {
+                clearInterval(interval);
+                window.location.href = 'app/main.html';
+            }
+        }, 1000);
+        
+        // Hide notice on click
+        document.getElementById('redirectNotice').addEventListener('click', () => {
+            clearInterval(interval);
+            document.getElementById('redirectNotice').style.display = 'none';
+        });
+    </script>
+</body>
+</html>
